@@ -120,6 +120,10 @@ var ProjectPanelView = Backbone.View.extend({
         }
         json.ontologyId = idOntology;
 
+        for (var i =0; i<json.groups.length;i++) {
+            json.groups[i].thumb = json.groups[i].thumb.substring(0, json.groups[i].thumb.indexOf("maxSize=")+"maxSize=".length)+"48";
+        }
+
         if(self.connectionInfo!=null && self.connectionInfo!=undefined) {
             //dateConnection //lastConnection
             json.dateConnection =  window.app.convertLongToDate(self.connectionInfo.date);
@@ -137,9 +141,6 @@ var ProjectPanelView = Backbone.View.extend({
         else {
             $(self.el).append(html);
         }
-        console.log("doLayout.html:" + html.length);
-        console.log("doLayout.el.l:" + $(self.el).length);
-        console.log("doLayout.el.html.l:" + $(self.el).html().length);
         self.renderCurrentProjectButton();
         self.renderShowImageButton(json.numberOfImages);
 

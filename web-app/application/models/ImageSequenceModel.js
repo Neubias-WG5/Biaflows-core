@@ -26,8 +26,20 @@ var ImageSequenceModel = Backbone.Model.extend({
     url: function () {
         var base = 'api/imagesequence';
         var format = '.json';
-        if (this.isNew()) return base + format;
-        return base + (base.charAt(base.length - 1) == '/' ? '' : '/') + this.id + format;
+        if (window.app.isUndefined(this.channel) || window.app.isUndefined(this.zstack) || window.app.isUndefined(this.slice)
+            || window.app.isUndefined(this.time)|| window.app.isUndefined(this.group)) {
+            if (this.isNew()) return base + format;
+            return base + (base.charAt(base.length - 1) == '/' ? '' : '/') + this.id + format;
+        }
+        return "/api/imagegroup/"+ this.group +"/"+this.channel+"/"+this.zstack+"/"+this.slice+"/"+this.time+"/imagesequence.json";
+    },
+
+    initialize: function (options) {
+        this.group = options.group;
+        this.channel = options.channel;
+        this.zstack = options.zstack;
+        this.slice = options.slice;
+        this.time = options.time;
     }
 });
 

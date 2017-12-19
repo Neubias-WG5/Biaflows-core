@@ -38,7 +38,7 @@ var ProjectController = Backbone.Router.extend({
 
             self.view.container.show(self.view, "#project", "project");
             window.app.view.showComponent(window.app.view.components.project);
-        }
+        };
 
 
         window.app.models.projects.fetch({

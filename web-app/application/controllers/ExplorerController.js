@@ -23,6 +23,7 @@ var ExplorerController = Backbone.Router.extend({
         "tabs-image-:idProject-:idImage-": "browseSimple",
         "tabs-imagemergechannel-:idProject-:idImage-": "browseChannel",
         "tabs-image-:idProject-:idImage-:idAnnotation": "browse",
+        "tabs-imagegroup-:idProject-:idGroup": "browseGroup",
         "tabs-review-:idProject-:idImage-": "reviewSimple",
         "tabs-reviewmergechannel-:idProject-:idImage-": "reviewChannel",
         "tabs-useractivity-:idProject-:idUser": "userActivity"
@@ -97,6 +98,26 @@ var ExplorerController = Backbone.Router.extend({
         createBrowseImageViewTab();
     },
 
+    browseGroup: function (idProject, idGroup) {
+
+        var imageGroup = new ImageGroupModel({id:idGroup});
+
+        var callBack = function (){
+            var zStack = imageGroup.zstack;
+            var zMean = zStack[zStack.length/2];
+
+            var imageSeq = new ImageSequenceModel({group: idGroup, zstack : zMean, slice : 0, time: 0,channel:0});
+
+            imageSeq.fetch({
+                success: function (model) {
+                    window.location = '#tabs-image-' + idProject + '-' + model.get("image") + '-0';
+                }
+            });
+
+        };
+
+        imageGroup.feed(callBack);
+    },
     refreshImage: function (idImage){
         var self = this;
         if($.inArray(idImage, $.map(window.app.status.currentImages, function(a) {return Number(a.image)}))>=0) {
