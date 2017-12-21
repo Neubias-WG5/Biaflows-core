@@ -48,15 +48,32 @@ var ImageGroupTabsView = Backbone.View.extend({
 
     doLayout: function () {
         var self = this;
+
+        var actionMenuTpl = "<div class=\"btn-group action<%=  id  %>\">\n" +
+        "    <button class=\"btn btn-info btn-xs exploreMultiDimImage\" id=\"exploreButton<%=  id  %>\" data-id='<%=  id  %>'>Explore</button>\n" +
+        "    <button class=\"btn btn-info btn-xs dropdown-toggle\" data-toggle=\"dropdown\">\n" +
+        "        <span class=\"caret\"></span>\n" +
+        "    </button>\n" +
+        "    <ul class=\"dropdown-menu\">\n" +
+        "        <li><a class=\"exploreMultiDimImage\" href=\"#\" data-id='<%=  id  %>'><i\n" +
+        "                class=\"icon-eye-open icon-black\"></i> Explore</a></li>\n" +
+        "        <li><a class=\"deleteMultiDimImage\" href=\"#\" data-id='<%=  id  %>'><i class=\"glyphicon glyphicon-trash\"></i> Delete</a></li>\n" +
+        "    </ul>\n" +
+        "</div>";
+
         self.groups = [];
-        var isAdmin = window.app.status.currentProjectModel.isAdmin(window.app.models.projectAdmin);
         var table = $(this.el).find("#imageGroupProjectTable" + self.idProject);
-        var body = $(this.el).find("#imageGroupProjectArray" + self.idProject);
         var columns = [
-            { className: 'center', data: "id", targets: [0]},
             { data: "name", defaultContent: "", searchable: true, orderable: true, render : function( data, type, row ) {
-                self.groups.push(row);
                 return data;
+            }, targets: [0]},
+            { data: "macroURL", defaultContent: "", orderable: false, render: function ( data, type, row ) {
+                return _.template("<div style='width : 130px;'><a href='#tabs-image-<%= project %>-<%=  id  %>-0'><img src='<%= thumb %>' alt='originalFilename' style='max-height : 45px;max-width : 128px;'/></a></div>",
+                    {
+                        project : self.idProject,
+                        id : row["id"],
+                        thumb : row["thumb"]+"?maxWidth=128"
+                    });
             }, targets: [1]},
             { data: "channel", defaultContent: "", render : function( data, type, row ) {
                 return'<div id="channel-'+row["id"]+'"></div>';
@@ -70,75 +87,84 @@ var ImageGroupTabsView = Backbone.View.extend({
             { data: "time", defaultContent: "", render : function( data, type, row ) {
                 return'<div id="time-'+row["id"] + '"></div>';
             }, targets: [5]},
-            { data: "hdf5", defaultContent: "", orderable: true, render : function ( data, type, row ) {
-                var grouphdf5 = new ImageGroupHDF5Model({group: row["id"], id: 666});
-                var toRet = '<div id="con-'+row["id"] + '"></div>';
-                grouphdf5.fetch({
-                    success: function (data) {
-                        toRet =  "" + data.get("filenames");
-                        $(self.el).find("#con-"+o.aData.id).append(toRet);
-
-                    },
-                    error: function () {
-                       var tt =  '<div id="convert-allow-<%= id %>"></div>';
-                        toRet = _.template(tt, row);
-                        $(self.el).find("#con-"+row["id"]).append(toRet);
-                    }
-                });
-                return toRet;
+            { orderable: false, render : function( data, type, row ) {
+                return _.template(actionMenuTpl, row);
             }, targets: [6]},
-            { data: "add", defaultContent: "", orderable: true, render : function ( data, type, row ) {
-                var html =    ' <button class="btn btn-info btn-xs" id="add-button-<%=  id  %>">Add Images</button>';
-                return _.template(html, row);
-            }, targets: [7]},
-            { data: "delete", sDefaultContent: "", orderable: true, render : function ( data, type, row ) {
-                var html =    ' <button class="btn btn-info btn-xs" id="delete-button-<%=  id  %>">Delete</button>';
-                return _.template(html, row);
-            }, targets: [8]},
             { searchable: false, orderable: false, targets: "_all" }
         ];
-        self.imagesdDataTables = table.dataTable({
+        self.imagesdDataTables = table.DataTable({
             destroy: true,
             processing: true,
             serverSide: true,
+            rowId : "id",
             ajax: {
                 url: new ImageGroupCollection({project: this.idProject}).url(),
                 data: {
                     "datatables": "true"
                 }
             },
-            drawCallback: function() {
-                _.each(self.groups, function(aData) {
-                    var imageGroup = new ImageGroupModel({});
-                    imageGroup.set(aData);
-                    $(self.el).find("#delete-button-"+aData.id).click(function () {
-                        window.app.controllers.imagegroup.deleteGroup(aData.id, self.refresh);
-                    });
-                    $(self.el).find("#add-button-"+aData.id).click(function () {
-                        new AddImageSequenceDialog({el: "#dialogs", model: imageGroup, backView: self}).render();
-                    });
-                    var cb = function (){
-                        $(self.el).find("#channel-"+aData.id).append(imageGroup.channelPretty.toString());
-                        $(self.el).find("#zstack-"+aData.id).append(imageGroup.zstack.toString());
-                        $(self.el).find("#slice-"+aData.id).append(imageGroup.slice.toString());
-                        $(self.el).find("#time-"+aData.id).append(imageGroup.time.toString());
+            rowCallback: function( row, data, index ) {
+                var imageGroup = new ImageGroupModel({});
+                imageGroup.set(data);
+                var callBack = function (){
+                    $(self.el).find("#channel-"+data.id).text(imageGroup.prettyPrint(imageGroup.channel));
+                    $(self.el).find("#zstack-"+data.id).text(imageGroup.prettyPrint(imageGroup.zstack));
+                    $(self.el).find("#slice-"+data.id).text(imageGroup.prettyPrint(imageGroup.slice));
+                    $(self.el).find("#time-"+data.id).text(imageGroup.prettyPrint(imageGroup.time));
+                    data.zstack = imageGroup.zstack;
+                    self.groups.push(data);
+                };
 
-                        if(imageGroup.channel.length != 0){
-                            var link = ' <a href="#imagegroup/convert-<%= id %>">Convert</a>';
-                            link = _.template(link, aData);
-                            $(self.el).find("#convert-allow-"+aData.id).append(link)
-                        }
-
-                    };
-
-                    imageGroup.feed(cb);
-
-                });
-                self.groups = [];
+                imageGroup.feed(callBack);
             },
             columnDefs : columns,
             order: [[ 0, "desc" ]]
 
+        });
+
+        $(this.el).on("click", ".exploreMultiDimImage", function(event) {
+            //1) get the middle of the image Group zStack
+            var data = self.imagesdDataTables.row('#'+$(this).data("id")).data();
+            var zStack = data.zstack;
+            var zMean = zStack[zStack.length/2];
+            //2) get the t0c0n0zMean ImageSequence
+            var imageSeq = new ImageSequenceModel({group: data.id, zstack : zMean, slice : 0, time: 0,channel:0});
+
+            imageSeq.fetch({
+                success: function (model) {
+                    window.location = '#tabs-image-' + self.idProject + '-' + model.get("image") + '-0';
+                }
+            });
+            event.preventDefault();
+        });
+        $(this.el).on("click", ".deleteMultiDimImage", function(event) {
+            event.preventDefault();
+            var data = self.imagesdDataTables.row('#'+$(this).data("id")).data();
+            require(["text!application/templates/dashboard/ImageGroupDeleteConfirmDialog.tpl.html"], function (tpl) {
+                var dialog = new ConfirmDialogView({
+                    el: '#dialogsDeleteImage',
+                    template: _.template(tpl, {group: data}),
+                    dialogAttr: {
+                        dialogID: '#delete-imagegroup-confirm'
+                    }
+                }).render();
+                $("body").on("click", "#closeImageGroupDeleteConfirmDialog", function(event) {
+                    event.preventDefault();
+                    dialog.close();
+                    window.app.view.message("ImageGroup", "Please wait", "info", 5000);
+                    new ImageGroupModel({id: data.id}).destroy({
+                        success: function(response){
+                            window.app.view.message("ImageGroup", response.message, "success");
+                            self.refresh();
+                        },
+                        error: function(response){
+                            var json = $.parseJSON(response.responseText);
+                            window.app.view.message("Image", json.errors, "error");
+                            self.refresh();
+                        }
+                    });
+                });
+            });
         });
 
     }

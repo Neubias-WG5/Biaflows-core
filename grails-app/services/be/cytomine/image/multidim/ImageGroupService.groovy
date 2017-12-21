@@ -53,7 +53,7 @@ class ImageGroupService extends ModelService {
 
     def list(Project project) {
         securityACLService.check(project,READ)
-        return ImageGroup.findAllByProject(project)
+        return ImageGroup.findAllByProjectAndDeletedIsNull(project)
     }
 
 
