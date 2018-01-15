@@ -88,7 +88,7 @@ var ProjectView = Backbone.View.extend({
         }
 
 
-        new ProjectCollection({user: idUser}).fetch({
+        new ProjectCollection({user: idUser, description:true}).fetch({
             success: function (collection, response) {
                 self.model = collection;
                 self.render();
