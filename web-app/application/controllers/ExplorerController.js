@@ -104,7 +104,7 @@ var ExplorerController = Backbone.Router.extend({
 
         var callBack = function (){
             var zStack = imageGroup.zstack;
-            var zMean = zStack[zStack.length/2];
+            var zMean = zStack[Math.floor(zStack.length/2)];
 
             var imageSeq = new ImageSequenceModel({group: idGroup, zstack : zMean, slice : 0, time: 0,channel:0});
 

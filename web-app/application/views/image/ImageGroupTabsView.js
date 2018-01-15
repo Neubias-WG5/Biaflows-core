@@ -68,7 +68,7 @@ var ImageGroupTabsView = Backbone.View.extend({
                 return data;
             }, targets: [0]},
             { data: "macroURL", defaultContent: "", orderable: false, render: function ( data, type, row ) {
-                return _.template("<div style='width : 130px;'><a href='#tabs-image-<%= project %>-<%=  id  %>-0'><img src='<%= thumb %>' alt='originalFilename' style='max-height : 45px;max-width : 128px;'/></a></div>",
+                return _.template("<div style='width : 130px;'><a href='#tabs-imagegroup-<%= project %>-<%=  id  %>'><img src='<%= thumb %>' alt='originalFilename' style='max-height : 45px;max-width : 128px;'/></a></div>",
                     {
                         project : self.idProject,
                         id : row["id"],
@@ -126,7 +126,7 @@ var ImageGroupTabsView = Backbone.View.extend({
             //1) get the middle of the image Group zStack
             var data = self.imagesdDataTables.row('#'+$(this).data("id")).data();
             var zStack = data.zstack;
-            var zMean = zStack[zStack.length/2];
+            var zMean = zStack[Math.floor(zStack.length/2)];
             //2) get the t0c0n0zMean ImageSequence
             var imageSeq = new ImageSequenceModel({group: data.id, zstack : zMean, slice : 0, time: 0,channel:0});
 
