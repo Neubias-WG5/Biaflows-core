@@ -107,7 +107,9 @@ class RestJobController extends RestController {
         try {
             def result = jobService.add(request.JSON)
             long idJob = result?.data?.job?.id
-            jobService.createUserJob(User.read(springSecurityService.currentUser.id), Job.read(idJob))
+            def userjob = jobService.createUserJob(User.read(springSecurityService.currentUser.id), Job.read(idJob))
+            result?.data?.job?.userJob = userjob?.id
+            log.info userjob
             responseResult(result)
         } catch (CytomineException e) {
             log.error(e)
