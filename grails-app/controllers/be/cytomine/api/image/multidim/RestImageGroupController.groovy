@@ -118,4 +118,17 @@ class RestImageGroupController extends RestController {
         imageGroupService.thumb(params.long('id'), maxSize)
         responseBufferedImage(imageGroupService.thumb(params.long('id'), maxSize))
     }
+
+    /**
+     * Download image behind group
+     */
+    @RestApiMethod(description="Download original multidimensional image")
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH,description = "The image group id")
+    ])
+    @RestApiResponseObject(objectIdentifier = "image (bytes)")
+    def download() {
+        String url = imageGroupService.downloadURI(params.long("id"))
+        redirect (url : url)
+    }
 }

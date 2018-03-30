@@ -146,4 +146,10 @@ class ImageGroupService extends ModelService {
         int zMean = (zs.max() - zs.min())/2
         return abstractImageService.thumb(sequences.find{it.zStack == zMean}.image.baseImage.id, maxSize)
     }
+
+    def downloadURI(Long id) {
+        ImageGroup imageGroup = ImageGroup.get(id)
+        def sequence = ImageSequence.findByImageGroup(imageGroup)
+        return abstractImageService.downloadURI(sequence.image.baseImage, true)
+    }
 }
