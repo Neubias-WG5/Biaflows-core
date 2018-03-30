@@ -122,97 +122,16 @@ class RestImageGroupController extends RestController {
         responseBufferedImage(imageGroupService.thumb(params.long('id'), maxSize))
     }
 
-
-    @RestApiMethod(description="Add a new image group with hdf5 hyperspectral functionalities")
-    def addh5() {
-        add(imageGroupHDF5Service, request.JSON)
-    }
-
-
-    @RestApiMethod(description="Get an image group with hdf5 hyperspectral functionalities")
+    /**
+     * Download image behind group
+     */
+    @RestApiMethod(description="Download original multidimensional image")
     @RestApiParams(params=[
-            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH,description = "The id")
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH,description = "The image group id")
     ])
-    def geth5() {
-        ImageGroupHDF5 imageh5 = imageGroupHDF5Service.read(params.id)
-        if(imageh5)
-            responseSuccess(imageh5)
-        else
-            responseNotFound("ImageGroupHDF5", params.id)
-    }
-
-    @RestApiMethod(description="Delete an HDF5 image group")
-    @RestApiParams(params=[
-            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH,description = "The id")
-    ])
-    def deleteh5() {
-        ImageGroupHDF5 imageh5 = imageGroupHDF5Service.read(params.long('id'))
-        if(imageh5)
-            delete(imageGroupHDF5Service, JSON.parse("{id : $imageh5.id}"), null)
-        else
-            responseNotFound("ImageGroupHDF5", params.id)
-    }
-
-
-    @RestApiMethod(description="Get an image group with hdf5 hyperspectral functionalities")
-    @RestApiParams(params=[
-            @RestApiParam(name="group", type="long", paramType = RestApiParamType.PATH,description = "The image group that is link to the iHdf5")
-    ])
-    def geth5FromImageGroup() {
-        ImageGroup image = imageGroupService.read(params.long('group'))
-        if (image) {
-            ImageGroupHDF5 imageh5 = imageGroupHDF5Service.getByGroup(image)
-            if(imageh5)
-                responseSuccess(imageh5)
-            else
-                responseNotFound("ImageGroupHDF5", params.id)
-        } else {
-            responseNotFound("ImageGroup", params.group)
-        }
-    }
-
-    @RestApiMethod(description="Delete an HDF5 image group")
-    @RestApiParams(params=[
-            @RestApiParam(name="group", type="long", paramType = RestApiParamType.PATH,description = "The image group that is link to the iHdf5")
-    ])
-    def deleteh5FromImageGroup() {
-        ImageGroup image = imageGroupService.read(params.long('group'))
-        if (image) {
-            ImageGroupHDF5 imageh5 = imageGroupHDF5Service.getByGroup(image)
-            if(imageh5)
-                delete(imageGroupHDF5Service, JSON.parse("{id : $imageh5.id}"), null)
-            else
-                responseNotFound("ImageGroupHDF5", params.id)
-        } else {
-            responseNotFound("ImageGroup", params.group)
-        }
-    }
-
-    def pxlh5(){
-        ImageGroup image = imageGroupService.read(params.long('id'))
-        if (image) {
-            ImageGroupHDF5 imageh5 = imageGroupHDF5Service.getByGroup(image)
-            if(imageh5){
-                ImageSequence is = ImageSequence.findByImageGroup(image)
-                //ImageSequence is = imageSequenceService.get(image,(Integer) imageGroupService.characteristics(image).channel[0],0,0,0)
-                def y = is.image.baseImage.height - Integer.parseInt(params.y)
-
-                String fn = imageh5.filenames
-                String url = "/multidim/pixel.json?fif=$fn&x=$params.x&y=$y"
-
-                String imageServerURL =  grailsApplication.config.grails.imageServerURL[0]
-                log.info "$imageServerURL"+url
-                String resp = new URL("$imageServerURL"+url).getText()
-
-                def jsonSlurper = new JsonSlurper()
-                def or = jsonSlurper.parseText(resp)
-                responseSuccess(or)
-
-            }
-            else
-                responseNotFound("ImageGroupHDF5", params.id)
-        } else {
-            responseNotFound("ImageGroup", params.id)
-        }
+    @RestApiResponseObject(objectIdentifier = "image (bytes)")
+    def download() {
+        String url = imageGroupService.downloadURI(params.long("id"))
+        redirect (url : url)
     }
 }

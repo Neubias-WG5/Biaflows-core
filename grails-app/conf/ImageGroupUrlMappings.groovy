@@ -42,6 +42,10 @@ class ImageGroupUrlMappings {
             action = [GET:"thumb"]
         }
 
+        "/api/imagegroup/$id/download"(controller: "restImageGroup"){
+            action = [GET:"download"]
+        }
+
         /* Image group Hdf5 special */
         "/api/imagegroupHDF5.$format"(controller: "restImageGroupHDF5"){
             action = [POST:"add"]
