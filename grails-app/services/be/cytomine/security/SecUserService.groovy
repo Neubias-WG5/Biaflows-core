@@ -174,11 +174,7 @@ class SecUserService extends ModelService {
                 "and aclEntry.sid = aclSid.id " +
                 "and aclSid.sid = secUser.username " +
                 "and secUser.class = 'be.cytomine.security.User'")
-        def tmp = []
-        users.each {
-            tmp << User.getDataFromDomain(it)
-        }
-        users = tmp
+
         if(showUserJob) {
             //TODO:: should be optim (see method head comment)
             List<Job> allJobs = Job.findAllByProject(project, [sort: 'created', order: 'desc'])
@@ -288,7 +284,10 @@ class SecUserService extends ModelService {
         SecUser currentUser = cytomineService.getCurrentUser()
         def users = []
         def humans = listUsers(project)
-        users.addAll(humans)
+
+        humans.each {
+            users << User.getDataFromDomain(it)
+        }
 
         if(image) {
             def jobs = getUserJobImage(image)
@@ -297,20 +296,20 @@ class SecUserService extends ModelService {
         }
         def  admins = listAdmins(project)
 
-
+        log.info(humans.contains(currentUser))
 
 
         if(project.checkPermission(ADMINISTRATION,currentRoleServiceProxy.isAdminByNow(currentUser))) {
             return users
-        } else if(project.hideAdminsLayers && project.hideUsersLayers && users.contains(currentUser)) {
+        } else if(project.hideAdminsLayers && project.hideUsersLayers && humans.contains(currentUser)) {
             return [currentUser]
-        } else if(project.hideAdminsLayers && !project.hideUsersLayers && users.contains(currentUser)) {
+        } else if(project.hideAdminsLayers && !project.hideUsersLayers && humans.contains(currentUser)) {
             users.removeAll(admins)
             return users
-        } else if(!project.hideAdminsLayers && project.hideUsersLayers && users.contains(currentUser)) {
+        } else if(!project.hideAdminsLayers && project.hideUsersLayers && humans.contains(currentUser)) {
             admins.add(currentUser)
             return admins
-         }else if(!project.hideAdminsLayers && !project.hideUsersLayers && users.contains(currentUser)) {
+         }else if(!project.hideAdminsLayers && !project.hideUsersLayers && humans.contains(currentUser)) {
             return users
          }else { //should no arrive but possible if user is admin and not in project
              []
