@@ -178,9 +178,14 @@ class ProjectService extends ModelService {
                 thumbs << [id : groups[i].id, thumb : ImageGroup.getDataFromDomain(groups[i]).thumb]
             }
             json.putAt("groups", thumbs);
+            def thumbsImg = []
+            def images = imageInstanceService.list(project)
+            for(int i = 0;i<images.size() && i<3;i++){
+                thumbs << [id : images[i].id, thumb : ImageInstance.getDataFromDomain(images[i]).thumb]
+            }
+            json.putAt("images", thumbsImg);
             result << json
         }
-
 
         return result
     }
