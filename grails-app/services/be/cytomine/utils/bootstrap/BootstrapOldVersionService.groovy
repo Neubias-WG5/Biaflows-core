@@ -19,6 +19,8 @@ import be.cytomine.image.AbstractImage
 */
 
 import be.cytomine.image.UploadedFile
+import be.cytomine.image.multidim.ImageGroup
+import be.cytomine.image.multidim.ImageSequence
 import be.cytomine.image.server.ImageServer
 import be.cytomine.image.server.Storage
 import be.cytomine.middleware.AmqpQueue
@@ -77,6 +79,23 @@ class BootstrapOldVersionService {
         }
 
         Version.setCurrentVersion(Long.parseLong(grailsApplication.metadata.'app.version'))
+    }
+
+    void init20180710() {
+        ImageGroup.findAll().each {
+            if (it.id.toString() == it.name) {
+                def sequence = ImageSequence.findByImageGroup(it)
+
+                List<UploadedFile> files = UploadedFile.findAllByImage(sequence.image.baseImage)
+                UploadedFile file = files.size() == 1 ? files[0] : files.find{it.parent!=null}
+                while(file.parent) {
+                    file = file.parent
+                }
+
+                it.setName(file.originalFilename)
+                it.save(flush: true)
+            }
+        }
     }
 
     void init20180613() {

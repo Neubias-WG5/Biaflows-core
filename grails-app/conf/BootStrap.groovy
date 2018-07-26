@@ -135,8 +135,7 @@ class BootStrap {
         log.info "init retrieve errors hack..."
         retrieveErrorsService.initMethods()
 
-        // Initialize RabbitMQ server
-        bootstrapUtilsService.initRabbitMq()
+        def rabbitmqInit = false
 
         /* Fill data just in test environment*/
         log.info "fill with data..."
@@ -172,6 +171,10 @@ class BootStrap {
 
         }  else if (SecUser.count() == 0) {
             //if database is empty, put minimal data
+            // Initialize RabbitMQ server
+            bootstrapUtilsService.initRabbitMq()
+            rabbitmqInit = true
+
             bootstrapDataService.initData()
         }
 
@@ -199,6 +202,11 @@ class BootStrap {
 
         log.info "init change for old version..."
         bootstrapOldVersionService.execChangeForOldVersion()
+
+        if (!rabbitmqInit) {
+            // Initialize RabbitMQ server
+            bootstrapUtilsService.initRabbitMq()
+        }
 
         if(grailsApplication.config.grails.client=="AURORA") {
             if(Environment.getCurrent() != Environment.TEST) {

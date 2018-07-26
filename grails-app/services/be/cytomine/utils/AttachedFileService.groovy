@@ -60,11 +60,12 @@ class AttachedFileService extends ModelService {
         file
     }
 
-    def add(String filename,byte[] data,Long domainIdent,String domainClassName) {
+    def add(String filename,byte[] data,Long domainIdent,String domainClassName, String name) {
         //securityACLService.checkAtLeastOne(domainIdent,domainClassName,"containers",READ)
         AttachedFile file = new AttachedFile()
         file.domainIdent =  domainIdent
         file.domainClassName = domainClassName
+        file.name = name
         file.filename = filename
         file.data = data
         saveDomain(file)

@@ -88,6 +88,8 @@ class RestAttachedFileController extends RestController {
         log.info "Upload attached file"
         Long domainIdent = params.long("domainIdent")
         String domainClassName = params.get("domainClassName")
+        String name = params.get("name")
+        log.info name
         if(request instanceof AbstractMultipartHttpServletRequest) {
             def f = ((AbstractMultipartHttpServletRequest) request).getFile('files[]')
 
@@ -96,7 +98,7 @@ class RestAttachedFileController extends RestController {
             log.info "Upload $filename for domain $domainClassName $domainIdent"
             log.info "File size = ${f.size}"
 
-            def result = attachedFileService.add(filename,f.getBytes(),domainIdent,domainClassName)
+            def result = attachedFileService.add(filename,f.getBytes(),domainIdent,domainClassName, name)
             responseSuccess(result)
         } else {
             responseError(new WrongArgumentException("No File attached"))

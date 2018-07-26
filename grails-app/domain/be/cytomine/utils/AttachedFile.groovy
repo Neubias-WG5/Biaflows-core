@@ -38,6 +38,9 @@ class AttachedFile extends CytomineDomain {
     @RestApiObjectField(description = "Domain id")
     Long domainIdent
 
+    @RestApiObjectField(description = "Human readable name")
+    String name
+
     @RestApiObjectField(description = "File name with ext")
     String filename
 
@@ -48,10 +51,18 @@ class AttachedFile extends CytomineDomain {
 
     static constraints = {
         domainClassName(nullable: false, blank:  false)
+        name(nullable: true, blank: true)
     }
     static mapping = {
         id generator: "assigned"
         sort "id"
+    }
+
+    def beforeValidate() {
+        super.beforeValidate()
+        if (!name) {
+            name = filename
+        }
     }
 
     /**
@@ -84,6 +95,7 @@ class AttachedFile extends CytomineDomain {
         returnArray['domainClassName'] = domain?.domainClassName
         returnArray['url'] = "/api/attachedfile/${domain?.id}/download"
         returnArray['filename'] = domain?.filename
+        returnArray['name'] = domain?.name
         return returnArray
     }
 }
