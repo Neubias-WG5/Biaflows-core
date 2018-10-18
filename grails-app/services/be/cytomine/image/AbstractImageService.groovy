@@ -367,7 +367,7 @@ class AbstractImageService extends ModelService {
             log.info "$imageServerURL"+url
             byte[] imageData = new URL("$imageServerURL"+url).getBytes()
             BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageData))
-            attachedFileService.add(url, imageData, abstractImage.id, AbstractImage.class.getName())
+            attachedFileService.add(url, imageData, abstractImage.id, AbstractImage.class.getName(), "thumb")
             return bufferedImage
         }
     }
@@ -440,7 +440,7 @@ class AbstractImageService extends ModelService {
             String imageServerURL = abstractImage.getRandomImageServerURL()
             byte[] imageData = new URL("$imageServerURL"+url).getBytes()
             BufferedImage bufferedImage =  ImageIO.read(new ByteArrayInputStream(imageData))
-            attachedFileService.add(url, imageData, abstractImage.id, AbstractImage.class.getName())
+            attachedFileService.add(url, imageData, abstractImage.id, AbstractImage.class.getName(), "nested")
             return bufferedImage
         }
 

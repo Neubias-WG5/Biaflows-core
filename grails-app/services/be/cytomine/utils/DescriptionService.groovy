@@ -1,5 +1,7 @@
 package be.cytomine.utils
 
+import be.cytomine.CytomineDomain
+
 /*
 * Copyright (c) 2009-2017. Authors: see NOTICE file.
 *
@@ -52,7 +54,12 @@ class DescriptionService extends ModelService {
      * Get a description thanks to its domain info (id and class)
      */
     def get(def domainIdent, def domainClassName) {
-        securityACLService.check(domainIdent,domainClassName,READ)
+        if (domainClassName.equals("be.cytomine.processing.Software") || domainClassName.equals("be.cytomine.processing.SoftwareParameter")) {
+            securityACLService.checkGuest(cytomineService.currentUser)
+        }
+        else {
+            securityACLService.check(domainIdent,domainClassName,READ)
+        }
         Description.findByDomainIdentAndDomainClassName(domainIdent,domainClassName)
     }
 
@@ -62,11 +69,15 @@ class DescriptionService extends ModelService {
      * @return Response structure (created domain data,..)
      */
     def add(def json) {
-        securityACLService.check(json.domainIdent,json.domainClassName,READ)
-        if(json.domainClassName.equals("be.cytomine.project.Project")){
-            securityACLService.checkisNotReadOnly(json.domainIdent,json.domainClassName)
-        } else {
-            securityACLService.checkFullOrRestrictedForOwner(json.domainIdent,json.domainClassName, "user")
+        CytomineDomain domain = Class.forName(json.domainClassName, false, Thread.currentThread().contextClassLoader).read(JSONUtils.getJSONAttrLong(json,'domainIdent',0))
+
+        if (domain != null && !domain.class.name.contains("AbstractImage")) {
+            securityACLService.check(domain.container(),READ)
+            if (domain.hasProperty('user') && domain.user) {
+                securityACLService.checkFullOrRestrictedForOwner(domain, domain.user)
+            } else {
+                securityACLService.checkisNotReadOnly(domain)
+            }
         }
         SecUser currentUser = cytomineService.getCurrentUser()
         return executeCommand(new AddCommand(user: currentUser),null,json)

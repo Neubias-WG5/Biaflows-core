@@ -119,7 +119,7 @@ class PropertyService extends ModelService {
 
     def read(def id) {
         def property = Property.read(id)
-        if (property && !property.domainClassName.contains("AbstractImage")) {
+        if (property && !property.domainClassName.contains("AbstractImage") && !property.domainClassName.contains("Software")) {
             securityACLService.check(property.container(),READ)
         }
         property
@@ -127,7 +127,7 @@ class PropertyService extends ModelService {
 
     def read(CytomineDomain domain, String key) {
         def property = Property.findByDomainIdentAndKey(domain.id,key)
-        if (property && !property.domainClassName.contains("AbstractImage")) {
+        if (property && !property.domainClassName.contains("AbstractImage") && !property.domainClassName.contains("Software")) {
             securityACLService.check(property.container(),READ)
         }
         property
@@ -155,6 +155,49 @@ class PropertyService extends ModelService {
         SecUser currentUser = cytomineService.getCurrentUser()
         Command command = new AddCommand(user: currentUser, transaction: transaction)
         return executeCommand(command,null,json)
+    }
+    @Override
+    def afterAdd(def domain, def response) {
+        Property property = (Property) domain
+        if(property.key.equals("ANNOTATION_GROUP_ID")){
+            Long id = -1
+            try {
+                id = Long.parseLong(property.value)
+            } catch (NumberFormatException e){
+                e.printStackTrace()
+            }
+            if(id == -1) return;
+
+            def colors = ["#e6194b",	//	Red
+                          "#3cb44b",	//	Green
+                          "#ffe119",	//	Yellow
+                          "#0082c8",	//	Blue
+                          "#f58231",	//	Orange
+                          "#911eb4",	//	Purple
+                          "#46f0f0",	//	Cyan
+                          "#f032e6",	//	Magenta
+                          "#d2f53c",	//	Lime
+                          "#fabebe",	//	Pink
+                          "#008080",	//	Teal
+                          "#e6beff",	//	Lavender
+                          "#aa6e28",	//	Brown
+                          "#fffac8",	//	Beige
+                          "#800000",	//	Maroon
+                          "#aaffc3",	//	Mint
+                          "#808000",	//	Olive
+                          "#ffd8b1",	//	Coral
+                          "#000080",	//	Navy
+                          "#808080",	//	Grey
+                          "#FFFFFF",	//	White
+                          "#000000"	//	Black
+            ]
+
+            String color = colors[(int) (id%(colors.size()))]
+
+            //add CUSTOM_ANNOTATION_DEFAULT_COLOR property
+            Property defaultColor = new Property(domainClassName: property.domainClassName, domainIdent: property.domainIdent, key:"CUSTOM_ANNOTATION_DEFAULT_COLOR", value: color);
+            create(defaultColor,false)
+        }
     }
 
     /**

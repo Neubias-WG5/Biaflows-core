@@ -2,14 +2,14 @@
     <div class="row">
         <div class="col-md-3">
             <div id="menuAlgoSoftware" class="panel panel-default">
-                <div class="panel-heading">Software available</div>
-                <ul id="projectSoftwareListUl" class="list-group">
-                </ul>
+                <div class="panel-heading">Available softwares</div>
+                <div id="projectSoftwareListUl" class="list-group">
+                </div>
             </div>
             <div class="panel panel-default">
                 <div class="panel-heading">Actions</div>
                 <div class="panel-body">
-                    <a href="#launchJobModal"  id="softwareLaunchJobButton" data-toggle="modal"><i class="glyphicon glyphicon-play-circle"></i> Run job</a>
+                    <a href="#launchJobModal"  id="softwareLaunchJobButton" data-toggle="modal" style="display: none;"><i class="glyphicon glyphicon-play-circle"></i> Run job</a>
                     <!--<a href="#filterJobModal" id="softwareFilterJobButton" data-Toggle="modal"><i class="icon-search"></i> Search job</a>
                     <a href="#compareJobModal" id="softwareCompareJobButton" data-Toggle="modal"><i class=" icon-th-large"></i> Compare job</a>-->
                 </div>
@@ -35,13 +35,15 @@
 
             <div id="panelJobDetails" class="panel panel-default" style="padding-bottom: 30px;display : none;">
                 <div class="panel-heading">
-                    <h4>Job details</h4>
+                    <h4>Selected job details</h4>
                 </div>
-                <div class="panel-body">
+                <div class="panel-body" >
                     <div class="selectRunDetails"></div>
+
                     <h4>Parameters</h4>
-                    <hr />
-                    <div class="selectRunParams" style="padding-bottom: 50px;">
+                    <hr style="margin: 0;" />
+
+                    <div class="selectRunParams"  style="margin-bottom: 15px;">
                         <table id="selectRunParamsTable" width="100%" cellpadding="0" cellspacing="0" border="0"
                                class="table table-hover table-condensed">
                             <thead>
@@ -56,14 +58,45 @@
                         </table>
                     </div>
 
+                    <div id="jobProperties"  style="margin-bottom: 15px;">
+                        <h4>Job properties</h4>
+                        <hr style="margin: 0;" />
+
+                        <table id="job-properties-content" width="100%" cellpadding="0" cellspacing="0" border="0"
+                               class="table table-hover table-condensed">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Value</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="jobAttachedFiles"  style="margin-bottom: 15px;">
+                        <h4>Job attached files</h4>
+                        <hr style="margin: 0;"/>
+
+                        <table id="job-attached-files-content" width="100%" cellpadding="0" cellspacing="0" border="0"
+                               class="table table-hover table-condensed">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+
 
                     <div id="panelJobResults" style="padding-bottom: 30px;display : none;">
-                        <h4>Selected Job results</h4>
-                        <hr />
-                        <div id="jobProperties" style="padding: 20px;">
-                            <h4>Job properties</h4>
-                            <ul id="job-properties-content"></ul>
-                        </div>
+                        <h4>Job results</h4>
+                        <hr style="margin: 0;" />
+
                         <div id="panelJobResultsDiv"></div>
                     </div>
 

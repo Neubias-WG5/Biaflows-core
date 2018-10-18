@@ -47,6 +47,7 @@ grails.mime.types = [
 cytomine.maxRequestSize = 10485760
 storage_path="/data/images" //default path for image locations
 fast_data_path="/data/images" //default path for HDF5 files location (for ex: a SSD)
+cytomine.software.path.softwareImages = "/data/softwares/images"
 
 // The default codec used to encode data with ${}
 grails.views.default.codec = "none" // none, html, base64
@@ -120,6 +121,8 @@ environments {
         grails.adminPublicKey="JKL"
         grails.superAdminPrivateKey="MNO"
         grails.superAdminPublicKey="PQR"
+        grails.rabbitMQPrivateKey="STU"
+        grails.rabbitMQPublicKey="VWX"
     }
     test {
         grails.serverURL = "http://localhost:8090"
@@ -367,6 +370,7 @@ cytomine.customUI.global = [
         project: ["ALL"],
         ontology: ["ROLE_ADMIN"],
         storage : ["ROLE_USER","ROLE_ADMIN"],
+        software : ["ROLE_USER", "ROLE_ADMIN"],
         activity : ["ALL"],
         feedback : ["ROLE_USER","ROLE_ADMIN"],
         explore : ["ROLE_USER","ROLE_ADMIN"],

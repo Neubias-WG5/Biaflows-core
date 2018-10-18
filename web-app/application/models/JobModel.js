@@ -67,6 +67,9 @@ var JobModel = Backbone.Model.extend({
     isWait: function () {
         return (this.get('status') == 6)
     },
+    isKilled: function () {
+        return (this.get('status') == 8)
+    },
     isPreviewed: function () {
         return (this.get('status') == 7)
     }

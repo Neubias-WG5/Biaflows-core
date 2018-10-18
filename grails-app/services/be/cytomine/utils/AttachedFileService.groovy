@@ -53,18 +53,29 @@ class AttachedFileService extends ModelService {
     def read(def id) {
         AttachedFile file = AttachedFile.read(id)
         if(file) {
-            //TODO: TEMPORARY disable security. There is an issue:
-            //if we copy layers from image x - project 1 to image x - project 2, users may not have the right to download the file
-            //securityACLService.check(file.domainIdent,file.domainClassName,"container",READ)
+            if(file.domainClassName.contains("AbstractImage")) {
+                securityACLService.checkAtLeastOne(file.domainIdent, file.domainClassName, "containers", READ)
+            } else if (file.domainClassName.equals("be.cytomine.processing.Software") || file.domainClassName.equals("be.cytomine.processing.SoftwareParameter")) {
+                securityACLService.checkGuest(cytomineService.currentUser)
+            }
+            else {
+                securityACLService.check(file.domainIdent,file.domainClassName,"container",READ)
+            }
         }
         file
     }
 
-    def add(String filename,byte[] data,Long domainIdent,String domainClassName) {
+    def add(String filename,byte[] data,Long domainIdent,String domainClassName, String name) {
         //securityACLService.checkAtLeastOne(domainIdent,domainClassName,"containers",READ)
+        if(domainClassName.contains("AbstractImage")) {
+            securityACLService.checkAtLeastOne(domainIdent, domainClassName, "containers", READ)
+        } else {
+            securityACLService.check(domainIdent,domainClassName,"container",READ)
+        }
         AttachedFile file = new AttachedFile()
         file.domainIdent =  domainIdent
         file.domainClassName = domainClassName
+        file.name = name
         file.filename = filename
         file.data = data
         saveDomain(file)
@@ -81,6 +92,11 @@ class AttachedFileService extends ModelService {
      */
     def delete(AttachedFile domain, Transaction transaction = null, Task task = null, boolean printMessage = true) {
         //securityACLService.checkAtLeastOne(domain.domainIdent, domain.domainClassName, "containers", WRITE)
+        if(domain.domainClassName.contains("AbstractImage")) {
+            securityACLService.checkAtLeastOne(domain.domainIdent, domain.domainClassName, "containers", READ)
+        } else {
+            securityACLService.check(domain.domainIdent,domain.domainClassName,"container",READ)
+        }
         SecUser currentUser = cytomineService.getCurrentUser()
         Command c = new DeleteCommand(user: currentUser,transaction:transaction)
         return executeCommand(c,domain,null)

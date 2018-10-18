@@ -16,7 +16,7 @@ package be.cytomine.test.http
 * limitations under the License.
 */
 
-import be.cytomine.processing.ProcessingServer
+import be.cytomine.processing.ImagingServer
 import be.cytomine.test.Infos
 import grails.converters.JSON
 
@@ -25,27 +25,27 @@ import grails.converters.JSON
  * Date: 6/12/11
  * This class implement all method to easily get/create/update/delete/manage Discipline to Cytomine with HTTP request during functional test
  */
-class ProcessingServerAPI extends DomainAPI {
+class ImagingServerAPI extends DomainAPI {
 
     static def show(Long id, String username, String password) {
-        String URL = Infos.CYTOMINEURL + "api/processing_server/" + id + ".json"
+        String URL = Infos.CYTOMINEURL + "api/imaging_server/" + id + ".json"
         return doGET(URL, username, password)
     }
 
     static def list(String username, String password) {
-        String URL = Infos.CYTOMINEURL + "api/processing_server.json"
+        String URL = Infos.CYTOMINEURL + "api/imaging_server.json"
         return doGET(URL, username, password)
     }
 
     static def create(String json, String username, String password) {
-        String URL = Infos.CYTOMINEURL + "api/processing_server.json"
+        String URL = Infos.CYTOMINEURL + "api/imaging_server.json"
         def result = doPOST(URL,json,username,password)
-        result.data = ProcessingServer.get(JSON.parse(result.data)?.processingserver?.id)
+        result.data = ImagingServer.get(JSON.parse(result.data)?.imagingserver?.id)
         return result
     }
 
     static def delete(def id, String username, String password) {
-        String URL = Infos.CYTOMINEURL + "api/processing_server/" + id + ".json"
+        String URL = Infos.CYTOMINEURL + "api/imaging_server/" + id + ".json"
         return doDELETE(URL, username, password)
     }
 }

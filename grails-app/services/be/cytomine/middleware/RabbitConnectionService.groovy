@@ -80,14 +80,14 @@ class RabbitConnectionService {
         // Setting up ack mode on this channel
         channel.confirmSelect()
 
-        queueName = amqpQueueService.channelPrefixSoftware + queueName.capitalize()
+        queueName = amqpQueueService.channelPrefixProcessingServer + queueName.capitalize()
         servletContext[queueName] = channel
 
         return channel
     }
 
     Channel getRabbitChannel(String queueName, MessageBrokerServer mbs) {
-        String channelName = amqpQueueService.channelPrefixSoftware + queueName.capitalize()
+        String channelName = amqpQueueService.channelPrefixProcessingServer + queueName.capitalize()
 
         Channel channel = (Channel)servletContext[channelName]
 

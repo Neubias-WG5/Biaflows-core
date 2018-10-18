@@ -53,7 +53,7 @@ class ImageGroupService extends ModelService {
 
     def list(Project project) {
         securityACLService.check(project,READ)
-        return ImageGroup.findAllByProject(project)
+        return ImageGroup.findAllByProjectAndDeletedIsNull(project)
     }
 
 
@@ -147,5 +147,11 @@ class ImageGroupService extends ModelService {
         def sequence = imageSequenceService.get(imageGroup, characteristics.channel[0], zMean, characteristics.slice[0], characteristics.time[0])
 
         return abstractImageService.thumb(sequence.image.baseImage.id, maxSize)
+    }
+
+    def downloadURI(Long id) {
+        ImageGroup imageGroup = ImageGroup.get(id)
+        def sequence = ImageSequence.findByImageGroup(imageGroup)
+        return abstractImageService.downloadURI(sequence.image.baseImage, true)
     }
 }

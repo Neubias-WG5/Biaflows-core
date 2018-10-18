@@ -55,14 +55,15 @@ var SoftwareDetailsView = Backbone.View.extend({
         var tbody = $('#softwareParamsTable').find("tbody");
         tbody.empty();
         _.each(self.model.get('parameters'), function (param) {
-            var tpl = "<tr><td><%= name %></td><td><%= type %></td><td><%= defaultParamValue %></td><td><input type='checkbox' <%= checked %> disabled /></td><td><%= index %></td></tr>";
+            var tpl = "<tr><td><%= name %></td><td><%= type %></td><td><%= defaultParamValue %></td><td><input type='checkbox' <%= checked %> disabled /></td><td><%= variable %></td></tr>";
             var rowHtml = _.template(tpl, {
-                name : param.name,
+                name : param.humanName,
                 type : param.type,
                 defaultParamValue : param.defaultParamValue,
                 checked : (param.required ? "checked" : ""),
-                index : param.index
+                variable : param.name
             });
+
             tbody.append(rowHtml);
         });
 
@@ -78,8 +79,12 @@ var SoftwareDetailsView = Backbone.View.extend({
             bar : true,
             values : [
                 {
-                    label : 'Not Launch',
+                    label : 'Not Launched',
                     value : software.get('numberOfNotLaunch')
+                },
+                {
+                    label : 'Waiting',
+                    value : software.get('numberOfWait')
                 },
                 {
                     label : 'In Queue',
@@ -102,8 +107,8 @@ var SoftwareDetailsView = Backbone.View.extend({
                     value : software.get('numberOfIndeterminate')
                 },
                 {
-                    label : 'Wait',
-                    value : software.get('numberOfWait')
+                    label : 'Killed',
+                    value : software.get('numberOfKilled')
                 }
             ]
         }];
@@ -116,7 +121,7 @@ var SoftwareDetailsView = Backbone.View.extend({
                 var chart = nv.models.discreteBarChart()
                     .x(function(d) { return d.label })
                     .y(function(d) { return d.value })
-                    .color(["#434141", "#65d7f8", "#005ccc", "#52a652", "#c43c35", "#434343", "#faaa38"]);
+                    .color(["#777777", "#f0ad4e", "#5bc0de", "#337AB7", "#5cb85c", "#d9534f", "#777777", "#000000"]);
 
 
                 d3.select("#softwareInfoChart svg")

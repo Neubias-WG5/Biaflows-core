@@ -33,11 +33,11 @@ class ImageFilter extends CytomineDomain {
     @RestApiObjectField(description = "The filter name",useForCreation = false)
     String name
 
-    @RestApiObjectField(description = "The URL path of the filter on the processing server",useForCreation = false)
+    @RestApiObjectField(description = "The URL path of the filter on the imaging server",useForCreation = false)
     String baseUrl
 
-    @RestApiObjectField(description = "The URL of the processing server", allowedType = "string",useForCreation = false)
-    ProcessingServer processingServer
+    @RestApiObjectField(description = "The URL of the imaging server", allowedType = "string",useForCreation = false)
+    ImagingServer imagingServer
 
     @RestApiObjectFields(params=[
         @RestApiObjectField(apiFieldName = "id", description = "The domain id",allowedType = "long",useForCreation = false)
@@ -45,7 +45,7 @@ class ImageFilter extends CytomineDomain {
     static constraints = {
         name(blank: false, nullable: false)
         baseUrl(blank: false, nullable: false)
-        processingServer (nullable: true)
+        imagingServer (nullable: true)
     }
 
     /**
@@ -58,8 +58,8 @@ class ImageFilter extends CytomineDomain {
         domain.id = JSONUtils.getJSONAttrLong(json,'id',null)
         domain.name = JSONUtils.getJSONAttrStr(json, 'name')
         domain.baseUrl = JSONUtils.getJSONAttrStr(json, 'baseUrl')
-        domain.processingServer = ProcessingServer.findByUrl(JSONUtils.getJSONAttrStr(json, 'processingServer'))
-        if(!domain.processingServer) throw new WrongArgumentException("ProcessingServer doesn't exist")
+        domain.imagingServer = ImagingServer.findByUrl(JSONUtils.getJSONAttrStr(json, 'imagingServer'))
+        if(!domain.imagingServer) throw new WrongArgumentException("ImagingServer doesn't exist")
 
         return domain;
     }
@@ -73,7 +73,7 @@ class ImageFilter extends CytomineDomain {
         def returnArray = [:]
         returnArray['id'] = domain?.id
         returnArray['name'] = domain?.name
-        returnArray['processingServer'] = domain?.processingServer?.url
+        returnArray['imagingServer'] = domain?.imagingServer?.url
         returnArray['baseUrl'] = domain?.baseUrl
         return returnArray
     }

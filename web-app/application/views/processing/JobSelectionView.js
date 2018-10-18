@@ -179,13 +179,20 @@ var JobSelectionView = Backbone.View.extend({
             data.push(["<i class='glyphicon glyphicon-plus'></i>", job.id, job.get('number'),
                 window.app.convertLongToDate(job.get('created')),
                 self.getStateElement(job),
-                job.get('dataDeleted') ? "All job data are deleted" : '<button class="btn btn-danger btn-xs" id="' + job.id + '">Delete data</button>',
-                self.comparator ?
-                    '<a id="select' + job.id + '">Compare</a>' :
-                    '<a class="btn btn-info btn-xs" href="#tabs-algos-' + self.project.id + "-" + self.software.id + "-" + job.id + '" id="' + job.id + '">Details<br></a>'
+                // self.comparator ?
+                //     '<a id="select' + job.id + '">Compare</a>' :
+                '<div class="btn-group">' +
+                '<button class="btn btn-info btn-xs" id="job-details-'+job.id+'">Details</button> ' +
+                '<button class="btn btn-info btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                '<span class="caret"></span><span class="sr-only">Toggle Dropdown</span>' +
+                '</button>' +
+                '<ul class="dropdown-menu">' +
+                ((job.isInQueue() || job.isRunning()) ?'<li><a href="#" id="job-kill-'+job.id+'"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> Kill job</a></li>': '') +
+                '<li>'+(job.get('dataDeleted') ? '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span> All job data are deleted ' : '<a href="#" id="job-delete-data-' + job.id + '"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete data</a>') + '</li>' +
+                '</ul>' +
+                '</div>'
             ]);
         });
-
 
         //rebuilt table
         var selectRunParamElem = $(self.el).find('#selectJobTable').find('tbody').empty();
@@ -193,63 +200,82 @@ var JobSelectionView = Backbone.View.extend({
             searching: false,
             dom: '<"toolbar">frtip',
             data: data,
-            displayLength: 5,
+            displayLength: 10,
             lengthChange: false,
             destroy: true,
             columnDefs: [
-                { width: "5%", targets: [ 0 ] },
-                { width: "10%", targets: [ 1 ]},
-                { width: "10%", targets: [ 2 ] },
+                { width: "10%", targets: [ 0 ] },
+                { width: "15%", targets: [ 1 ] },
+                { width: "15%", targets: [ 2 ] },
                 { width: "25%", targets: [ 3 ] },
                 { width: "20%", targets: [ 4 ] },
-                { width: "30%", targets: [ 5 ] }
+                { width: "15%", targets: [ 5 ] }
+                // { width: "15%", targets: [ 6 ] }
             ]
         });
 
-        //add delete job data listener
-        $(self.el).find('#selectJobTable').find("tbody").find("button").click(function (elem) {
-
-            var id = elem.currentTarget.id;
-            new JobModel({ id: id}).fetch({
-                success: function (model, response) {
-                    new JobDeleteAllDataView({
-                        model: model,
-                        project: self.project,
-                        container: self
-                    }).render();
-                }
+          _.each(jobs, function (job) {
+            $(self.el).find("#job-details-" + job.id).click(function () {
+              window.location = '#tabs-algos-' + self.project.id + "-" + self.software.id + "-" + job.id + '';
             });
-        });
+
+            $(self.el).find("#job-delete-data-" + job.id).click(function () {
+              new JobModel({ id: job.id}).fetch({
+                success: function (model, response) {
+                  new JobDeleteAllDataView({
+                    model: model,
+                    project: self.project,
+                    container: self
+                  }).render();
+                }
+              });
+              return false;
+            });
+
+            $(self.el).find("#job-kill-" + job.id).click(function () {
+              $.post('/api/job/' + job.id + '/kill.json').done(function() {
+                window.app.view.message("Job", "Job killed !", "success");
+                self.refresh();
+              }).fail(function() {
+                window.app.view.message("Job", "Error during job killing !", "error");
+              });
+              return false;
+            });
+          });
+
         self.initSubGridDatatables();
     },
     getStateElement: function (job) {
-        if (job.isNotLaunch()) {
-            return '<span class="label btn-inverse">Not Launch</span> ';
-        }
-        else if (job.isInQueue()) {
-            return '<span class="label btn-info">In queue</span> ';
-        }
-        else if (job.isRunning()) {
-            return '<span class="label btn-primary">Running</span> ';
-        }
-        else if (job.isSuccess()) {
-            return '<span class="label btn-success">Success</span> ';
-        }
-        else if (job.isFailed()) {
-            return '<span class="label btn-danger">Failed</span> ';
-        }
-        else if (job.isIndeterminate()) {
-            return '<span class="label btn-inverse">Indetereminate</span> ';
-        }
-        else if (job.isWait()) {
-            return '<span class="label btn-warning">Wait</span> ';
-        }
-        else if (job.isPreviewed()) {
-            return '<span class="label btn-info">Previewed</span> ';
-        }
-        else {
-            return "no supported";
-        }
+      if (job.isNotLaunch()) {
+        return '<span class="label label-default">Not Launched</span> ';
+      }
+      else if (job.isInQueue()) {
+        return '<span class="label label-info">In queue</span> ';
+      }
+      else if (job.isRunning()) {
+        return '<span class="label label-primary">Running</span> ';
+      }
+      else if (job.isSuccess()) {
+        return '<span class="label label-success">Success</span> ';
+      }
+      else if (job.isFailed()) {
+        return '<span class="label label-danger">Failed</span> ';
+      }
+      else if (job.isIndeterminate()) {
+        return '<span class="label label-default">Indetereminate</span> ';
+      }
+      else if (job.isWait()) {
+        return '<span class="label label-warning">Waiting</span> ';
+      }
+      else if (job.isPreviewed()) {
+        return '<span class="label label-info">Previewed</span> ';
+      }
+      else if (job.isKilled()) {
+        return '<span class="label" style="background: black;">Killed</span> ';
+      }
+      else {
+        return "no supported";
+      }
     },
     initSubGridDatatables: function () {
         var self = this;
@@ -278,7 +304,7 @@ var JobSelectionView = Backbone.View.extend({
                                 value = value.substring(0, 50) + "..."
                             }
 
-                            tableParam.append('<tr><td>' + param.name + '</td><td>' + value + '</td><td>' + param.type + '</td></tr>');
+                            tableParam.append('<tr><td>' + param.humanName + '</td><td>' + value + '</td><td>' + param.type + '</td></tr>');
                         });
                     }
                 });

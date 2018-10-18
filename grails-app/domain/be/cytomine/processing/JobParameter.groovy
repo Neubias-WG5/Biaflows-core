@@ -107,6 +107,7 @@ class JobParameter extends CytomineDomain implements Comparable {
         returnArray['uri'] = softwareParameter?.uri
         returnArray['uriPrintAttribut'] = softwareParameter?.uriPrintAttribut
         returnArray['uriSortAttribut'] = softwareParameter?.uriSortAttribut
+        returnArray['humanName'] = softwareParameter?.humanName ?: softwareParameter?.name
         return returnArray
     }
 

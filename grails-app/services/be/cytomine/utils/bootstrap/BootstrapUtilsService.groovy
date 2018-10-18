@@ -28,7 +28,10 @@ import be.cytomine.middleware.MessageBrokerServer
 import be.cytomine.ontology.Property
 import be.cytomine.ontology.Relation
 import be.cytomine.ontology.RelationTerm
-import be.cytomine.processing.Software
+import be.cytomine.processing.ImageFilter
+import be.cytomine.processing.ImagingServer
+import be.cytomine.processing.ParameterConstraint
+import be.cytomine.processing.ProcessingServer
 import be.cytomine.security.*
 import be.cytomine.social.PersistentImageConsultation
 import be.cytomine.social.PersistentProjectConnection
@@ -37,6 +40,7 @@ import grails.plugin.springsecurity.SpringSecurityUtils
 import grails.util.Environment
 import groovy.json.JsonBuilder
 import groovy.sql.Sql
+import org.json.simple.JSONObject
 
 /**
  * Cytomine
@@ -55,8 +59,8 @@ class BootstrapUtilsService {
     def amqpQueueConfigService
     def rabbitConnectionService
     def storageService
+    def processingServerService
     def configurationService
-
 
     public def createUsers(def usersSamples) {
 
@@ -138,6 +142,21 @@ class BootstrapUtilsService {
                     err -> log.info err
                 }
 
+            }
+        }
+    }
+    
+    def createFilters(def filters) {
+        filters.each {
+            if (!ImageFilter.findByName(it.name)) {
+                ImageFilter filter = new ImageFilter(name: it.name, baseUrl: it.baseUrl, imagingServer: it.imagingServer)
+                if (filter.validate()) {
+                    filter.save(flush:true)
+                } else {
+                    filter.errors?.each {
+                        log.info it
+                    }
+                }
             }
         }
     }
@@ -394,6 +413,17 @@ class BootstrapUtilsService {
         }
     }
 
+    def createNewImagingServer() {
+        def url = grailsApplication.config.grails.imageServerURL[0]
+        def imagingServer = ImagingServer.findByUrl(url)
+        if(!imagingServer) {
+            return new ImagingServer(url: grailsApplication.config.grails.imageServerURL[0]).save(flush: true,
+                    failOnError: true)
+        }
+
+        return imagingServer
+    }
+
     def transfertProperty() {
         SpringSecurityUtils.doWithAuth("admin", {
             def ips = ImageProperty.list()
@@ -542,25 +572,27 @@ class BootstrapUtilsService {
             AmqpQueue queueCommunication = amqpQueueService.read("queueCommunication")
             amqpQueueService.createAmqpQueueDefault(queueCommunication)
         }
-        Software.list().each {
-            String queueName = amqpQueueService.queuePrefixSoftware + ((it as Software).name).capitalize()
-            if(!amqpQueueService.checkAmqpQueueDomainExists(queueName)) {
-                String exchangeName = amqpQueueService.exchangePrefixSoftware + ((it as Software).name).capitalize()
-                String brokerServerURL = (MessageBrokerServer.findByName("MessageBrokerServer")).host
-                AmqpQueue aq = new AmqpQueue(name: queueName, host: brokerServerURL, exchange: exchangeName)
-                aq.save(failOnError: true)
-            }
-            if(!amqpQueueService.checkRabbitQueueExists(queueName,mbs)) {
-                AmqpQueue aq = amqpQueueService.read(queueName)
+        ProcessingServer.list().each {
+            if (it.name != null) {
+                String queueName = amqpQueueService.queuePrefixProcessingServer + ((it as ProcessingServer).name).capitalize()
+                if(!amqpQueueService.checkAmqpQueueDomainExists(queueName)) {
+                    String exchangeName = amqpQueueService.exchangePrefixProcessingServer + ((it as ProcessingServer).name).capitalize()
+                    String brokerServerURL = (MessageBrokerServer.findByName("MessageBrokerServer")).host
+                    AmqpQueue aq = new AmqpQueue(name: queueName, host: brokerServerURL, exchange: exchangeName)
+                    aq.save(failOnError: true)
+                }
+                if(!amqpQueueService.checkRabbitQueueExists(queueName,mbs)) {
+                    AmqpQueue aq = amqpQueueService.read(queueName)
 
-                // Creates the queue on the rabbit server
-                amqpQueueService.createAmqpQueueDefault(aq)
+                    // Creates the queue on the rabbit server
+                    amqpQueueService.createAmqpQueueDefault(aq)
 
-                // Notify the queueCommunication that a software has been added
-                def mapInfosQueue = [name: aq.name, host: aq.host, exchange: aq.exchange]
-                JsonBuilder builder = new JsonBuilder()
-                builder(mapInfosQueue)
-                amqpQueueService.publishMessage(AmqpQueue.findByName("queueCommunication"), builder.toString())
+                    // Notify the queueCommunication that a software has been added
+                    def mapInfosQueue = [name: aq.name, host: aq.host, exchange: aq.exchange]
+                    JsonBuilder builder = new JsonBuilder()
+                    builder(mapInfosQueue)
+                    amqpQueueService.publishMessage(AmqpQueue.findByName("queueCommunication"), builder.toString())
+                }
             }
         }
 
@@ -683,4 +715,95 @@ class BootstrapUtilsService {
         session.clear()
         propertyInstanceMap.get().clear()
     }
+
+    void addDefaultProcessingServer() {
+        log.info("Add the default processing server")
+
+        SpringSecurityUtils.doWithAuth {
+            if (!ProcessingServer.findByName("local-server")) {
+                ProcessingServer processingServer = new ProcessingServer(
+                        name: "local-server",
+                        host: "slurm",
+                        username: "cytomine",
+                        port: 22,
+                        type: "cpu",
+                        processingMethodName: "SlurmProcessingMethod",
+                        persistentDirectory: grailsApplication.config.cytomine.software.path.softwareImages,
+                        index: 1
+                )
+
+                String processingServerName = processingServer.name.capitalize()
+                String queueName = amqpQueueService.queuePrefixProcessingServer + processingServerName
+
+                if (!amqpQueueService.checkAmqpQueueDomainExists(queueName)) {
+                    // Creation of the default processing server queue
+                    String exchangeName = amqpQueueService.exchangePrefixProcessingServer + processingServerName
+                    String brokerServerURL = (MessageBrokerServer.findByName("MessageBrokerServer")).host
+                    AmqpQueue amqpQueue = new AmqpQueue(name: queueName, host: brokerServerURL, exchange: exchangeName)
+                    amqpQueue.save(flush: true, failOnError: true)
+
+                    amqpQueueService.createAmqpQueueDefault(amqpQueue)
+
+                    // Associates the processing server to an amqp queue
+                    processingServer.amqpQueue = amqpQueue
+                    processingServer.save(flush: true)
+
+                    // Sends a message on the communication queue to warn the software router a new queue has been created
+                    def message = [requestType: "addProcessingServer",
+                                   name: amqpQueue.name,
+                                   host: amqpQueue.host,
+                                   exchange: amqpQueue.exchange,
+                                   processingServerId: processingServer.id]
+
+                    JsonBuilder jsonBuilder = new JsonBuilder()
+                    jsonBuilder(message)
+
+                    amqpQueueService.publishMessage(AmqpQueue.findByName("queueCommunication"), jsonBuilder.toString())
+                }
+            }
+        }
+    }
+
+    void addDefaultConstraints() {
+        log.info("Add the default constraints")
+
+        SpringSecurityUtils.doWithAuth {
+            def constraints = []
+            
+            // "Number" dataType
+            log.info("Add Number constraints")
+            constraints.add(new ParameterConstraint(name: "integer", expression: '("[value]".isInteger()', dataType: "Number"))
+            constraints.add(new ParameterConstraint(name: "minimum", expression: '(Double.valueOf("[parameterValue]") as Number) <= (Double.valueOf("[value]") as Number)', dataType: "Number"))
+            constraints.add(new ParameterConstraint(name: "maximum", expression: '(Double.valueOf("[parameterValue]") as Number) >= (Double.valueOf("[value]") as Number)', dataType: "Number"))
+            constraints.add(new ParameterConstraint(name: "equals", expression: '(Double.valueOf("[parameterValue]") as Number) == (Double.valueOf("[value]") as Number)', dataType: "Number"))
+            constraints.add(new ParameterConstraint(name: "in", expression: '"[value]".tokenize("[separator]").find { elem -> (Double.valueOf(elem) as Number) == (Double.valueOf("[parameterValue]") as Number) } != null', dataType: "Number"))
+
+            // "String" dataType
+            log.info("Add String constraints")
+            constraints.add(new ParameterConstraint(name: "minimum", expression: '"[parameterValue]".length() < [value]', dataType: "String"))
+            constraints.add(new ParameterConstraint(name: "maximum", expression: '"[parameterValue]".length() > [value]', dataType: "String"))
+            constraints.add(new ParameterConstraint(name: "equals", expression: '"[parameterValue]" == "[value]"', dataType: "String"))
+            constraints.add(new ParameterConstraint(name: "in", expression: '"[value]".tokenize("[separator]").contains("[parameterValue]")', dataType: "String"))
+
+            // "Boolean" dataType
+            log.info("Add Boolean constraints")
+            constraints.add(new ParameterConstraint(name: "equals", expression: 'Boolean.parseBoolean("[value]") == Boolean.parseBoolean("[parameterValue]")', dataType: "Boolean"))
+
+            // "Date" dataType
+            log.info("Add Date constraints")
+            constraints.add(new ParameterConstraint(name: "minimum", expression: 'new Date().parse("HH:mm:ss", "[parameterValue]").format("HH:mm:ss") < new Date().parse("HH:mm:ss", "[value]").format("HH:mm:ss")', dataType: "Date"))
+            constraints.add(new ParameterConstraint(name: "maximum", expression: 'new Date().parse("HH:mm:ss", "[parameterValue]").format("HH:mm:ss") > new Date().parse("HH:mm:ss", "[value]").format("HH:mm:ss")', dataType: "Date"))
+            constraints.add(new ParameterConstraint(name: "equals", expression: 'new Date().parse("HH:mm:ss", "[parameterValue]").format("HH:mm:ss") == new Date().parse("HH:mm:ss", "[value]").format("HH:mm:ss")', dataType: "Date"))
+            constraints.add(new ParameterConstraint(name: "in", expression: '"[value]".tokenize("[separator]").contains("[parameterValue]")', dataType: "Date"))
+
+            // dateMin, dateMax, timeEquals, timeIn
+            constraints.each { constraint ->
+                if (!ParameterConstraint.findByNameAndDataType(constraint.name as String, constraint.dataType as String)) {
+                    constraint.save(flush: true)
+                }
+            }
+
+        }
+    }
+
 }

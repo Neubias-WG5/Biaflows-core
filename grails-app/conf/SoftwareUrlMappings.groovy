@@ -27,6 +27,8 @@ class SoftwareUrlMappings {
         "/api/project/$id/software.$format"(controller:"restSoftware"){
             action = [GET: "listByProject"]
         }
-
+        "/api/software_user_repository/$id/software.$format"(controller: "restSoftware") {
+            action = [GET: "listBySoftwareUserRepository"]
+        }
     }
 }

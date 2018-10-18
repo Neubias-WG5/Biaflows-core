@@ -58,8 +58,35 @@ var ImageGroupModel = Backbone.Model.extend({
                 callback();
         });
         self.feeded=true;
+    },
+    prettyPrint: function (array) {
+        if(array.length === 0){
+            return "[]";
+        }
+        var ini = array[0];
+        var result = "[" + ini;
 
-
+        var nbConsecutiveValues = 0;
+        for(var i = 1; i < array.length; ++i){
+            if(array[i] === ini + 1){
+                nbConsecutiveValues++;
+                ini++;
+            }
+            else{
+                if(nbConsecutiveValues == 0)
+                    result += "," + array[i];
+                else{
+                    nbConsecutiveValues = 0;
+                    result += ".." + ini + "," + array[i];
+                }
+                ini = array[i];
+            }
+        }
+        if(nbConsecutiveValues != 0)
+            result +=  ".." + array[array.length - 1] + "]";
+        else
+            result += "]";
+        return result;
     },
 
     initialize: function (options) {

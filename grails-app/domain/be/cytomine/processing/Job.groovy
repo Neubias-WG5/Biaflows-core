@@ -31,6 +31,7 @@ import org.restapidoc.annotation.RestApiObjectFields
  */
 @RestApiObject(name = "Job", description = "A job is a software instance. This is the execution of software with some parameters")
 class Job extends CytomineDomain  {
+
     /**
      * Job status (enum type are too heavy with GORM)
      */
@@ -42,6 +43,7 @@ class Job extends CytomineDomain  {
     public static int INDETERMINATE = 5
     public static int WAIT = 6
     public static int PREVIEWED = 7
+    public static int KILLED = 8
 
     /**
      * Job progression
@@ -52,7 +54,7 @@ class Job extends CytomineDomain  {
     /**
      * Job status (see static int)
      */
-    @RestApiObjectField(description = "The algo status (NOTLAUNCH = 0, INQUEUE = 1, RUNNING = 2,SUCCESS = 3,FAILED = 4,INDETERMINATE = 5,WAIT = 6,PREVIEWED = 7)",mandatory = false)
+    @RestApiObjectField(description = "The algo status (NOTLAUNCH = 0, INQUEUE = 1, RUNNING = 2,SUCCESS = 3,FAILED = 4,INDETERMINATE = 5,WAIT = 6,PREVIEWED = 7, KILLED=8)",mandatory = false)
     int status = 0
 
     /**
@@ -72,6 +74,9 @@ class Job extends CytomineDomain  {
      */
     @RestApiObjectField(description = "The project of the job")
     Project project
+
+    @RestApiObjectField(description = "The processing server in charge to run the job")
+    ProcessingServer processingServer
 
     /**
      * Generic field for job rate info
@@ -104,8 +109,9 @@ class Job extends CytomineDomain  {
         progress(min: 0, max: 100)
         project(nullable:true)
         statusComment(nullable:true)
-        status(range: 0..7)
+        status(range: 0..8)
         rate(nullable: true)
+        processingServer(nullable: true)
     }
 
     static mapping = {
@@ -138,12 +144,13 @@ class Job extends CytomineDomain  {
         domain.progress = JSONUtils.getJSONAttrInteger(json, 'progress', 0)
         domain.statusComment = JSONUtils.getJSONAttrStr(json, 'statusComment')
         domain.project = JSONUtils.getJSONAttrDomain(json, "project", new Project(), true)
+        domain.processingServer = JSONUtils.getJSONAttrDomain(json, "processingServer", new ProcessingServer(), false)
         domain.software = JSONUtils.getJSONAttrDomain(json, "software", new Software(), true)
         domain.rate = JSONUtils.getJSONAttrDouble(json, 'rate', -1)
         domain.dataDeleted =  JSONUtils.getJSONAttrBoolean(json,'dataDeleted', false)
         domain.created = JSONUtils.getJSONAttrDate(json, 'created')
         domain.updated = JSONUtils.getJSONAttrDate(json, 'updated')
-        return domain;
+        return domain
     }
 
     /**
@@ -159,6 +166,7 @@ class Job extends CytomineDomain  {
         returnArray['number'] = domain?.number
         returnArray['statusComment'] = domain?.statusComment
         returnArray['project'] = domain?.project?.id
+        returnArray['processingServer'] = domain?.processingServer?.id
         returnArray['software'] = domain?.software?.id
         returnArray['softwareName'] = domain?.software?.name
         returnArray['rate'] = domain?.rate
@@ -180,7 +188,9 @@ class Job extends CytomineDomain  {
             List<JobParameter> parameters = JobParameter.findAllByJob(this,[sort: 'created'])
             parameters.each {
                 def values = JobParameter.getDataFromDomain(it)
-                if(values['name'].equals("privateKey")) values['value']= "*********************"
+                if (["PUBLICKEY", "CYTOMINEPUBLICKEY", "PRIVATEKEY", "CYTOMINEPRIVATEKEY"].contains(values['name'].toUpperCase().replace('_', '')))
+                    values['value']= "*********************"
+
                 result << values
             }
             return result
@@ -233,4 +243,7 @@ class Job extends CytomineDomain  {
         return status == PREVIEWED
     }
 
+    public isKilled () {
+        return status == KILLED
+    }
 }

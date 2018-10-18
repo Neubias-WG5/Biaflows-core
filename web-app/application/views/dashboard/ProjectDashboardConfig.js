@@ -438,7 +438,7 @@ var SoftwareProjectPanel = Backbone.View.extend({
 
         softwares.append(
                 '<div id="software'+newSoft.id+'" class="row">' +
-                    '<div class="col-md-5 col-md-offset-4"><p>' + newSoft.name + '</p></div>' +
+                    '<div class="col-md-5 col-md-offset-4"><p>' + newSoft.name + ' (' + newSoft.softwareVersion + ')</p></div>' +
                     '<div class="col-md-2"><a class="removesoftwarebutton btn btn-danger" href="javascript:void(0);" data-id='+newSoft.id+'>Remove</a></div>'+
                 '</div>');
     },
@@ -448,7 +448,7 @@ var SoftwareProjectPanel = Backbone.View.extend({
         new SoftwareCollection().fetch({
             success: function (softwareCollection, response) {
                 softwareCollection.each(function (software) {
-                    var option = _.template("<option value='<%= id %>'><%= name %></option>", software.toJSON());
+                    var option = _.template("<option value='<%= id %>'><%= name %> (<%= softwareVersion %>)</option>", software.toJSON());
                     $(self.el).find("#addSoftware").append(option);
                 });
                 $(self.el).find("#addSoftwareButton").click(function (event) {

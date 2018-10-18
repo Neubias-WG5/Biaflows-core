@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module version="4">
+<module type="JAVA_MODULE" version="4">
   <component name="FacetManager">
     <facet type="Spring" name="Spring">
       <configuration />
@@ -7,17 +7,17 @@
     <facet type="web" name="GrailsWeb">
       <configuration>
         <webroots>
-          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/mail-1.0.7/grails-app/views" relative="/" />
-          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/plugin-config-0.2.0/web-app" relative="/" />
-          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/resources-1.2.8/web-app" relative="/" />
           <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/quartz-monitor-0.3-RC3/web-app" relative="/" />
           <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/quartz-monitor-0.3-RC3/grails-app/views" relative="/" />
-          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/database-migration-1.3.8/grails-app/views" relative="/" />
           <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/spring-security-appinfo-2.0-RC2/grails-app/views" relative="/" />
-          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/export-1.6/web-app" relative="/" />
-          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/spring-security-core-2.0-RC4/grails-app/views" relative="/" />
           <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/rest-api-doc-0.6/web-app" relative="/" />
           <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/rest-api-doc-0.6/grails-app/views" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/mail-1.0.7/grails-app/views" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/database-migration-1.3.8/grails-app/views" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/plugin-config-0.2.0/web-app" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/export-1.6/web-app" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/resources-1.2.8/web-app" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/spring-security-core-2.0-RC4/grails-app/views" relative="/" />
         </webroots>
         <sourceRoots />
       </configuration>
@@ -29,7 +29,8 @@
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
     <content url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/asset-pipeline-1.9.6">
       <sourceFolder url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/asset-pipeline-1.9.6/src/groovy" isTestSource="false" />
       <sourceFolder url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/asset-pipeline-1.9.6/grails-app/controllers" isTestSource="false" />
@@ -121,9 +122,6 @@
     <content url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/spring-security-ldap-2.0-RC2">
       <sourceFolder url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/spring-security-ldap-2.0-RC2/src/java" isTestSource="false" />
     </content>
-    <content url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/teamcity-1.0.3">
-      <sourceFolder url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/teamcity-1.0.3/src/groovy" isTestSource="false" />
-    </content>
     <content url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/tomcat-7.0.54">
       <sourceFolder url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/tomcat-7.0.54/src/java" isTestSource="false" />
       <sourceFolder url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/tomcat-7.0.54/src/groovy" isTestSource="false" />
@@ -136,6 +134,7 @@
     <orderEntry type="module-library" exported="">
       <library name="Grails User Library (Cytomine-grailsPlugins)">
         <CLASSES>
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/rest-api-doc-0.6/lib" />
           <root url="jar://$MAVEN_REPOSITORY$/javax/mail/javax.mail-api/1.5.1/javax.mail-api-1.5.1.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/javax/activation/activation/1.1/activation-1.1.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/c3p0/c3p0/0.9.1.1/c3p0-0.9.1.1.jar!/" />
@@ -340,7 +339,7 @@
           <root url="jar://$USER_HOME$/.sdkman/candidates/grails/2.4.4/lib/org.apache.ant/ant-junit/jars/ant-junit-1.8.4.jar!/" />
           <root url="jar://$USER_HOME$/.sdkman/candidates/grails/2.4.4/lib/org.apache.ant/ant-trax/jars/ant-trax-1.7.1.jar!/" />
           <root url="jar://$USER_HOME$/.sdkman/candidates/grails/2.4.4/lib/org.apache.ant/ant-launcher/jars/ant-launcher-1.8.4.jar!/" />
-          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/rest-api-doc-0.6/lib" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/json/json/20141113/json-20141113.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

@@ -52,8 +52,10 @@ var AnnotationPropertyPanel = SideBarPanel.extend({
 
         $.get("/api/annotation/property/key.json?idImage=" + id + "&user=true", function(data) {
             _.each (data.collection, function (item){
-                var option = _.template("<option value='<%= id %>' class='<%= clazz %>'><%= value %></option>", { id : item.key, value : item.key, clazz : item.userId});
-                select.append(option);
+                if(item.key !== "CUSTOM_ANNOTATION_DEFAULT_COLOR"){
+                    var option = _.template("<option value='<%= id %>' class='<%= clazz %>'><%= value %></option>", { id : item.key, value : item.key, clazz : item.userId});
+                    select.append(option);
+                }
             });
 
             sortSelect();

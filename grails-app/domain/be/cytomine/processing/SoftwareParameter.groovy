@@ -94,6 +94,17 @@ class SoftwareParameter extends CytomineDomain {
     @RestApiObjectField(description = "Indicated if the field is autofilled by the server", mandatory = false)
     Boolean setByServer = false
 
+    @RestApiObjectField(description = "Indicates if the field is a parameter used by a processingServer", mandatory = false)
+    Boolean serverParameter = false
+
+    @RestApiObjectField(description = "The parameter name in a human readable form")
+    String humanName
+
+    @RestApiObjectField(description = "The placeholder for parameter in the command line of software. By default, [NAME]")
+    String valueKey
+
+    @RestApiObjectField(description = "The optional command line flag to put before parameter value in the command line.")
+    String commandLineFlag
 
     static belongsTo = [Software]
 
@@ -104,6 +115,10 @@ class SoftwareParameter extends CytomineDomain {
         uri (nullable: true, blank : true)
         uriPrintAttribut (nullable: true, blank : true)
         uriSortAttribut (nullable: true, blank : true)
+        serverParameter(nullable: true)
+        humanName(nullable: true)
+        valueKey(nullable: true, blank: true)
+        commandLineFlag(nullable: true, blank: true)
     }
 
     public beforeInsert() {
@@ -147,6 +162,10 @@ class SoftwareParameter extends CytomineDomain {
         returnArray['uriPrintAttribut'] = domain?.uriPrintAttribut
         returnArray['uriSortAttribut'] = domain?.uriSortAttribut
         returnArray['setByServer'] = domain?.setByServer
+        returnArray['serverParameter'] = domain?.serverParameter
+        returnArray['humanName'] = domain?.humanName ?: domain.name
+        returnArray['valueKey'] = domain?.valueKey
+        returnArray['commandLineFlag'] = domain?.commandLineFlag
         return returnArray
     }
 
@@ -157,6 +176,7 @@ class SoftwareParameter extends CytomineDomain {
      * @return Domain with json data filled
      */    
     static SoftwareParameter insertDataIntoDomain(def json, def domain = new SoftwareParameter()) {
+        log.info(json)
         domain.id = JSONUtils.getJSONAttrLong(json,'id',null)
         domain.name = JSONUtils.getJSONAttrStr(json, 'name', true)
         domain.software = JSONUtils.getJSONAttrDomain(json, "software", new Software(), true)
@@ -171,6 +191,10 @@ class SoftwareParameter extends CytomineDomain {
         domain.uriPrintAttribut = JSONUtils.getJSONAttrStr(json,'uriPrintAttribut')
         domain.uriSortAttribut = JSONUtils.getJSONAttrStr(json,'uriSortAttribut')
         domain.setByServer = JSONUtils.getJSONAttrBoolean(json,'setByServer', false)
+        domain.serverParameter = JSONUtils.getJSONAttrBoolean(json, 'serverParameter', false)
+        domain.humanName = JSONUtils.getJSONAttrStr(json, 'humanName') ?: domain.name
+        domain.valueKey = JSONUtils.getJSONAttrStr(json, "valueKey") ?: "[${domain.name.toUpperCase()}]"
+        domain.commandLineFlag = JSONUtils.getJSONAttrStr(json, "commandLineFlag")
         return domain;
     }
 

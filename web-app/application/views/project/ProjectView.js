@@ -88,7 +88,7 @@ var ProjectView = Backbone.View.extend({
         }
 
 
-        new ProjectCollection({user: idUser}).fetch({
+        new ProjectCollection({user: idUser, description:true}).fetch({
             success: function (collection, response) {
                 self.model = collection;
                 self.render();
@@ -186,28 +186,6 @@ var ProjectView = Backbone.View.extend({
                 $(".deleteProject").remove();
                 $(".infoProject").remove();
                 $(".addSlide").remove();
-            }
-            else {
-                var projectsWhereAdmin;
-                $.get("api/user/"+window.app.status.user.id+"/project/light.json?admin=true", function(data) {
-                    projectsWhereAdmin = $.map(data.collection, function (a) {
-                        return a.id.toString();
-                    });
-
-                    $(".editProject").each(function(i, x){
-                        x.id = x.id.replace("editProjectButton","");
-                        if($.inArray(x.id, projectsWhereAdmin) < 0){
-                            x.remove();
-                        }
-                    });
-
-                    $(".deleteProject").each(function(i, x){
-                        x.id = x.id.replace("deleteProjectButton","");
-                        if($.inArray(x.id, projectsWhereAdmin) < 0){
-                            x.remove();
-                        }
-                    });
-                });
             }
         }
     },

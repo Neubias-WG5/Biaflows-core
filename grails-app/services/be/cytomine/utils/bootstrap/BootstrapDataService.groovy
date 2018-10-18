@@ -38,6 +38,39 @@ class BootstrapDataService {
         recreateTableFromNotDomainClass()
         amqpQueueConfigService.initAmqpQueueConfigDefaultValues()
 
+        def imagingServer = bootstrapUtilsService.createNewImagingServer()
+        def filters = [
+                [name: "Binary", baseUrl: "/vision/process?method=binary&url=", imagingServer: imagingServer],
+                [name: "Huang Threshold", baseUrl: "/vision/process?method=huang&url=", imagingServer: imagingServer],
+                [name: "Intermodes Threshold", baseUrl: "/vision/process?method=intermodes&url=", imagingServer: imagingServer],
+                [name: "IsoData Threshold", baseUrl: "/vision/process?method=isodata&url=", imagingServer: imagingServer],
+                [name: "Li Threshold", baseUrl: "/vision/process?method=li&url=", imagingServer: imagingServer],
+                [name: "Max Entropy Threshold", baseUrl: "/vision/process?method=maxentropy&url=", imagingServer: imagingServer],
+                [name: "Mean Threshold", baseUrl: "/vision/process?method=mean&url=", imagingServer: imagingServer],
+                [name: "Minimum Threshold", baseUrl: "/vision/process?method=minimum&url=", imagingServer: imagingServer],
+                [name: "MinError(I) Threshold", baseUrl: "/vision/process?method=minerror&url=", imagingServer: imagingServer],
+                [name: "Moments Threshold", baseUrl: "/vision/process?method=moments&url=", imagingServer: imagingServer],
+                [name: "Otsu Threshold", baseUrl: "/vision/process?method=otsu&url=", imagingServer: imagingServer],
+                [name: "Renyi Entropy Threshold", baseUrl: "/vision/process?method=renyientropy&url=", imagingServer: imagingServer],
+                [name: "Shanbhag Threshold", baseUrl: "/vision/process?method=shanbhag&url=", imagingServer: imagingServer],
+                [name: "Triangle Threshold", baseUrl: "/vision/process?method=triangle&url=", imagingServer: imagingServer],
+                [name: "Yen Threshold", baseUrl: "/vision/process?method=yen&url=", imagingServer: imagingServer],
+                [name: "Percentile Threshold", baseUrl: "/vision/process?method=percentile&url=", imagingServer: imagingServer],
+                [name: "H&E Haematoxylin", baseUrl: "/vision/process?method=he-haematoxylin&url=", imagingServer: imagingServer],
+                [name: "H&E Eosin", baseUrl: "/vision/process?method=he-eosin&url=", imagingServer: imagingServer],
+                [name: "HDAB Haematoxylin", baseUrl: "/vision/process?method=hdab-haematoxylin&url=", imagingServer: imagingServer],
+                [name: "HDAB DAB", baseUrl: "/vision/process?method=hdab-dab&url=", imagingServer: imagingServer],
+                [name: "Haematoxylin", baseUrl: "/vision/process?method=haematoxylin&url=", imagingServer: imagingServer],
+                [name: "Eosin", baseUrl: "/vision/process?method=eosin&url=", imagingServer: imagingServer],
+                [name: "Red (RGB)", baseUrl: "/vision/process?method=r_rgb&url=", imagingServer: imagingServer],
+                [name: "Green (RGB)", baseUrl: "/vision/process?method=g_rgb&url=", imagingServer: imagingServer],
+                [name: "Blue (RGB)", baseUrl: "/vision/process?method=b_rgb&url=", imagingServer: imagingServer],
+                [name: "Cyan (CMY)", baseUrl: "/vision/process?method=c_cmy&url=", imagingServer: imagingServer],
+                [name: "Magenta (CMY)", baseUrl: "/vision/process?method=m_cmy&url=", imagingServer: imagingServer],
+                [name: "Yellow (CMY)", baseUrl: "/vision/process?method=y_cmy&url=", imagingServer: imagingServer],
+        ]
+        bootstrapUtilsService.createFilters(filters)
+
         def IIPMimeSamples = [
                 [extension : 'mrxs', mimeType : 'openslide/mrxs'],
                 [extension : 'vms', mimeType : 'openslide/vms'],
@@ -56,16 +89,14 @@ class BootstrapDataService {
 
 
         def usersSamples = [
-                //[username : 'anotheruser', firstname : 'Another', lastname : 'User', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : 'password', color : "#FF0000", roles : ["ROLE_USER", "ROLE_ADMIN","ROLE_SUPER_ADMIN"]],
                 [username : 'ImageServer1', firstname : 'Image', lastname : 'Server', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : RandomStringUtils.random(32,  (('A'..'Z') + ('0'..'0')).join().toCharArray()), color : "#FF0000", roles : ["ROLE_USER", "ROLE_ADMIN"]],
                 [username : 'superadmin', firstname : 'Super', lastname : 'Admin', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : grailsApplication.config.grails.adminPassword, color : "#FF0000", roles : ["ROLE_USER", "ROLE_ADMIN","ROLE_SUPER_ADMIN"]],
                 [username : 'admin', firstname : 'Just an', lastname : 'Admin', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : grailsApplication.config.grails.adminPassword, color : "#FF0000", roles : ["ROLE_USER", "ROLE_ADMIN"]],
-                [username : 'rabbitmq', firstname : 'rabbitmq', lastname : 'user', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : RandomStringUtils.random(32,  (('A'..'Z') + ('0'..'0')).join().toCharArray()), color : "#FF0000", roles : ["ROLE_USER"]],
+                [username : 'rabbitmq', firstname : 'rabbitmq', lastname : 'user', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : RandomStringUtils.random(32,  (('A'..'Z') + ('0'..'0')).join().toCharArray()), color : "#FF0000", roles : ["ROLE_USER", "ROLE_SUPER_ADMIN"]],
+                [username : 'monitoring', firstname : 'Monitoring', lastname : 'Monitoring', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : RandomStringUtils.random(32,  (('A'..'Z') + ('0'..'0')).join().toCharArray()), color : "#FF0000", roles : ["ROLE_USER","ROLE_SUPER_ADMIN"]],
                 [username : 'jsnow', firstname : 'John', lastname : 'Snow', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : "jsnow", color : "#FF0000", roles : ["ROLE_USER"]],
                 [username : 'estark', firstname : 'Eddard', lastname : 'Stark', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : "estark", color : "#FF0000", roles : ["ROLE_USER"]],
-                [username : 'clannister', firstname : 'Cersei', lastname : 'Lannister', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : "clannister", color : "#FF0000", roles : ["ROLE_USER"]],
-                [username : 'monitoring', firstname : 'Monitoring', lastname : 'Monitoring', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : RandomStringUtils.random(32,  (('A'..'Z') + ('0'..'0')).join().toCharArray()), color : "#FF0000", roles : ["ROLE_USER","ROLE_SUPER_ADMIN"]]
-
+                [username : 'clannister', firstname : 'Cersei', lastname : 'Lannister', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : "clannister", color : "#FF0000", roles : ["ROLE_USER"]]
         ]
 
         bootstrapUtilsService.createUsers(usersSamples)
@@ -94,6 +125,9 @@ class BootstrapDataService {
         superAdmin.setPublicKey((String) grailsApplication.config.grails.superAdminPublicKey)
         superAdmin.save(flush : true)
 
+
+        bootstrapUtilsService.addDefaultProcessingServer()
+        bootstrapUtilsService.addDefaultConstraints()
     }
 
     public void recreateTableFromNotDomainClass() {

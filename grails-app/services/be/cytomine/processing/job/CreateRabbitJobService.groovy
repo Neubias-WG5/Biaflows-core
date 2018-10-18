@@ -48,7 +48,7 @@ class CreateRabbitJobService extends AbstractJobService{
             throw new MiddlewareException("No command found for this job, cannot execute it")
 
         //check if the queue exists
-        String queueName = amqpQueueService.queuePrefixSoftware + job.software.name.capitalize()
+        String queueName = amqpQueueService.queuePrefixProcessingServer + job.software.name.capitalize()
         MessageBrokerServer mbs = MessageBrokerServer.findByName("MessageBrokerServer")
         if(!amqpQueueService.checkRabbitQueueExists(queueName, mbs))
             throw new MiddlewareException("Amqp queue does not exist, cannot execute the job")

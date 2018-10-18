@@ -70,7 +70,7 @@ var ApplicationController = Backbone.Router.extend({
         self.models.ontologies = new OntologyCollection();
         self.models.ontologiesLigth = new OntologyCollection({light: true});
         self.models.disciplines = new DisciplineCollection();
-        self.models.projects = new ProjectCollection({user: undefined});
+        self.models.projects = new ProjectCollection({description:true});
         self.models.annotations = new AnnotationCollection({});
 
         self.models.imagesequence = new ImageSequenceCollection({group: undefined});
@@ -141,6 +141,7 @@ var ApplicationController = Backbone.Router.extend({
         window.app.controllers.phono = new PhonoController();
         window.app.controllers.userdashboard = new UserDashboardController();
         window.app.controllers.admin = new AdminController();
+        window.app.controllers.software = new SoftwareController();
 
         window.app.controllers.imagegroup = new ImageGroupController();
 

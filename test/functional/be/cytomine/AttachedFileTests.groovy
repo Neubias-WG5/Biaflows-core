@@ -117,5 +117,14 @@ class AttachedFileTests {
 
   }
 
+    void testDeleteAttachedFileCorrect() {
+        def attachedFileToAdd = BasicInstanceBuilder.getAttachedFileNotExist(true)
+        def result = AttachedFileAPI.show(attachedFileToAdd.id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        result = AttachedFileAPI.delete(attachedFileToAdd.id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        result = AttachedFileAPI.show(attachedFileToAdd.id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 404 == result.code
+    }
 
 }

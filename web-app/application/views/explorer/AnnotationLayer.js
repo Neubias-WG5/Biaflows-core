@@ -121,7 +121,7 @@ var AnnotationLayer = function (user,name, imageID, userID, color, ontologyTreeV
     this.reviewMode = reviewMode;
     this.drawable = false;
     var rules = [new OpenLayers.Rule({
-        symbolizer: {strokeColor: "#0000ff", strokeWidth: 2},
+        symbolizer: {strokeColor: "#0000ff", strokeWidth: 3},
         // symbolizer: {}, // instead if you want to keep default colors
         elseFilter: true
     })];
@@ -209,6 +209,16 @@ var AnnotationLayer = function (user,name, imageID, userID, color, ontologyTreeV
         styleMap.styles["select"].addRules(rules);
         styleMap.addUniqueValueRules('select', 'term', this.getSymbolizerRoi(true));
     } else if (!reviewMode) {
+
+        var customColorProperty = {"CUSTOM_ANNOTATION_DEFAULT_COLOR":{
+            'fillColor': "${defaultColor}",
+            'strokeWidth': 3,
+            'pointRadius': this.pointRadius,
+            "strokeColor": "#000000"
+        }};
+
+        styleMap.addUniqueValueRules('default', 'property', customColorProperty);
+
         styleMap.styles["default"].addRules(rules);
         styleMap.addUniqueValueRules('default', 'term', this.getSymbolizer(false));
         styleMap.styles["select"].addRules(selectedRules);
@@ -226,6 +236,32 @@ var AnnotationLayer = function (user,name, imageID, userID, color, ontologyTreeV
 
 
 
+    var propertyCallback = function (propertiesData) {
+        new AnnotationPropertyTextCollection({idUser: self.user.id, idImage: self.imageID, key: "CUSTOM_ANNOTATION_DEFAULT_COLOR"}).fetch({
+            success: function (annotation, response) {
+                for(var i = 0;i<response.collection.length;i++){
+                    for(var j = 0; j<propertiesData.collection.length; j++) {
+                        if(propertiesData.collection[j].id === response.collection[i].idAnnotation) break;
+                    }
+                    var result = propertiesData.collection[j];
+                    result.defaultColor = response.collection[i].value;
+
+
+
+                    for (var j in self.vectorsLayer.features) {
+                        if(self.vectorsLayer.features[j].attributes.idAnnotation === response.collection[i].idAnnotation) break;
+                    }
+
+                    self.vectorsLayer.features[j].attributes.property = "CUSTOM_ANNOTATION_DEFAULT_COLOR";
+                    self.vectorsLayer.features[j].attributes.defaultColor = response.collection[i].value;
+
+                    self.controls.select.unhighlight(self.vectorsLayer.features[j]);
+                }
+            }
+        });
+
+        return this.format.read(propertiesData);
+    };
 
     this.vectorsLayer = new OpenLayers.Layer.Vector(this.name, {
         rendererOptions: { zIndexing: true },
@@ -236,7 +272,8 @@ var AnnotationLayer = function (user,name, imageID, userID, color, ontologyTreeV
         protocol: new OpenLayers.Protocol.Script({
             url: annotationsCollection,
             format: new OpenLayers.Format.Cytomine({ annotationLayer: this}),
-            callbackKey: "callback"
+            callbackKey: "callback",
+            parseFeatures: propertyCallback
         }) ,
         'styleMap': styleMap
 
@@ -277,12 +314,14 @@ AnnotationLayer.prototype = {
         var symbolizers_lookup = {};
         var self = this;
         //NO TERM ASSOCIATED
-        symbolizers_lookup[AnnotationStatus.NO_TERM] = {
+        /*symbolizers_lookup[AnnotationStatus.NO_TERM] = {
+
             'fillColor': "#EEEEEE",
             'strokeWidth': 3,
             'pointRadius': this.pointRadius,
             "strokeColor": strokeColor
-        };
+
+        };*/
         //MULTIPLE TERM ASSOCIATED
         symbolizers_lookup[AnnotationStatus.MULTIPLE_TERM] = {
             'fillColor': "#CCCCCC",

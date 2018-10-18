@@ -62,6 +62,9 @@ var ProjectDashboardAlgos = Backbone.View.extend({
                 self.software = collection.get(self.idSoftware);
                 self.softwares = collection;
                 self.initProjectSoftwareList();
+                var idJob = self.idJob;
+                self.changeSoftware();
+                self.idJob = idJob;
                 self.printProjectSoftwareInfo();
                 self.printSoftwareButton();
                 new JobCollection({ project: self.model.id, software: self.idSoftware, light: true}).fetch({
@@ -110,7 +113,10 @@ var ProjectDashboardAlgos = Backbone.View.extend({
     initProjectSoftwareList: function () {
         var self = this;
         self.softwares.each(function (software) {
-            $("#projectSoftwareListUl").append('<li class="list-group-item" id="consultSoftware-' + software.id + '"><a href="#tabs-algos-' + self.model.id + '-' + software.id + '-">' + software.get('name') + '</a></li>');
+            var executable = (!software.get('executable')) ? '<span class="label label-default">Not executable</span>' : '';
+            var del = (software.get('deprecated')) ? '<del>' : '';
+            $("#projectSoftwareListUl").append('<a class="list-group-item" id="consultSoftware-' + software.id +'" href="#tabs-algos-' + self.model.id + '-' + software.id + '-">'
+              + del + software.get('name') + " (" + software.get('softwareVersion') + ") " + executable + del +'</a>');
             $("#projectSoftwareListUl").children().removeClass("active");
             if (software.id == self.idSoftware) {
                 $("#consultSoftware-" + software.id).addClass("active");
@@ -127,10 +133,17 @@ var ProjectDashboardAlgos = Backbone.View.extend({
         $("#consultSoftware-" + self.software.id).addClass("active");
         //clean param list
         $('#selectRunParamsTable').find('tbody').empty();
+        $('#job-properties-content').find('tbody').empty();
+        $('#job-attached-files-content').find('tbody').empty();
         //clean result
         $("#panelJobResultsDiv").empty();
         //load result
         self.fillJobSelectView();
+
+        if (self.software.get('executable'))
+            $("#softwareLaunchJobButton").show();
+        else
+            $("#softwareLaunchJobButton").hide();
 
         self.printSoftwareButton();
     },
@@ -347,29 +360,48 @@ var ProjectDashboardAlgos = Backbone.View.extend({
         if (job == undefined) {
             $('.selectRunDetails').empty();
             $('#selectRunParamsTable').find('tbody').empty();
+            $('#job-properties-content').find('tbody').empty();
+            $('#job-attached-files-content').find('tbody').empty();
             $("#panelJobResultsDiv").empty();
             return;
         }
         self.idJob = job.id;
+        self.currentJobStatus = job.get('status');
         var refreshData = function () {
             var selectRunElem = $("#panelJobDetails").find('.selectRunDetails');
             new JobModel({ id: self.idJob}).fetch({
                 success: function (model, response) {
                     selectRunElem.empty();
+                    var status = model.get('status');
                     self.buildJobInfoElem(model, selectRunElem);
+                    if (self.currentJobStatus != status) {
+                        self.currentJobStatus = status;
+                        self.jobSelectView.refresh();
+                        self.buildJobPropertiesElem(job);
+                        setTimeout(function() {
+                            self.buildJobAttachedFilesElem(job);
+                        }, 3000);
+                    }
+
+                    if (status >= 3)
+                        self.clearIntervalRefresh();
                 }
             });
         };
         refreshData();
-        var interval = window.app.view.addInterval(refreshData, 5000);
+        self.interval = window.app.view.addInterval(refreshData, 5000);
         $(window).bind('hashchange', function () {
-            clearInterval(interval.loop);
+            self.clearIntervalRefresh();
         });
 
-        var selectRunParamElem = $('#selectRunParamsTable').find('tbody').empty();
-        selectRunParamElem.empty();
-        self.buildJobParamElem(job, selectRunParamElem);
+        
+        self.buildJobParamElem(job);
+        self.buildJobPropertiesElem(job);
+        self.buildJobAttachedFilesElem(job);
         self.printJobResult(job);
+    },
+    clearIntervalRefresh: function() {
+        clearInterval(this.interval.loop);
     },
     buildJobInfoElem: function (job, elem) {
         var self = this;
@@ -392,25 +424,28 @@ var ProjectDashboardAlgos = Backbone.View.extend({
     getStatusElement: function (job, width) {
         var self = this;
         if (job.isNotLaunch()) {
-            return self.getJobLabel("btn-inverse", "not launch", width);
+            return self.getJobLabel("label-default", "Not launched", width);
         }
         else if (job.isInQueue()) {
-            return self.getJobLabel("btn-info", "in queue", width);
+            return self.getJobLabel("label-info", "In queue", width);
         }
         else if (job.isRunning()) {
             return self.getJobProgress(job, "active", 'progress', width);
         } //progress-bar not blue by default if  progress-striped (<> doc)
         else if (job.isSuccess()) {
-            return self.getJobLabel("btn-success", "success", width);
+            return self.getJobLabel("label-success", "Success", width);
         }
         else if (job.isFailed()) {
-            return self.getJobLabel("btn-danger", "failed", width);
+            return self.getJobLabel("label-danger", "Failed", width);
         }
         else if (job.isIndeterminate()) {
-            return self.getJobLabel("btn-warning", "indeterminate", width);
+            return self.getJobLabel("label-default", "Indeterminate", width);
+        }
+        else if (job.isKilled()) {
+            return self.getJobLabel("label-default", "Killed", width);
         }
         else if (job.isWait()) {
-            return self.getJobProgress(job, "progress-warning", 'wait ', width);
+            return self.getJobLabel("label-warning", 'Waiting', width);
         } //progress-warning doesn't work (<> doc) :-/
         else {
             return "no supported";
@@ -427,19 +462,17 @@ var ProjectDashboardAlgos = Backbone.View.extend({
 
     },
 
-    buildJobParamElem: function (job, ulElem) {
+    buildJobParamElem: function (job) {
         var self = this;
         if (job == undefined) {
             return;
         }
 
-        var datatable = $('#selectRunParamsTable').DataTable();
-        console.log("buildJobParamElem=" + datatable);
-        console.log("buildJobParamElem=" + $('#selectRunParamsTable').length);
+        $('#selectRunParamsTable').find('tbody').empty();
 
         var data = [];
         _.each(job.get('jobParameters'), function (param) {
-            data.push([param.name,
+            data.push([param.humanName,
                 '<div id=' + param.id + '><div class="alert alert-info" style="margin-left : 10px;margin-right: 10px;"><i class="icon-refresh" /> Loading...</div></div>',
                 param.type
             ]);
@@ -450,9 +483,10 @@ var ProjectDashboardAlgos = Backbone.View.extend({
             dom: "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
             paging:   false,
             data: data,
-            displayLength: 5,
+            searching: false,
             lengthChange: false,
             destroy: true,
+            info: false,
             columnDefs: [
                 { width: "40%", targets: [ 0 ] },
                 { width: "40%", targets: [ 1 ] },
@@ -463,6 +497,75 @@ var ProjectDashboardAlgos = Backbone.View.extend({
             self.printJobParameterValue(param, $('#selectRunParamsTable').find("tbody").find("div#" + param.id), 100);
         });
     },
+    buildJobPropertiesElem: function (job) {
+        var self = this;
+        if (job == undefined) {
+            return;
+        }
+
+        $('#job-properties-content').find('tbody').empty();
+
+        var data = [];
+        new PropertyCollection({domainClassName:"be.cytomine.processing.Job", domainIdent:job.get('id')}).fetch({
+            success: function (collection, response) {
+                collection.each(function (model) {
+                    data.push([model.get("key"), model.get("value")])
+                });
+
+                $('#job-properties-content').DataTable({
+                    dom: "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
+                    paging:   false,
+                    data: data,
+                    searching: false,
+                    lengthChange: false,
+                    destroy: true,
+                    info: false,
+                    columnDefs: [
+                        { width: "50%", targets: [ 0 ] },
+                        { width: "50%", targets: [ 1 ] }
+                    ],
+                    language: {
+                        emptyTable: "No properties for this job."
+                    }
+                });
+            }
+        });
+    },
+    buildJobAttachedFilesElem: function (job) {
+        var self = this;
+        if (job == undefined) {
+            return;
+        }
+
+        $('#job-attached-files-content').find('tbody').empty();
+
+        var data = [];
+        new AttachedFileCollection({domainClassName:"be.cytomine.processing.Job", domainIdent:job.get('id')}).fetch({
+            success: function (collection, response) {
+                collection.each(function (model) {
+                    data.push([model.get("filename"), '<a class="btn btn-xs btn-info"' +
+                    ' href="'+ model.get("url") +'">Download</a>'])
+                });
+
+                $('#job-attached-files-content').DataTable({
+                    dom: '<"toolbar">frtip',
+                    paging:   false,
+                    data: data,
+                    searching: false,
+                    lengthChange: false,
+                    destroy: true,
+                    info: false,
+                    columnDefs: [
+                        { width: "70%", targets: [ 0 ] },
+                        { width: "30%", targets: [ 1 ] }
+                    ],
+                    language: {
+                        emptyTable: "No attached files for this job."
+                    }
+                });
+            }
+        });
+    },
     //print job param value in cell
     printJobParameterValue: function (param, cell, maxSize) {
         var self = this;
@@ -470,10 +573,10 @@ var ProjectDashboardAlgos = Backbone.View.extend({
             cell.html(window.app.convertLongToDate(param.value));
         } else if (param.type == "Boolean") {
             if (param.value == "true") {
-                cell.html('<input type="checkbox" name="" checked="checked" />');
+                cell.html('<input type="checkbox" name="" checked="checked" disabled/>');
             }
             else {
-                cell.html('<input type="checkbox" name="" />');
+                cell.html('<input type="checkbox" name="" disabled/>');
             }
         }
         else if (param.type == "ListDomain" || param.type == "Domain") {
@@ -497,7 +600,8 @@ var ProjectDashboardAlgos = Backbone.View.extend({
                 }
             } else {
                 var computeValue = param.value;
-                if (param.name.toLowerCase() == "privatekey" || param.name.toLowerCase() == "publickey") {
+                if (param.name.toLowerCase().replace(new RegExp("_", 'g'), "").indexOf("privatekey") !== -1
+                    || param.name.toLowerCase().replace(new RegExp("_", 'g'), "").indexOf("publickey") !== -1) {
                     computeValue = "************************************";
                 }
                 cell.html(computeValue);
@@ -505,7 +609,8 @@ var ProjectDashboardAlgos = Backbone.View.extend({
         }
         else {
             var computeValue = param.value;
-            if (param.name.toLowerCase() == "privatekey" || param.name.toLowerCase() == "publickey") {
+            if (param.name.toLowerCase().replace(new RegExp("_", 'g'), "").indexOf("privatekey") !== -1
+                || param.name.toLowerCase().replace(new RegExp("_", 'g'), "").indexOf("publickey") !== -1) {
                 computeValue = "************************************";
             }
             cell.html(computeValue);
@@ -562,25 +667,7 @@ var ProjectDashboardAlgos = Backbone.View.extend({
         }
     },
     initJobResult: function (job) {
-        var target = $("#job-properties-content");
-        target.empty();
-        new PropertyCollection({domainClassName:"be.cytomine.processing.Job", domainIdent:job.get('id')}).fetch({
-            success: function (collection, response) {
-                if (collection.size() === 0) {
-                    target.empty();
-                    target.append(_.template("No data to display", {}));
-                }
-                else {
-                    collection.each(function (model) {
-                        console.log("key");
-                        console.log(model.get("key"));
-                        target.append(_.template("<li><b><%= key %></b> : <%= value %></li>",
-                            {key: model.get("key"), value: model.get("value")}));
-                    });
-                }
 
-            }
-        });
 
         $("#panelJobResultsDiv").empty();
         var self = this;

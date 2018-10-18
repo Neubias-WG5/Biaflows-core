@@ -28,7 +28,13 @@ class JobUrlMappings {
             action = [DELETE: "deleteAllJobData", GET: "listAllJobData"]
         }
         "/api/job/$id/execute.$format" (controller : "restJob") {
-            action = [POST : "execute"]
+            action = [POST : "execute", GET: "execute"]
+        }
+        "/api/job/$job_id/processing_server/$processing_server_id/execute.$format" (controller: "restJob") {
+            action = [POST: "executeWithProcessingServer", GET: "executeWithProcessingServer"]
+        }
+        "/api/job/$id/kill.$format"(controller: "restJob") {
+            action = [POST: "kill", GET: "kill"]
         }
         "/api/job/$id/preview_roi.$format" (controller : "restJob") {
             action = [GET : "getPreviewRoi"]
@@ -40,7 +46,6 @@ class JobUrlMappings {
         "/api/project/$id/job/purge.$format"(controller : "restJob") {
             action = [POST : "purgeJobNotReviewed", GET : "purgeJobNotReviewed"]
         }
-
 
         /* Job template */
         "/api/jobtemplate.$fomat"(controller:"restJobTemplate"){

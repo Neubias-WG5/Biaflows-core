@@ -1,8 +1,8 @@
-<div id='projectlist<%= id %>' data-id='<%= id %>' class="panel panel-default col-md-2 projectInfoPanel">
-<div class="panel-heading">
-    <h4 class="panel-title"><a href="#tabs-dashboard-<%= id %>"><%= title %></a></h4>
-</div>
-<div class="panel-body" style="min-height : 200px;">
+<div id='projectlist<%= id %>' data-id='<%= id %>' class="panel panel-default col-md-4 projectInfoPanel">
+    <div class="panel-heading">
+        <h4 class="panel-title"><a href="#tabs-dashboard-<%= id %>"><%= title %></a></h4>
+    </div>
+    <div class="panel-body" style="min-height : 200px;">
         <% if (dateConnection!=null) { %>
         <div style="text-align: center">
             <% if (lastConnection) { %>
@@ -20,43 +20,33 @@
 
         <ul style="margin-left : 0px;padding-left: 0px;">
             <li>Name : <a href="#tabs-dashboard-<%= id %>"><%= name %></a></li>
-            <li>Discipline : <%= disciplineName %></li>
             <li>Ontology : <a href="#ontology/<%= ontology %>"><%= ontologyName %></a></li>
             <!--<li><i class="icon-user"></i> <a href="#project-users-<%= id %>">See users list</a><li>-->
         </ul>
-        <ul style="margin-left : 0px;padding-left: 0px;">
-            <!--<li>Number of samples : <a href="#tabs-images-<%= id %>" ><%= numberOfSlides %></a></li>-->
-            <li>Number of images : <a href="#tabs-images-<%= id %>"><%= numberOfImages %></a></li>
-            <li>Number of user annotations : <% if (numberOfAnnotations == 0) { %> <span class="label label-default"><%= numberOfAnnotations %></span>
-                <% } else if (numberOfAnnotations < 250) { %><span class="label label-warning"><%= numberOfAnnotations %></span>
-                <% } else { %><span class="label label-success"><%= numberOfAnnotations %></span> <% } %>
-            </li>
-            <li>Number of job annotations : <% if (numberOfJobAnnotations == 0) { %> <span
-                    class="label label-default"><%= numberOfJobAnnotations %></span> <% } else if
-                (numberOfJobAnnotations < 250) { %><span
-                        class="label label-warning"><%= numberOfJobAnnotations %></span> <% } else { %><span
-                        class="label label-success"><%= numberOfJobAnnotations %></span> <% } %>
-            </li>
-            <li>Number of validated annotations : <% if (numberOfReviewedAnnotations == 0) { %> <span
-                    class="label label-default"><%= numberOfReviewedAnnotations %></span> <% } else if
-                (numberOfJobAnnotations < 250) { %><span
-                        class="label label-warning"><%= numberOfReviewedAnnotations %></span> <% } else { %><span
-                        class="label label-success"><%= numberOfReviewedAnnotations %></span> <% } %>
-            </li>
-        </ul>
 
-</div>
-<div class="panel-footer">
-    <% if (dateConnection==null) { %>
+        <% for (var i =0; i<groups.length;i++) { %>
+        <a href="#tabs-imagegroup-<%=id%>-<%=groups[i].id%>"><img src="<%= groups[i].thumb %>"></a>
+        <% } %>
+        <% if(groups.length == 0) {
+            for (var i =0; i<images.length;i++) { %>
+                <a href="#tabs-imagetab-<%=id%>-<%=images[i].id%>"><img src="<%= images[i].thumb %>"></a>
+            <% } %>
+        <% } %>
+
+    </div>
+    <div class="panel-footer">
+        <% if (dateConnection==null) { %>
         <button class="infoProject btn btn-default btn-xs" id="infoProjectButton<%= id %>" style="display : inline-block;">Info </button>
+        <% if (admin == true) { %>
         <button class="deleteProject btn btn-danger btn-xs" id="deleteProjectButton<%= id %>" style="display : inline-block;">Delete</button>
+        <% } %>
         <a href="#tabs-dashboard-<%= id %>" class="btn btn-info btn-xs" id='radioprojectchange<%= id %>'>Open</a>
 
-    <% } else { %>
-            <div style="text-align: center"><a href="#tabs-dashboard-<%= id %>" class="btn btn-info btn-xs">Open</a></div>
-    <% } %>
+        <% } else { %>
+        <div style="text-align: center"><a href="#tabs-dashboard-<%= id %>" class="btn btn-info btn-xs">Open</a></div>
+        <% } %>
 
 
-</div>
+    </div>
 
 </div>
