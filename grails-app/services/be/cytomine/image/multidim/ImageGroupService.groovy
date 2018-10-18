@@ -154,10 +154,4 @@ class ImageGroupService extends ModelService {
         def sequence = ImageSequence.findByImageGroup(imageGroup)
         return abstractImageService.downloadURI(sequence.image.baseImage, true)
     }
-
-    def downloadURI(Long id) {
-        ImageGroup imageGroup = ImageGroup.get(id)
-        def sequence = ImageSequence.findByImageGroup(imageGroup)
-        return abstractImageService.downloadURI(sequence.image.baseImage, true)
-    }
 }
