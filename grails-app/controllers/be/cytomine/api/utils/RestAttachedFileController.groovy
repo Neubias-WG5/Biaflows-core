@@ -119,7 +119,7 @@ class RestAttachedFileController extends RestController {
         String filename = upload.getOriginalFilename()
         log.info "Upload $filename for domain $domainClassName $domainIdent"
 
-        def result = attachedFileService.add(filename,upload.getBytes(),domainIdent,domainClassName)
+        def result = attachedFileService.add(filename,upload.getBytes(),domainIdent,domainClassName, filename)
 
         responseSuccess(result)
 

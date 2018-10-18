@@ -157,7 +157,7 @@ class PropertyService extends ModelService {
         return executeCommand(command,null,json)
     }
     @Override
-    protected def afterAdd(def domain, def response) {
+    def afterAdd(def domain, def response) {
         Property property = (Property) domain
         if(property.key.equals("ANNOTATION_GROUP_ID")){
             Long id = -1

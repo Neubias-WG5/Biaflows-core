@@ -111,11 +111,6 @@ class ImageGroupService extends ModelService {
             imageSequenceService.delete(it,transaction,null,false)
         }
     }
-    def deleteDependentImageGroupHDF5(ImageGroup group, Transaction transaction, Task task = null) {
-        ImageGroupHDF5.findAllByGroup(group).each {
-            imageGroupHDF5Service.delete(it,transaction,null,false)
-        }
-    }
 
     def deleteDependentImageGroupHDF5(ImageGroup group, Transaction transaction, Task task = null) {
         ImageGroupHDF5.findAllByGroup(group).each {
