@@ -167,8 +167,14 @@ class SecUserService extends ModelService {
 
     def listUsers(Project project, boolean showUserJob = false) {
         securityACLService.check(project,READ)
-        List<SecUser> users = SecUser.executeQuery("select distinct secUser from AclObjectIdentity as aclObjectId, AclEntry as aclEntry, AclSid as aclSid, SecUser as secUser "+
-                "where aclObjectId.objectId = "+project.id+" and aclEntry.aclObjectIdentity = aclObjectId.id and aclEntry.sid = aclSid.id and aclSid.sid = secUser.username and secUser.class = 'be.cytomine.security.User'")
+        List<SecUser> users = SecUser.executeQuery("select distinct secUser " +
+                "from AclObjectIdentity as aclObjectId, AclEntry as aclEntry, AclSid as aclSid, SecUser as secUser "+
+                "where aclObjectId.objectId = "+project.id+" " +
+                "and aclEntry.aclObjectIdentity = aclObjectId.id " +
+                "and aclEntry.sid = aclSid.id " +
+                "and aclSid.sid = secUser.username " +
+                "and secUser.class = 'be.cytomine.security.User'")
+
         if(showUserJob) {
             //TODO:: should be optim (see method head comment)
             List<Job> allJobs = Job.findAllByProject(project, [sort: 'created', order: 'desc'])
@@ -278,28 +284,32 @@ class SecUserService extends ModelService {
         SecUser currentUser = cytomineService.getCurrentUser()
         def users = []
         def humans = listUsers(project)
-        users.addAll(humans)
+
+        humans.each {
+            users << User.getDataFromDomain(it)
+        }
 
         if(image) {
             def jobs = getUserJobImage(image)
             users.addAll(jobs)
+
         }
         def  admins = listAdmins(project)
 
-
+        log.info(humans.contains(currentUser))
 
 
         if(project.checkPermission(ADMINISTRATION,currentRoleServiceProxy.isAdminByNow(currentUser))) {
             return users
-        } else if(project.hideAdminsLayers && project.hideUsersLayers && users.contains(currentUser)) {
+        } else if(project.hideAdminsLayers && project.hideUsersLayers && humans.contains(currentUser)) {
             return [currentUser]
-        } else if(project.hideAdminsLayers && !project.hideUsersLayers && users.contains(currentUser)) {
+        } else if(project.hideAdminsLayers && !project.hideUsersLayers && humans.contains(currentUser)) {
             users.removeAll(admins)
             return users
-        } else if(!project.hideAdminsLayers && project.hideUsersLayers && users.contains(currentUser)) {
+        } else if(!project.hideAdminsLayers && project.hideUsersLayers && humans.contains(currentUser)) {
             admins.add(currentUser)
             return admins
-         }else if(!project.hideAdminsLayers && !project.hideUsersLayers && users.contains(currentUser)) {
+         }else if(!project.hideAdminsLayers && !project.hideUsersLayers && humans.contains(currentUser)) {
             return users
          }else { //should no arrive but possible if user is admin and not in project
              []

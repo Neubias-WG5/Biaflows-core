@@ -23,7 +23,6 @@ import java.util.Map;
 /**
  * User: lrollus
  * Date: 2/02/12
- * GIGA-ULg
  * This class implement a confusion matrix
  * Each column of the matrix represents the instances in a predicted class,
  * while each row represents the instances in an actual class

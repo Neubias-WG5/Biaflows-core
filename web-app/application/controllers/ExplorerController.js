@@ -80,10 +80,10 @@ var ExplorerController = Backbone.Router.extend({
             self.showView();
 
             // record the image consultation for the current user
-            new ImageConsultationModel({
-                image: idImage,
-                mode : "view"
-            }).save();
+            // new ImageConsultationModel({
+            //     image: idImage,
+            //     mode : "view"
+            // }).save();
 
             if($.inArray(idImage, $.map(window.app.status.currentImages, function(a) {return a.image}))<0) {
                 window.app.status.currentImages.push({image: idImage, review:false});
@@ -99,23 +99,18 @@ var ExplorerController = Backbone.Router.extend({
     },
 
     browseGroup: function (idProject, idGroup) {
-
         var imageGroup = new ImageGroupModel({id:idGroup});
-
         var callBack = function (){
             var zStack = imageGroup.zstack;
             var zMean = zStack[Math.floor(zStack.length/2)];
-
-            var imageSeq = new ImageSequenceModel({group: idGroup, zstack : zMean, slice : 0, time: 0,channel:0});
-
+            var imageSeq = new ImageSequenceModel({group: idGroup, zstack : zMean, slice : imageGroup.slice[0],
+                time: imageGroup.time[0], channel: imageGroup.channel[0]});
             imageSeq.fetch({
                 success: function (model) {
                     window.location = '#tabs-image-' + idProject + '-' + model.get("image") + '-0';
                 }
             });
-
         };
-
         imageGroup.feed(callBack);
     },
     refreshImage: function (idImage){
@@ -151,10 +146,10 @@ var ExplorerController = Backbone.Router.extend({
             self.showView();
 
             // record the image consultation for the current user
-            new ImageConsultationModel({
-                imageinstance: idImage,
-                mode : "review"
-            }).save();
+            // new ImageConsultationModel({
+            //     imageinstance: idImage,
+            //     mode : "review"
+            // }).save();
 
             if($.inArray(idImage, $.map(window.app.status.currentImages, function(a) {return a.image}))<0) {
                 window.app.status.currentImages.push({image: idImage, review:true});

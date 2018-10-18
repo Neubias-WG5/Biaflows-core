@@ -19,7 +19,7 @@ import be.cytomine.CytomineDomain
 */
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: stevben
  * Date: 5/02/13
  * Time: 11:40

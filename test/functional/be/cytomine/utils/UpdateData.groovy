@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory
 /**
  * User: lrollus
  * Date: 8/01/13
- * GIGA-ULg
  *
  */
 class UpdateData {

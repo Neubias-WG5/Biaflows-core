@@ -430,13 +430,6 @@ class RestUserController extends RestController {
     def resetPassword () {
         try {
             SecUser user = SecUser.get(params.long('id'))
-            //::TODO : check also old password security
-            /*String oldPassword = params.get('oldPassword')
-            oldPassword = springSecurityService.encodePassword(oldPassword)
-            if (user.password != oldPassword && !user.passwordExpired) {
-                responseNotFound("Password",params.password)
-            } */
-
             String newPassword = request.JSON.password == JSONObject.NULL ? null : request.JSON.password;
 
             log.info "change password for user $user with new password $newPassword"

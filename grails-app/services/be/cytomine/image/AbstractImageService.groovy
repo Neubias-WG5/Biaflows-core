@@ -335,11 +335,29 @@ class AbstractImageService extends ModelService {
     /**
      * Get thumb image URL
      */
-    def thumb(long id, int maxSize) {
+    def thumb(long id, int maxSize, def params=null) {
         AbstractImage abstractImage = AbstractImage.read(id)
-        String fif = URLEncoder.encode(abstractImage.absolutePath, "UTF-8")
-        String mimeType = abstractImage.mimeType
-        String url = "/image/thumb.jpg?fif=$fif&mimeType=$mimeType&maxSize=$maxSize"
+
+        def parameters= [:]
+
+        parameters.fif = URLEncoder.encode(abstractImage.absolutePath, "UTF-8")
+        parameters.mimeType = abstractImage.mimeType
+        parameters.maxSize = maxSize
+
+        def format = "jpg"
+        if (params)  {
+            if (params.format) format = params.format
+            if (params.colormap) parameters.colormap = params.colormap
+            if (params.inverse) parameters.inverse = params.inverse
+            if (params.contrast) parameters.contrast = params.contrast
+            if (params.gamma) parameters.gamma = params.gamma
+            if (params.bits) {
+                if (params.bits == "max") parameters.bits = abstractImage.bitDepth ?: 8
+                else parameters.bits = params.bits
+            }
+        }
+
+        String url = "/image/thumb.$format?" + parameters.collect {k, v -> "$k=$v"}.join("&")
 
         AttachedFile attachedFile = AttachedFile.findByDomainIdentAndFilename(id, url)
         if (attachedFile) {
@@ -349,17 +367,16 @@ class AbstractImageService extends ModelService {
             log.info "$imageServerURL"+url
             byte[] imageData = new URL("$imageServerURL"+url).getBytes()
             BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageData))
-            attachedFileService.add(url, imageData, abstractImage.id, AbstractImage.class.getName())
+            attachedFileService.add(url, imageData, abstractImage.id, AbstractImage.class.getName(), "thumb")
             return bufferedImage
         }
-
     }
 
     /**
      * Get Preview image URL
      */
-    def preview(def id) {
-        thumb(id, 1024)
+    def preview(def id, def params=null) {
+        thumb(id, 1024, params)
     }
 
     def getMainUploadedFile(AbstractImage abstractImage) {
@@ -423,7 +440,7 @@ class AbstractImageService extends ModelService {
             String imageServerURL = abstractImage.getRandomImageServerURL()
             byte[] imageData = new URL("$imageServerURL"+url).getBytes()
             BufferedImage bufferedImage =  ImageIO.read(new ByteArrayInputStream(imageData))
-            attachedFileService.add(url, imageData, abstractImage.id, AbstractImage.class.getName())
+            attachedFileService.add(url, imageData, abstractImage.id, AbstractImage.class.getName(), "nested")
             return bufferedImage
         }
 

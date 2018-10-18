@@ -72,6 +72,9 @@ class PropertyUrlMappings
         "/api/domain/$domainClassName/$domainIdent/property/$id.$format"(controller:"restProperty"){
             action = [GET:"showDomain",PUT:"update", DELETE:"delete"]
         }
+        "/api/property.$format"(controller: "restProperty") {
+            action = [POST: "addPropertyDomain"]
+        }
 
         "/api/keywords.$format"(controller:"keywords"){
             action = [GET:"list"]

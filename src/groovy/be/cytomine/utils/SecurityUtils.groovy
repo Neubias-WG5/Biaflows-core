@@ -24,7 +24,6 @@ import javax.crypto.spec.SecretKeySpec
 /**
  * User: lrollus
  * Date: 25/09/13
- * GIGA-ULg
  *
  */
 class SecurityUtils {

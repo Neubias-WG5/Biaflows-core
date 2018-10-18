@@ -113,4 +113,42 @@ class UserJobSecurityTests extends SecurityTestsAbstract {
         // get image from user (with userjob cred)
         assert (200 == ImageInstanceAPI.listByProject(project.id,userJob.username,"password").code)
     }
+
+    void testAddUserJobWithOtherPrivileges() {
+
+        //Get user1
+        User user1 = getUser1()
+        User user2 = getUser2()
+
+        //Get admin user
+        User admin = getUserAdmin()
+
+        //Create new project (user1)
+        def result = ProjectAPI.create(BasicInstanceBuilder.getProjectNotExist().encodeAsJSON(),SecurityTestsAbstract.USERNAME1,SecurityTestsAbstract.PASSWORD1)
+        assert 200 == result.code
+        Project project = result.data
+
+        //add right to user 2
+        def resAddUser = ProjectAPI.addUserProject(project.id,user2.id,SecurityTestsAbstract.USERNAME1,SecurityTestsAbstract.PASSWORD1)
+        Infos.printRight(project)
+        assert 200 == resAddUser.code
+
+        //Add job instance to project
+        Job job = BasicInstanceBuilder.getJobNotExist()
+        job.project = project
+
+        //check if user 2 can access/update/delete
+        result = JobAPI.create(job.encodeAsJSON(),SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2)
+        assert 200 == result.code
+        job = result.data
+
+        def userJobToAdd = BasicInstanceBuilder.getUserJobNotExist(job,User.findByUsername(Infos.SUPERADMINLOGIN))
+        //userJobToAdd.job = null
+        def json = JSON.parse(userJobToAdd.encodeAsJSON())
+        json.parent = User.findByUsername(Infos.SUPERADMINLOGIN).id
+
+        result = JobAPI.createUserJob(json.toString(), SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2)
+        assert 403 == result.code
+    }
+
 }

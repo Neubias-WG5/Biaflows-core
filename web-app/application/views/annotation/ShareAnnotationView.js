@@ -41,7 +41,7 @@ var ShareAnnotationView = Backbone.View.extend({
 
         new AnnotationCommentCollection({ annotation: self.model.id, annotationClassName:self.model.get('class')}).fetch({
             success: function (collection, response) {
-                var commentTpl = "<p><span class='label label-default'><%= hour %></span> <span class='label label-info'><%= sender %></span></p><blockquote><p><%= comment %></p></blockquote>";
+                var commentTpl = "<p><span class='label label-default'><%= hour %></span> <span class='label label-info'><%= senderName %></span></p><blockquote><p><%= comment %></p></blockquote>";
                 var lastDateString = undefined;
                 collection.each(function (model) {
                     var date = new Date();

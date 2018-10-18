@@ -25,7 +25,6 @@ import com.vividsolutions.jts.io.WKTReader
 /**
  * User: lrollus
  * Date: 17/10/12
- * GIGA-ULg
  * Utility class to deals with file
  */
 class GeometryUtils {

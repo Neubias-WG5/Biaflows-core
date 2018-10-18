@@ -153,7 +153,7 @@ class ImageSequenceTests {
 
     void testEditImageSequence() {
 
-        def image = BasicInstanceBuilder.getImageSequence()
+        def image = BasicInstanceBuilder.getImageSequenceNotExist(true)
         def data = UpdateData.createUpdateSet(image,[channel: [0,1],zStack: [0,10],time: [0,100],slice:[0,1000]])
 
         def result = ImageSequenceAPI.update(image.id, data.postData,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)

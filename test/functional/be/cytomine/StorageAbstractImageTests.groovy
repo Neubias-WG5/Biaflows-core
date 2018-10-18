@@ -22,7 +22,7 @@ import be.cytomine.test.http.StorageAbstractImageAPI
 import be.cytomine.utils.JSONUtils
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: stevben
  * Date: 20/02/13
  * Time: 10:45

@@ -15,7 +15,7 @@
 */
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: stevben
  * Date: 10/10/11
  * Time: 13:49
@@ -33,7 +33,7 @@ class AttachedFileUrlMappings {
         }
 
         "/api/attachedfile/$id.$format"(controller: "restAttachedFile") {
-            action = [GET:"show"]
+            action = [GET:"show", DELETE: "delete"]
         }
 
         "/api/attachedfile/$id/download"(controller: "restAttachedFile") {

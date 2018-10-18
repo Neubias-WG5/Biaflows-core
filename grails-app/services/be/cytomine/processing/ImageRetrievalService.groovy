@@ -76,6 +76,9 @@ class ImageRetrievalService {
      * @return [annotation: #list of similar annotation#, term: #map with best term#]
      */
     def listSimilarAnnotationAndBestTerm(Project project, AnnotationDomain annotation) throws Exception {
+        if(RetrievalServer.list().isEmpty()) {
+            throw new ServerException("No retrieval found!")
+        }
         log.info "Search similarities for annotation ${annotation.id}"
         def data = [:]
 
@@ -409,17 +412,20 @@ class ImageRetrievalService {
 
 
     public void indexImage(BufferedImage image,String id, String storage, Map<String,String> properties, String url, String username, String password) {
-//        if(!RetrievalServer.list().isEmpty()) {
+        if(!RetrievalServer.list().isEmpty()) {
 //            RetrievalServer server = RetrievalServer.list().get(0)
             log.info "Index to retrieval"
             doRetrievalIndex(url+"/api/images",username,password,image,id,storage,properties)
-//        } else {
-//            log.info "No retrieval server found"
-//        }
+        } else {
+            log.info "No retrieval server found"
+        }
     }
 
     public def doRetrievalIndex(String url, String username, String password, BufferedImage image,String id, String storage, Map<String,String> properties) {
         try {
+            if(RetrievalServer.list().isEmpty()) {
+                throw new ServerException("No retrieval found!")
+            }
             List<String> keys = []
             List<String> values = []
             properties.each {

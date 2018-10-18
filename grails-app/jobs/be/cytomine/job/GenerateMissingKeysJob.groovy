@@ -19,7 +19,7 @@ package be.cytomine.job
 import be.cytomine.security.SecUser
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: stevben
  * Date: 6/01/12
  * Time: 15:56

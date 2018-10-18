@@ -84,7 +84,7 @@ class ImageGroupHDF5Service  extends  ModelService{
         json.user = currentUser.id
 
         def group = JSONUtils.getJSONAttrInteger(json,'group',0)
-        json.filename = "${grailsApplication.config.storage_path}/${currentUser.id}/${group}.h5"
+        json.filename = "${grailsApplication.config.fast_data_path}/${currentUser.id}/${group}.h5"
 
         //First get all the ImageSequence from the imageGroup
         ImageGroup imageGroup = imageGroupService.read(group)
@@ -102,16 +102,29 @@ class ImageGroupHDF5Service  extends  ModelService{
     }
 
     private void convert(SecUser currentUser, def imagesSequenceList, def destination, def id){
-        imagesSequenceList.sort{a,b -> a.channel <=> b.channel}
+        imagesSequenceList.sort{a,b ->
+            if (a.channel == b.channel && a.time == b.time)
+                a.zStack <=> b.zStack
+            else if (a.channel == b.channel)
+                a.time <=> b.time
+            else
+                a.channel <=> b.channel
+        }
+        def maxBits = 8
         def imagesFilenames = imagesSequenceList.collect {
-            def absolutePath =  it.image.baseImage.getAbsolutePath()
-            def path = it.image.baseImage.path
+            def baseImage = it.image.baseImage
+            def absolutePath =  baseImage.getAbsolutePath()
+            def path = baseImage.path
             def basePath = absolutePath - path
-            basePath + it.image.baseImage.filename
+            basePath + baseImage.filename
+        }
+
+        imagesSequenceList.each {
+            maxBits = Math.max(maxBits, it.image.baseImage.bitDepth ?: 8)
         }
 
         def body = [user: currentUser.id, files: imagesFilenames, dest: destination, id: id,
-                    cytomine:UrlApi.serverUrl()]
+                    cytomine:UrlApi.serverUrl(), bpc:maxBits]
 
         log.info body
 

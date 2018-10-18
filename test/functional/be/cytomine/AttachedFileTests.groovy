@@ -22,6 +22,7 @@ import be.cytomine.security.User
 import be.cytomine.test.BasicInstanceBuilder
 import be.cytomine.test.Infos
 import be.cytomine.test.http.AttachedFileAPI
+import be.cytomine.test.http.DomainAPI
 import be.cytomine.utils.AttachedFile
 import grails.converters.JSON
 import org.codehaus.groovy.grails.web.json.JSONArray
@@ -76,11 +77,17 @@ class AttachedFileTests {
         assert 200 == result.code
     }
 
-  void testAddAttachedFileCorrect() {
-      def attachedFileToAdd = BasicInstanceBuilder.getAttachedFileNotExist(false)
-      def result = AttachedFileAPI.upload(attachedFileToAdd.domainClassName,attachedFileToAdd.domainIdent,new File("test/functional/be/cytomine/utils/simpleFile.txt"),Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
-      assert 200 == result.code
-  }
+    void testAddAttachedFileCorrect() {
+        def attachedFileToAdd = BasicInstanceBuilder.getAttachedFileNotExist(false)
+        def result = AttachedFileAPI.upload(attachedFileToAdd.domainClassName,attachedFileToAdd.domainIdent,new File("test/functional/be/cytomine/utils/simpleFile.txt"),Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+    }
+
+    void testAddAttachedFileIncorrect() {
+        def attachedFileToAdd = BasicInstanceBuilder.getAttachedFileNotExist(false)
+        String URL = Infos.CYTOMINEURL + "api/attachedfile.json?domainClassName=${attachedFileToAdd.domainClassName}&domainIdent=${attachedFileToAdd.domainIdent}"
+        assert 400 == DomainAPI.doPOST(URL,"",Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD).code
+    }
 
 
   void testDownloadNoSecurity() {
@@ -110,5 +117,14 @@ class AttachedFileTests {
 
   }
 
+    void testDeleteAttachedFileCorrect() {
+        def attachedFileToAdd = BasicInstanceBuilder.getAttachedFileNotExist(true)
+        def result = AttachedFileAPI.show(attachedFileToAdd.id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        result = AttachedFileAPI.delete(attachedFileToAdd.id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        result = AttachedFileAPI.show(attachedFileToAdd.id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 404 == result.code
+    }
 
 }

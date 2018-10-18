@@ -111,6 +111,7 @@ class ImageGroupService extends ModelService {
             imageSequenceService.delete(it,transaction,null,false)
         }
     }
+
     def deleteDependentImageGroupHDF5(ImageGroup group, Transaction transaction, Task task = null) {
         ImageGroupHDF5.findAllByGroup(group).each {
             imageGroupHDF5Service.delete(it,transaction,null,false)
@@ -141,10 +142,17 @@ class ImageGroupService extends ModelService {
 
     def thumb(Long id, int maxSize) {
         ImageGroup imageGroup = ImageGroup.get(id)
-        def sequences = ImageSequence.findAllByImageGroupAndSliceAndTimeAndChannel(imageGroup,0,0,0)
-        def zs = sequences.collect{it.zStack}
-        int zMean = (zs.max() - zs.min())/2
-        return abstractImageService.thumb(sequences.find{it.zStack == zMean}.image.baseImage.id, maxSize)
+        def characteristics = characteristics(imageGroup)
+        def zMean = characteristics.zStack[(int) Math.floor(characteristics.zStack.size() / 2)]
+        def sequence = imageSequenceService.get(imageGroup, characteristics.channel[0], zMean, characteristics.slice[0], characteristics.time[0])
+
+        return abstractImageService.thumb(sequence.image.baseImage.id, maxSize)
+    }
+
+    def downloadURI(Long id) {
+        ImageGroup imageGroup = ImageGroup.get(id)
+        def sequence = ImageSequence.findByImageGroup(imageGroup)
+        return abstractImageService.downloadURI(sequence.image.baseImage, true)
     }
 
     def downloadURI(Long id) {

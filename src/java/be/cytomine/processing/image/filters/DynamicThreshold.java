@@ -1,7 +1,7 @@
 package be.cytomine.processing.image.filters;
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: stevben
  * Date: 1/06/11
  * Time: 15:07

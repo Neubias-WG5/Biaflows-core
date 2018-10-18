@@ -51,6 +51,8 @@ class LastUserPosition extends CytomineDomain {
      */
     int zoom
 
+    float rotation
+
     static constraints = {
         project nullable: true
     }
@@ -78,6 +80,7 @@ class LastUserPosition extends CytomineDomain {
         returnArray.image = domain?.image?.id
         returnArray.project = domain?.project?.id
         returnArray.zoom = domain?.zoom
+        returnArray.rotation = domain?.rotation
         com.vividsolutions.jts.geom.Polygon polygon = PersistentUserPosition.getPolygonFromMongo(domain?.location)
         returnArray.location = polygon.toString()
         returnArray.x = polygon.getCentroid().getX()

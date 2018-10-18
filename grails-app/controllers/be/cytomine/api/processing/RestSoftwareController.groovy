@@ -19,6 +19,7 @@ package be.cytomine.api.processing
 import be.cytomine.api.RestController
 import be.cytomine.processing.Job
 import be.cytomine.processing.Software
+import be.cytomine.processing.SoftwareUserRepository
 import be.cytomine.project.Project
 import grails.converters.JSON
 import org.restapidoc.annotation.*
@@ -51,6 +52,22 @@ class RestSoftwareController extends RestController {
         Project project = Project.read(params.long('id'))
         if(project) responseSuccess(softwareService.list(project))
         else responseNotFound("Project", params.id)
+    }
+
+    /**
+     * List all software by software user repository
+     */
+    @RestApiMethod(description = "Get all the software for a software use repository", listing = true)
+    @RestApiParams(params = [
+        @RestApiParam(name = "id", type = "long", paramType = RestApiParamType.PATH, description = "The software user repository id")
+    ])
+    def listBySoftwareUserRepository() {
+        SoftwareUserRepository softwareUserRepository = SoftwareUserRepository.read(params.long('id'))
+        if (softwareUserRepository) {
+            responseSuccess(softwareService.list(softwareUserRepository))
+        } else {
+            responseNotFound("SoftwareUserRepository", params.id)
+        }
     }
 
     /**

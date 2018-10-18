@@ -19,7 +19,6 @@ package be.cytomine.utils
 /**
  * User: lrollus
  * Date: 17/10/12
- * GIGA-ULg
  * Utility class to deals with file
  */
 class GisUtils {

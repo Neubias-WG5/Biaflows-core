@@ -23,6 +23,7 @@ import be.cytomine.api.RestController
 import be.cytomine.ontology.AlgoAnnotation
 import be.cytomine.processing.Job
 import be.cytomine.processing.JobData
+import be.cytomine.processing.ProcessingServer
 import be.cytomine.processing.Software
 import be.cytomine.project.Project
 import be.cytomine.security.User
@@ -51,6 +52,7 @@ class RestJobController extends RestController {
     def taskService
     def cytomineService
     def securityACLService
+    def jobRuntimeService
 
     /**
      * List all job
@@ -140,18 +142,58 @@ class RestJobController extends RestController {
         delete(jobService, JSON.parse("{id : $params.id}"),null)
     }
 
-    @RestApiMethod(description="Execute a job, launch the software")
-    @RestApiParams(params=[
-        @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH,description = "The job id")
+    @RestApiMethod(description = "Execute a job, launch the software")
+    @RestApiParams(params = [
+        @RestApiParam(name = "id", type = "long", paramType = RestApiParamType.PATH, description = "The job id")
     ])
     def execute() {
-        long idJob = params.long("id")
-        Job job = Job.read(idJob)
-        securityACLService.check(job.container(),READ)
+        long jobId = params.long("id")
+        Job job = Job.read(jobId)
+
+        securityACLService.check(job.container(), READ)
         UserJob userJob = UserJob.findByJob(job)
-        job.software.service.init(job, userJob)
-        job.software.service.execute(job, userJob, false)
-        responseSuccess(job)
+
+        jobRuntimeService.execute(job, userJob)
+
+        return responseSuccess(job)
+    }
+
+    @RestApiMethod(description = "Execute a job with a given processing server")
+    @RestApiParams(params = [
+        @RestApiParam(name = "jobId", type = "long", paramType = RestApiParamType.PATH, description = "The job id"),
+        @RestApiParam(name = "processingServerId", type = "long", paramType = RestApiParamType.PATH, description = "The processing server id")
+    ])
+    def executeWithProcessingServer() {
+        long jobId = params.long("jobId")
+        Job job = Job.read(jobId)
+
+        long processingServerId = params.long("processingServerId")
+        ProcessingServer processingServer = ProcessingServer.read(processingServerId)
+
+        securityACLService.check(job.container(), READ)
+        UserJob userJob = UserJob.findByJob(job)
+
+        jobRuntimeService.execute(job, userJob, processingServer)
+
+        return responseSuccess(job)
+    }
+
+    @RestApiMethod(description = "Kill a job")
+    @RestApiParams(params = [
+        @RestApiParam(name = "id", type = "long", paramType = RestApiParamType.PATH, description = "The job id")
+    ])
+    def kill() {
+        long jobId = params.long("id")
+        Job job = Job.read(jobId)
+
+        log.info("ID : ${jobId}")
+        log.info("JOB : ${job}")
+
+        securityACLService.check(job.container(), READ)
+
+        jobRuntimeService.killJob(job)
+
+        return responseSuccess(job)
     }
 
     //TODO:APIDOC

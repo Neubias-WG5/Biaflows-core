@@ -63,7 +63,7 @@ class RestRoiAnnotationController extends RestController {
         add(roiAnnotationService, request.JSON)
     }
 
-    @Override
+
     public Object addOne(def service, def json) {
         if (!json.project || json.isNull('project')) {
             ImageInstance image = ImageInstance.read(json.image)

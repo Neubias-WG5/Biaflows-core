@@ -22,7 +22,7 @@ import be.cytomine.security.SecUser
 import org.codehaus.groovy.grails.web.json.JSONElement
 
 /**
- * @author ULG-GIGA Cytomine Team
+ * @author Cytomine Team
  * The Command class define a command which package on operation on a domain
  * It contains data about relevant domain, user who launch command,...
  */

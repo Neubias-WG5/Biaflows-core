@@ -29,7 +29,6 @@ import com.vividsolutions.jts.io.WKTReader
 /**
  * User: lrollus
  * Date: 31/05/13
- * GIGA-ULg
  *
  *
  */
@@ -684,11 +683,21 @@ class ReviewedAnnotationListing extends AnnotationListing {
                             url: '#url',
                             imageURL: '#imageURL',
                             parentIdent: 'parent_ident'
-
                     ],
                     wkt: [location: 'a.wkt_location'],
-                    gis: [area: 'area', areaUnit: 'area_unit', perimeter: 'perimeter', perimeterUnit: 'perimeter_unit', x: 'ST_X(ST_centroid(a.location))', y: 'ST_Y(ST_centroid(a.location))'],
-                    term: [term: 'at.term_id', annotationTerms: "0", userTerm: 'a.user_id'],//user who add the term, is the user that create reviewedannotation (a.user_id)
+                    gis: [
+                            area: 'area',
+                            areaUnit: 'area_unit',
+                            perimeter: 'perimeter',
+                            perimeterUnit: 'perimeter_unit',
+                            x: 'ST_X(ST_centroid(a.location))',
+                            y: 'ST_Y(ST_centroid(a.location))'
+                    ],
+                    term: [
+                            term: 'at.term_id',
+                            annotationTerms: "0",
+                            userTerm: 'a.user_id'
+                    ],//user who add the term, is the user that create reviewedannotation (a.user_id)
                     image: [originalfilename: 'ai.original_filename'],
                     algo: [id: 'aat.id', rate: 'aat.rate'],
                     user: [creator: 'u.username', lastname: 'u.lastname', firstname: 'u.firstname']

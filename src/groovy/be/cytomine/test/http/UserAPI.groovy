@@ -24,7 +24,6 @@ import org.codehaus.groovy.grails.web.json.JSONElement
 /**
  * User: lrollus
  * Date: 6/12/11
- * GIGA-ULg
  * This class implement all method to easily get/create/update/delete/manage User to Cytomine with HTTP request during functional test
  */
 class UserAPI extends DomainAPI {

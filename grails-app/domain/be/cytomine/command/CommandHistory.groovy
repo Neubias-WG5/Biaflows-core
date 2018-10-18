@@ -23,7 +23,7 @@ import be.cytomine.security.SecUser
 /**
  * The CommandHistory class define a history item for a project.
  * It contains the command that was launch for a project and its method (undo/redo/nothing)
- * @author ULG-GIGA Cytomine Team
+ * @author Cytomine Team
  */
 class CommandHistory extends CytomineDomain {
 

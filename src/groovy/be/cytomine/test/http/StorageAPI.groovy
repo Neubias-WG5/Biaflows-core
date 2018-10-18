@@ -21,7 +21,7 @@ import be.cytomine.test.Infos
 import grails.converters.JSON
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: stevben
  * Date: 7/02/13
  * Time: 15:06

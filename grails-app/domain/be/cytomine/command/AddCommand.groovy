@@ -21,7 +21,7 @@ import be.cytomine.project.Project
 import grails.converters.JSON
 
 /**
- * @author ULG-GIGA Cytomine Team
+ * @author Cytomine Team
  * The AddCommand class is a command that create a new domain
  * It provide an execute method that create domain from command, an undo method that drop domain and an redo method that recreate domain
  */

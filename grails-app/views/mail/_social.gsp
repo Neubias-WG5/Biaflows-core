@@ -20,8 +20,8 @@
                 <tr>
                     <td>
                         <h5 class="">Contact Info:</h5>
-                        <p>Website : <a href="http://www.cytomine.be">http://www.cytomine.be</a><br/>
-                           Email : <a mailto="support@cytomine.be">support@cytomine.be</a><br/>
+                        <p>Website : <a href="http://www.cytomine.org">http://www.cytomine.org</a><br/>
+                           Email : <a mailto="support@cytomine.coop">support@cytomine.coop</a><br/>
                            Phone: <strong>+3243662644</strong><br/>
                     </td>
                 </tr>

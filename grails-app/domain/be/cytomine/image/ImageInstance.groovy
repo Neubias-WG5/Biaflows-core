@@ -174,6 +174,8 @@ class ImageInstance extends CytomineDomain implements Serializable {
         returnArray['resolution'] = image?.baseImage?.resolution
         returnArray['magnification'] = image?.baseImage?.magnification
         returnArray['depth'] = image?.baseImage?.getZoomLevels()?.max
+        returnArray['bitDepth'] = image?.baseImage?.bitDepth
+        returnArray['colorspace'] = image?.baseImage?.colorspace
         try {
             returnArray['preview'] = image.baseImage ? UrlApi.getThumbImage(image.baseImage?.id, 1024) : null
         } catch (Exception e) {
@@ -222,7 +224,7 @@ class ImageInstance extends CytomineDomain implements Serializable {
      * @return True if image is review but not validate, otherwise false
      */
     public boolean isInReviewMode() {
-        return (reviewStart != null && reviewUser != null)
+        return (reviewStart != null && reviewUser != null && reviewStop == null)
     }
 
     /**

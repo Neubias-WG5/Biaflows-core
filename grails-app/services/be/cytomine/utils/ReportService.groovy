@@ -27,7 +27,7 @@ import be.cytomine.sql.UserAnnotationListing
 import java.text.SimpleDateFormat
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: stevben
  * Date: 13/03/13
  * Time: 11:48

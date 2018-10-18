@@ -23,7 +23,6 @@ import grails.converters.JSON
 /**
  * User: lrollus
  * Date: 6/12/11
- * GIGA-ULg
  * This class implement all method to easily get/create/update/delete/manage SoftwareProjectAPI to Cytomine with HTTP request during functional test
  */
 class SoftwareProjectAPI extends DomainAPI {

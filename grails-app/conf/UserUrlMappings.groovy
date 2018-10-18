@@ -15,7 +15,7 @@
 */
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: stevben
  * Date: 10/10/11
  * Time: 13:49
@@ -49,7 +49,7 @@ class UserUrlMappings {
             action = [POST:"createUserJob"]
         }
         "/api/userJob/$id.$format"(controller:"restUserJob"){
-            action = [GET:"showUserJob"]
+            action = [GET:"showUserJob", PUT: "update"]
         }
 
         "/api/group/$id/user.$format"(controller: "restUser"){

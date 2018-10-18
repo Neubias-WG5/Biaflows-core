@@ -86,7 +86,13 @@ class HttpClient {
     void connect(String url, String username, String password) {
         log.debug("Connection to " + url + " with login=" + username + " and pass=" + password)
         URL = new URL(url)
-        targetHost = new HttpHost(URL.getHost(), URL.getPort());
+
+        if(url.substring(0,8).equals("https://")){
+            targetHost = new HttpHost(URL.getHost(), 443, "https");
+        } else {
+            targetHost = new HttpHost(URL.getHost(), URL.getPort());
+        }
+
         client = new DefaultHttpClient();
         // Create AuthCache instance
         AuthCache authCache = new BasicAuthCache();

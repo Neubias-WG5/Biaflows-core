@@ -42,8 +42,8 @@ class AmqpQueueConfigInstance extends CytomineDomain implements Serializable{
 
 
     static constraints = {
-        queue(blank: false)
-        config(blank: false)
+        queue(nullable: false)
+        config(nullable: false)
         value(nullable: true)
     }
     static mapping = {

@@ -20,7 +20,7 @@ import be.cytomine.ontology.Property
 import grails.converters.JSON
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: stevben
  * Date: 19/07/11
  * Time: 15:19
@@ -43,18 +43,20 @@ class ImagePropertiesService implements Serializable{
         fif = fif.replace(" ","%20")
         String mimeType = abstractImage.mimeType
 
-        String uri = "$imageServerURL/image/properties?fif=$fif&mimeType=$mimeType"
+        String uri = "$imageServerURL/image/properties?fif="+URLEncoder.encode(fif, "UTF-8")+"&mimeType=$mimeType"
         println uri
         def properties = JSON.parse(new URL(uri).text)
         println properties
         properties.each {
             String value = it.value
-            if (value.size() < 256) {
-                def property = new Property(key: it.key, value: it.value, domainIdent: abstractImage.id,domainClassName: abstractImage.class.name)
-                log.info("new property, $it.key => $it.value")
-                property.save()
+            if (it.value && value.size() < 256) {
+                def property = Property.findByDomainIdentAndKey(abstractImage.id, it.key)
+                if (!property) {
+                    property = new Property(key: it.key, value: it.value, domainIdent: abstractImage.id,domainClassName: abstractImage.class.name)
+                    log.info("new property, $it.key => $it.value")
+                    property.save(failOnError: true)
+                }
             }
-
         }
         abstractImage.save()
     }
@@ -76,6 +78,14 @@ class ImagePropertiesService implements Serializable{
         def resolutionProperty = Property.findByDomainIdentAndKey(image.id, "cytomine.resolution")
         if (resolutionProperty) image.setResolution(Float.parseFloat(resolutionProperty.getValue()))
         else log.info "resolutionProperty is null"
+        //Bit depth
+        def bitdepthProperty = Property.findByDomainIdentAndKey(image.id, "cytomine.bitdepth")
+        if (bitdepthProperty) image.setBitDepth(Integer.parseInt(bitdepthProperty.getValue()))
+        else log.error "bitdepthProperty is null"
+        //Colorspace
+        def colorspaceProperty = Property.findByDomainIdentAndKey(image.id, "cytomine.colorspace")
+        if (colorspaceProperty) image.setColorspace(colorspaceProperty.getValue())
+        else log.error "colorspaceProperty is null"
         image.save(flush:true, failOnError: true)
     }
 }

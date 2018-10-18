@@ -21,7 +21,7 @@ import be.cytomine.security.SecUser
 import be.cytomine.security.User
 
 /**
- * @author ULG-GIGA Cytomine Team
+ * @author Cytomine Team
  * The RedoStackItem class allow to store command on a redo stack so that a command or a group of command can be redo
  */
 class RedoStackItem extends CytomineDomain {

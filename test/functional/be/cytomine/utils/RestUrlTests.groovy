@@ -59,7 +59,7 @@ class RestUrlTests {
             [clazz:Group, filters : []],
             [clazz:User, filters : []],
             [clazz:AttachedFile, filters : []],
-            [clazz:Config, filters : []],
+            [clazz:Configuration, filters: []],
             [clazz:Description, filters : []],
             [clazz:News, filters : []]
     ]

@@ -141,6 +141,7 @@ var ApplicationController = Backbone.Router.extend({
         window.app.controllers.phono = new PhonoController();
         window.app.controllers.userdashboard = new UserDashboardController();
         window.app.controllers.admin = new AdminController();
+        window.app.controllers.software = new SoftwareController();
 
         window.app.controllers.imagegroup = new ImageGroupController();
 

@@ -28,6 +28,7 @@ import be.cytomine.security.SecUser
 import grails.converters.JSON
 import groovyx.net.http.HTTPBuilder
 import org.apache.commons.io.IOUtils
+import org.codehaus.groovy.grails.web.json.JSONArray
 import org.restapidoc.annotation.*
 import org.restapidoc.pojo.RestApiParamType
 
@@ -176,7 +177,12 @@ class RestUserAnnotationController extends RestController {
      */
     @RestApiMethod(description="Add an annotation created by user")
     def add(){
-        add(userAnnotationService, request.JSON)
+        def json = request.JSON
+        if (json instanceof JSONArray) {
+            responseResult(addMultiple(userAnnotationService, json))
+        } else {
+            responseResult(addOne(userAnnotationService, json))
+        }
     }
 
 
@@ -264,18 +270,8 @@ class RestUserAnnotationController extends RestController {
 
 
 
-    @Override
+
     public Object addOne(def service, def json) {
-        if (!json.project || json.isNull('project')) {
-            ImageInstance image = ImageInstance.read(json.image)
-            if (image) json.project = image.project.id
-        }
-        if (json.isNull('project')) {
-            throw new WrongArgumentException("Annotation must have a valide project:" + json.project)
-        }
-        if (json.isNull('location')) {
-            throw new WrongArgumentException("Annotation must have a valide geometry:" + json.location)
-        }
         def minPoint = params.getLong('minPoint')
         def maxPoint = params.getLong('maxPoint')
 

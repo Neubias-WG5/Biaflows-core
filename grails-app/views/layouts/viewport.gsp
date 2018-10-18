@@ -18,9 +18,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=0" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-<link rel="apple-touch-icon" href="images/logoGIGA.gif" />
-<link rel="apple-touch-icon" sizes="72x72" href="images/logoGIGA.gif" />
-<link rel="apple-touch-icon" sizes="114x114" href="images/logoGIGA.gif" />
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous" />
 
 <link href="lib/dynatree/skin/ui.dynatree.css" rel="stylesheet" type="text/css"/>
 <link rel='stylesheet' href='lib/stepy/css/jquery.stepy.bootstrap.css' type='text/css'/>
@@ -44,6 +43,8 @@ body {
 <link rel="stylesheet" type="text/css" href="lib/bootstrap-wysihtml5-0.0.2/bootstrap-wysihtml5-0.0.2.css"/>
 
 <script type="text/javascript" src="lib/mousetrap.min.js"></script>
+
+<script type="text/javascript" src="application/views/v2.0/dist/bundle.js" ></script>
 
 <wthr:isOldMsie>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>-
@@ -182,6 +183,7 @@ body {
     <script type="text/javascript" src="application/controllers/AccountController.js" ></script>
     <script type="text/javascript" src="application/controllers/PhonoController.js" ></script>
     <script type="text/javascript" src="application/controllers/UserDashboardController.js" ></script>
+    <script type="text/javascript" src="application/controllers/SoftwareController.js" ></script>
     <script type="text/javascript" src="application/controllers/ImageGroupController.js" ></script>
 
 
@@ -218,8 +220,8 @@ body {
     <script type="text/javascript" src="application/models/TaskModel.js" ></script>
     <script type="text/javascript" src="application/models/StorageModel.js" ></script>
     <script type="text/javascript" src="application/models/AnnotationPropertyModel.js" ></script>
-    <script type="text/javascript" src="application/models/ImageInstancePropertyModel.js" ></script>
-    <script type="text/javascript" src="application/models/ProjectPropertyModel.js" ></script>
+    <script type="text/javascript" src="application/models/PropertyModel.js" ></script>
+    <script type="text/javascript" src="application/models/AttachedFileModel.js" ></script>
     <script type="text/javascript" src="application/models/ImageGroupModel.js" ></script>
     <script type="text/javascript" src="application/models/ImageGroupHDF5Model.js" ></script>
 
@@ -236,6 +238,7 @@ body {
     <script type="text/javascript" src="application/views/admin/AdminGroupsView.js"></script>
     <script type="text/javascript" src="application/views/admin/AdminPermissionsView.js"></script>
     <script type="text/javascript" src="application/views/admin/AdminConfigView.js"></script>
+    <script type="text/javascript" src="application/views/admin/AdminSoftwaresView.js"></script>
 
 
     <script type="text/javascript" src="application/views/user/AddUserToProjectDialog.js" ></script>
@@ -380,6 +383,8 @@ body {
     <script type="text/javascript" src="application/utils/processing/image/Outline.js" ></script>
     <script type="text/javascript" src="application/utils/processing/image/Threshold.js" ></script>
     <script type="text/javascript" src="application/utils/processing/image/ColorChannel.js" ></script>
+
+    <script type="text/javascript" src="application/views/software/SoftwareListView.js" ></script>
 </g:if>
 
 

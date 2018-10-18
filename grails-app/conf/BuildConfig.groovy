@@ -82,6 +82,7 @@ grails.project.dependency.resolution = {
         runtime "org.hibernate:hibernate-validator:5.0.3.Final"
         compile 'commons-beanutils:commons-beanutils:1.8.3'
         compile 'org.imsglobal:basiclti-util:1.1.2'
+        compile 'org.json:json:20141113'
     }
     plugins {
         compile ":mongodb:3.0.2"
@@ -110,7 +111,7 @@ grails.project.dependency.resolution = {
         }
         test ":geb:0.9.0"
         compile ':webxml:1.4.1'
-
+        compile ":teamcity:1.0.3"
     }
 }
 // Remove the DisableOptimizationsTransformation jar before the war is bundled

@@ -32,12 +32,12 @@ import com.rabbitmq.client.MessageProperties
  */
 class AmqpQueueService extends ModelService {
 
-
     static transactionService = true
     boolean saveOnUndoRedoStack = true
-    final static queuePrefixSoftware = "queueSoftware"
-    final static channelPrefixSoftware = "channelSoftware"
-    final static exchangePrefixSoftware = "exchangeSoftware"
+
+    final static queuePrefixProcessingServer = "queueProcessingServer"
+    final static channelPrefixProcessingServer = "channelProcessingServer"
+    final static exchangePrefixProcessingServer = "exchangeProcessingServer"
 
     def securityACLService
     def amqpQueueConfigInstanceService
@@ -226,7 +226,7 @@ class AmqpQueueService extends ModelService {
         Channel channel = rabbitConnectionService.getRabbitChannel(domain.name, mbs)
 
         try {
-            log.info "Exchange : " + domain.exchange
+            log.info "Exchange : " + domain.exchange + " " + messageBody
             channel.basicPublish(domain.exchange, "", MessageProperties.PERSISTENT_TEXT_PLAIN, messageBody.getBytes())
         } catch(IOException e) {
             throw new MiddlewareException(("Cannot publish message : " + e.toString()))

@@ -50,8 +50,8 @@ class AmqpQueueConfig extends CytomineDomain implements Serializable {
     static constraints = {
         name(blank: false, unique: true, matches: "[a-zA-Z0-9-_]+")
         defaultValue(nullable: true)
-        index(blank: false)
-        isInMap(blank : false)
+        index(nullable: false)
+        isInMap(nullable: false)
         type(blank: false, inList: ["String", "Boolean", "Number"])
     }
     static mapping = {

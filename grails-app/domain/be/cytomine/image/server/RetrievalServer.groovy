@@ -19,7 +19,7 @@ package be.cytomine.image.server
 import be.cytomine.CytomineDomain
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: stevben
  * Date: 27/01/11
  * Time: 15:21

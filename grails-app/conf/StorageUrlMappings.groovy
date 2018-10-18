@@ -16,7 +16,7 @@
 
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: stevben
  * Date: 7/02/13
  * Time: 11:06

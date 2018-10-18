@@ -15,7 +15,7 @@
 */
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: rhoyoux
  * Date: 30/10/14
  * Time: 10:19

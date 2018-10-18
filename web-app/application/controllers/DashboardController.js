@@ -28,6 +28,7 @@ var DashboardController = Backbone.Router.extend({
         "tabs-projectproperties-:project-:iddomain": "projectProperties",
         "tabs-annotationproperties-:project-:iddomain": "annotationProperties",
         "tabs-imageproperties-:project-:iddomain": "imageProperties",
+        "tabs-jobproperties-:project-:iddomain": "jobProperties",
         "tabs-dashboard-:project": "dashboard",
         "tabs-config-:project": "config",
         "tabs-usersconfig-:project": "usersConfig",
@@ -169,12 +170,16 @@ var DashboardController = Backbone.Router.extend({
         this.properties(project, idDomain, "Project");
     },
     imageProperties : function(project, idDomain) {
-        console.log("projectProperties");
+        console.log("imageProperties");
         this.properties(project, idDomain, "ImageInstance");
     },
     annotationProperties : function(project, idDomain) {
         console.log("annotationProperties");
         this.properties(project, idDomain, "Annotation");
+    },
+    jobProperties : function(project, idDomain) {
+        console.log("jobProperties");
+        this.properties(project, idDomain, "Job");
     },
     properties: function (project, idDomain, nameDomain) {
         console.log("controller.properties: " + project + "-" + idDomain);

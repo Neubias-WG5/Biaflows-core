@@ -19,14 +19,17 @@ package be.cytomine.api.image.multidim
 import be.cytomine.api.RestController
 import be.cytomine.image.multidim.ImageGroup
 import be.cytomine.image.multidim.ImageGroupHDF5
+import be.cytomine.image.multidim.ImageSequence
 import be.cytomine.project.Project
 import grails.converters.JSON
+import groovy.json.JsonSlurper
 import org.restapidoc.annotation.RestApi
 import org.restapidoc.annotation.RestApiMethod
 import org.restapidoc.annotation.RestApiParam
 import org.restapidoc.annotation.RestApiParams
 import org.restapidoc.annotation.RestApiResponseObject
 import org.restapidoc.pojo.RestApiParamType
+
 
 /**
  * Created by IntelliJ IDEA.
@@ -103,7 +106,7 @@ class RestImageGroupController extends RestController {
             responseNotFound("ImageGroup", "ImageGroup", params.id)
         }
     }
-  
+
     /**
      * Get image thumb URL
      */

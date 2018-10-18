@@ -96,7 +96,7 @@ class  RestAlgoAnnotationController extends RestController {
         }
     }
 
-    @Override
+
     public Object addOne(def service, def json) {
         json.minPoint = params.getLong('minPoint')
         json.maxPoint = params.getLong('maxPoint')

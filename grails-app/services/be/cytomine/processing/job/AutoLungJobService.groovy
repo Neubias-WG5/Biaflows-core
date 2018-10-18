@@ -22,7 +22,7 @@ import be.cytomine.security.UserJob
 import grails.converters.JSON
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: stevben
  * Date: 6/05/13
  * Time: 10:05

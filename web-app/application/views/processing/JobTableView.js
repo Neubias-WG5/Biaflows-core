@@ -185,10 +185,10 @@ var JobTableView = Backbone.View.extend({
             return '<td>' + param.value + '</td>';
         } else if (param.type == "Boolean") {
             if (param.value) {
-                return '<td><input type="checkbox" name="checkbox" value="checkbox" checked="checked"></td>'
+                return '<td><input type="checkbox" name="checkbox" value="checkbox" checked="checked" disabled></td>'
             }
             else {
-                return '<td><input type="checkbox" name="checkbox" value="checkbox" checked="checked"></td>'
+                return '<td><input type="checkbox" name="checkbox" value="checkbox" checked="checked" disabled></td>'
             }
         } else if (param.type == "List") {
             return '<td>' + param.value + '</td>';
@@ -210,28 +210,31 @@ var JobTableView = Backbone.View.extend({
 
     getStateElement: function (job) {
         if (job.isNotLaunch()) {
-            return '<span class="label btn-inverse">Not Launch</span> ';
+            return '<span class="label label-default">Not Launched</span> ';
         }
         else if (job.isInQueue()) {
-            return '<span class="label btn-info">In queue</span> ';
+            return '<span class="label label-info">In queue</span> ';
         }
         else if (job.isRunning()) {
-            return '<span class="label btn-primary">Running</span> ';
+            return '<span class="label label-primary">Running</span> ';
         }
         else if (job.isSuccess()) {
-            return '<span class="label btn-success">Success</span> ';
+            return '<span class="label label-success">Success</span> ';
         }
         else if (job.isFailed()) {
-            return '<span class="label btn-danger">Failed</span> ';
+            return '<span class="label label-danger">Failed</span> ';
         }
         else if (job.isIndeterminate()) {
-            return '<span class="label btn-inverse">Indetereminate</span> ';
+            return '<span class="label label-default">Indetereminate</span> ';
         }
         else if (job.isWait()) {
-            return '<span class="label btn-warning">Wait</span> ';
+            return '<span class="label label-warning">Wait</span> ';
         }
         else if (job.isPreviewed()) {
-            return '<span class="label btn-info">Previewed</span> ';
+            return '<span class="label label-info">Previewed</span> ';
+        }
+        else if (job.isKilled()) {
+            return '<span class="label" style="background: black;">Killed</span> ';
         }
         else {
             return "no supported";
@@ -265,7 +268,7 @@ var JobTableView = Backbone.View.extend({
                     success: function (model, response) {
                         var tableParam = $(self.el).find('#searchJobTable').find('table[id=' + aData[1] + ']');
                         _.each(model.get('jobParameters'), function (param) {
-                            tableParam.append('<tr><td>' + param.name + '</td><td>' + param.value + '</td><td>' + param.type + '</td></tr>');
+                            tableParam.append('<tr><td>' + param.humanName + '</td><td>' + param.value + '</td><td>' + param.type + '</td></tr>');
                         });
                     }
                 });

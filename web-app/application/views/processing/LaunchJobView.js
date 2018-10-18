@@ -317,7 +317,7 @@ var InputTextView = Backbone.View.extend({
     },
     addRow: function (tbody) {
         var self = this;
-        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.name + '</td><td>' + self.getHtmlElem() + '</td><td ><span class="label label-important hidden"></span></td></tr>');
+        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.humanName + '</td><td>' + self.getHtmlElem() + '</td><td ><span class="label label-important hidden"></span></td></tr>');
         self.trElem = tbody.find('tr#' + self.param.id);
         self.trElem.find('input').keyup(function () {
             self.checkEntryValidation();
@@ -325,7 +325,7 @@ var InputTextView = Backbone.View.extend({
     },
     getHtmlElem: function () {
         var self = this;
-        return _.template('<div class="control-group success"><div class="controls"><input type="text" class="col-md-3" value="<%= value%>" <%= required %>></div></div>', {
+        return _.template('<div class="control-group success"><div class="controls"><input type="text" style="width: 100%;" value="<%= value%>" <%= required %>></div></div>', {
                value : this.getDefaultValue(),
                required: (self.param.required) ? "required" : ""
         });
@@ -370,14 +370,14 @@ var InputNumberView = Backbone.View.extend({
     },
     addRow: function (tbody) {
         var self = this;
-        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.name + '</td><td>' + self.getHtmlElem() + '</td><td><span class="label label-important hidden"></span></td></tr>');
+        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.humanName + '</td><td>' + self.getHtmlElem() + '</td><td><span class="label label-important hidden"></span></td></tr>');
         self.trElem = tbody.find('tr#' + self.param.id);
         self.trElem.find('input').keyup(function () {
             self.checkEntryValidation();
         });
     },
     getHtmlElem: function () {
-        return _.template('<div class="control-group success"><div class="controls"><input type="text" class="col-md-3" value="<%= value%>" <%= required %>></div></div>', {
+        return _.template('<div class="control-group success"><div class="controls"><input type="text" style="width: 100%;" value="<%= value%>" <%= required %>></div></div>', {
             value : this.getDefaultValue(),
             required: (this.param.required) ? "required" : ""
         });
@@ -427,7 +427,7 @@ var InputDateView = Backbone.View.extend({
     },
     addRow: function (tbody) {
         var self = this;
-        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.name + '</td><td>' + self.getHtmlElem() + '</td><td><span class="label label-important hidden"></span></td></tr>');
+        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.humanName + '</td><td>' + self.getHtmlElem() + '</td><td><span class="label label-important hidden"></span></td></tr>');
         self.trElem = tbody.find('tr#' + self.param.id);
 
         var defaultValue = self.getDefaultValue();
@@ -452,6 +452,7 @@ var InputDateView = Backbone.View.extend({
         });
     },
     getHtmlElem: function () {
+        var self = this;
         return _.template('<div class="control-group success"><div class="controls"><input type="text" class="col-md-3" value="" <%= required %>></div></div>', {
             required: (self.param.required) ? "required" : ""
         });
@@ -504,7 +505,7 @@ var InputBooleanView = Backbone.View.extend({
     },
     addRow: function (tbody) {
         var self = this;
-        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.name + '</td><td>' + self.getHtmlElem() + '</td><td><span class="label label-important hidden"></span></td></tr>');
+        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.humanName + '</td><td>' + self.getHtmlElem() + '</td><td><span class="label label-important hidden"></span></td></tr>');
         self.trElem = tbody.find('tr#' + self.param.id);
         self.trElem.find('input').keyup(function () {
             self.checkEntryValidation();
@@ -548,7 +549,7 @@ var InputListView = Backbone.View.extend({
     },
     addRow: function (tbody) {
         var self = this;
-        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.name + '</td><td>' + self.getHtmlElem() + '</td><td ><span class="label label-important hidden"></span></td></tr>');
+        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.humanName + '</td><td>' + self.getHtmlElem() + '</td><td ><span class="label label-important hidden"></span></td></tr>');
         self.trElem = tbody.find('tr#' + self.param.id);
         self.trElem.find('.icon-plus-sign').click(function () {
 
@@ -637,7 +638,7 @@ var InputListDomainView = Backbone.View.extend({
     },
     addRow: function (tbody) {
         var self = this;
-        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.name + '</td><td id="' + self.param.id + '"></td><td><span class="errorMessage label label-important hidden"></span></td></tr>');
+        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.humanName + '</td><td id="' + self.param.id + '"></td><td><span class="errorMessage label label-important hidden"></span></td></tr>');
         self.trElem = tbody.find('tr#' + self.param.id);
 
         self.collection = new SoftwareParameterModelCollection({uri: window.app.replaceVariable(self.param.uri), sortAttribut: self.param.uriSortAttribut});

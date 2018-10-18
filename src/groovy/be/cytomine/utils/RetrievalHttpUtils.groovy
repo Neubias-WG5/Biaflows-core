@@ -23,8 +23,7 @@ import grails.converters.JSON
 /**
  * User: lrollus
  * Date: 7/01/13
- * GIGA-ULg
- * 
+ *
  */
 @groovy.util.logging.Log
 class RetrievalHttpUtils {

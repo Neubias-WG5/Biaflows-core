@@ -138,7 +138,7 @@ class UrlMappings {
         "/status.json" (controller: "server") {
             action = [GET:"status"]
         }
-        "/ldap.$format" (controller: "restConfig") {
+        "/ldap.$format" (controller: "restConfiguration") {
             action = [GET:"ldap"]
         }
     }

@@ -41,7 +41,6 @@ import java.awt.Point
 /**
  * User: lrollus
  * Date: 18/10/12
- * GIGA-ULg
  *
  * Annotation generic domain
  * Annotation can be:

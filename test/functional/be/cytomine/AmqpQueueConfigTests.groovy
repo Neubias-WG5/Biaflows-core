@@ -94,7 +94,7 @@ class AmqpQueueConfigTests {
 
     void testUpdateAmqpQueueConfigCorrect() {
 
-        AmqpQueueConfig amqpQueueConfig = BasicInstanceBuilder.getAmqpQueueConfig()
+        AmqpQueueConfig amqpQueueConfig = BasicInstanceBuilder.getAmqpQueueConfigNotExist(true)
         def data = UpdateData.createUpdateSet(amqpQueueConfig, [defaultValue: ["OLDValue","NEWValue"]])
         def result = AmqpQueueConfigAPI.update(amqpQueueConfig.id, data.postData, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
@@ -119,7 +119,7 @@ class AmqpQueueConfigTests {
 
 
     void testDeleteAmqpQueueConfig() {
-        def amqpQueueConfigToDelete = BasicInstanceBuilder.getAmqpQueueConfig()
+        def amqpQueueConfigToDelete = BasicInstanceBuilder.getAmqpQueueConfigNotExist()
         assert amqpQueueConfigToDelete.save(flush: true)!= null
         def id = amqpQueueConfigToDelete.id
         def result = AmqpQueueConfigAPI.delete(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)

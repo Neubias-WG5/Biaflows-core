@@ -74,6 +74,7 @@ class SoftwareProject extends CytomineDomain implements Serializable{
         def returnArray = CytomineDomain.getDataFromDomain(domain)
         returnArray['software'] = domain?.software?.id
         returnArray['name'] = domain?.software?.name
+        returnArray['softwareVersion'] = domain?.software?.softwareVersion
         returnArray['project'] = domain?.project?.id
         return returnArray
     }

@@ -58,7 +58,7 @@ BrowseImageView = Backbone.View.extend({
             this.addToTab = options.addToTab;
         }
         this.merge = options.merge;
-        _.bindAll(this, "initVectorLayers");
+        // _.bindAll(this, "initVectorLayers");
 
     },
 
@@ -90,38 +90,41 @@ BrowseImageView = Backbone.View.extend({
             self.changeValidateColor(false);
         }
 
-        this.initToolbar();
+        // [VUEJS - Create new Explore instance]
+        window.addExploreInstance(this.model.id);
 
-        var sidebarRightMini = $(".sidebar-map-right-mini");
-        var sidebarRightBig = $(".sidebar-map-right-big");
-        $("#hide-sidebar-map-right").on("click", function () {
-            sidebarRightBig.css("right", -300);
-            sidebarRightBig.hide();
-            sidebarRightMini.css("right", 0);
-            sidebarRightMini.show();
-        });
+        // this.initToolbar();
 
-        $("#show-sidebar-map-right").on("click", function () {
-            sidebarRightMini.css("right", -120);
-            sidebarRightMini.hide();
-            sidebarRightBig.css("right", 0);
-            sidebarRightBig.show();
-        });
-
-        if (this.review) {
-            new UserJobCollection({project: window.app.status.currentProject, image: self.model.id}).fetch({
-                success: function (collection, response) {
-                    self.userJobForImage = collection;
-                    self.initMap();
-                    self.initAnnotationsTabs();
-                    self.initSpectraTabs();
-                }
-            });
-        } else {
-            this.initMap();
-            this.initAnnotationsTabs();
-            this.initSpectraTabs();
-        }
+        // var sidebarRightMini = $(".sidebar-map-right-mini");
+        // var sidebarRightBig = $(".sidebar-map-right-big");
+        // $("#hide-sidebar-map-right").on("click", function () {
+        //     sidebarRightBig.css("right", -300);
+        //     sidebarRightBig.hide();
+        //     sidebarRightMini.css("right", 0);
+        //     sidebarRightMini.show();
+        // });
+        //
+        // $("#show-sidebar-map-right").on("click", function () {
+        //     sidebarRightMini.css("right", -120);
+        //     sidebarRightMini.hide();
+        //     sidebarRightBig.css("right", 0);
+        //     sidebarRightBig.show();
+        // });
+        //
+        // if (this.review) {
+        //     new UserJobCollection({project: window.app.status.currentProject, image: self.model.id}).fetch({
+        //         success: function (collection, response) {
+        //             self.userJobForImage = collection;
+        //             self.initMap();
+        //             self.initAnnotationsTabs();
+        //             self.initSpectraTabs();
+        //         }
+        //     });
+        // } else {
+        //     this.initMap();
+        //     this.initAnnotationsTabs();
+        //     this.initSpectraTabs();
+        // }
         return this;
     },
     changeValidateColor: function (isValidate) {
@@ -664,7 +667,7 @@ BrowseImageView = Backbone.View.extend({
                                     var spec = new ImageGroupSpectraModel({
                                         group : dd.id,
                                         x: lon,
-                                        y: lat
+                                        y: self.model.get('height') - lat
                                     });
                                     spec.fetch({
                                         success: function (ddd, response) {
@@ -779,8 +782,8 @@ BrowseImageView = Backbone.View.extend({
             };
             imageFilters.each(function (imageFilter) {
                 var url = _.map(zoomify_urls, function (url) {
-                    console.log(imageFilter.get('processingServer') + imageFilter.get("baseUrl") + url);
-                    return imageFilter.get('processingServer') + imageFilter.get("baseUrl") + url;
+                    console.log(imageFilter.get('imagingServer') + imageFilter.get("baseUrl") + url);
+                    return imageFilter.get('imagingServer') + imageFilter.get("baseUrl") + url;
                 });
                 var layer = new OpenLayers.Layer.Zoomify(
                     imageFilter.get("name"),
@@ -1513,7 +1516,7 @@ BrowseImageView = Backbone.View.extend({
                 window_url = data.url;
                 var imageFilter = self.map.baseLayer.imageFilter;
                 if (imageFilter) {
-                    window_url = imageFilter.get('processingServer') + imageFilter.get("baseUrl") + window_url;
+                    window_url = imageFilter.get('imagingServer') + imageFilter.get("baseUrl") + window_url;
                 }
                 var params = {
                     magnification:  magnification,

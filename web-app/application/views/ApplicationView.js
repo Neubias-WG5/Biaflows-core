@@ -215,7 +215,7 @@ var ApplicationView = Backbone.View.extend({
                     "text!application/templates/about/About.tpl.html"
                 ],
                 function (tpl) {
-                    body = _.template(tpl, {version : window.app.status.version, mail : "info@cytomine.be", url : window.app.status.serverURL});
+                    body = _.template(tpl, {version : window.app.status.version, mail : "info@cytomine.org", url : window.app.status.serverURL});
 
                     var modal = new CustomModal({
                         idModal: "about" + "DialogModal",
@@ -245,21 +245,7 @@ var ApplicationView = Backbone.View.extend({
             }
         });
     },
-//<li><a style="display:none;" id="userdashboard-button" href="#userdashboard"><i class="glyphicon glyphicon-dashboard" /> Dashboard</a></li>
-//    <li><a style="display:none;" id="project-button" href="#project"><i class="glyphicon glyphicon-list-alt" /> Projects</a></li>
-//    <li><a style="display:none;" id="ontology-button" href="#ontology"><i class="glyphicon glyphicon-book" /> Ontologies</a></li>
-//    <li><a style="display:none;" id="explorer-button" href="#explorer"><i class="glyphicon glyphicon-eye-open" /> Explore</a></li>
-//    <li><a style="display:none;" id="upload-button" href="#upload"><span class="glyphicon glyphicon-hdd"></span> Storage</a></li>
-//    <li><a style="display:none;" id="activity-button" href="#activity-"><span class="glyphicon glyphicon-fire"></span> Activity</a></li>
-//    <li><a style="display:none;" id="admin-button" href="admincyto"><span class="glyphicon glyphicon-wrench"></span> Admin</a></li>
-//
-//</ul>
-//<div class="navbar-header  navbar-right">
-//    <ul class="nav navbar-nav navbar-left">
-//        <li class="divider-vertical"></li>
-//        <li><a style="display:none;" id="hotkeysModalButton" href="#hotkeysModal"  data-toggle="modal"><i class="glyphicon glyphicon-question-sign" /> Help</a> <li>
-//            <li><a style="display:none;" id="feedback"><i class="glyphicon glyphicon-bullhorn" /> Feedback</a></li>
-//
+
     printTaskEvolution: function (task, divToFill, timeout, reverse) {
         function checkTask() {
             //load all job data
@@ -299,9 +285,11 @@ var ApplicationView = Backbone.View.extend({
             "text!application/templates/admin/AdminComponent.tpl.html",
             "text!application/templates/activity/ActivityComponent.tpl.html",
             "text!application/templates/account/AccountComponent.tpl.html",
-            "text!application/templates/search/SearchComponent.tpl.html"
+            "text!application/templates/search/SearchComponent.tpl.html",
+            "text!application/templates/software/SoftwareComponent.tpl.html"
         ],
-            function (userDashboardTpl,uploadTpl, projectTpl, ontologyTpl, explorerTpl, adminTpl, activityTpl, accountTpl,searchTpl) {
+            function (userDashboardTpl,uploadTpl, projectTpl, ontologyTpl, explorerTpl, adminTpl, activityTpl,
+                      accountTpl, searchTpl, softwareTpl) {
 
                 var activeInterval = function(){
                     _.each(self.intervals, function (interval) {
@@ -404,7 +392,6 @@ var ApplicationView = Backbone.View.extend({
                         activeInterval();
                     }
                 });
-
                 self.components.admin = new Component({
                     el: "#content",
                     template: _.template(adminTpl, {}),
@@ -417,7 +404,6 @@ var ApplicationView = Backbone.View.extend({
                         activeInterval();
                     }
                 });
-
                 self.components.explorer = new Component({
                     el: "#content",
                     template: _.template(explorerTpl, {}),
@@ -436,6 +422,18 @@ var ApplicationView = Backbone.View.extend({
                         activeInterval();
                         $("#" + this.divId).show();
                         $("#" + this.buttonAttr.elButton).parent().addClass("active");
+                    }
+                });
+                self.components.software = new Component({
+                    el: "#content",
+                    template: _.template(softwareTpl, {}),
+                    buttonAttr: {
+                        elButton: "software-button"
+                    },
+                    divId: "software",
+                    onActivate: function () {
+                        self.currentComponent = this;
+                        activeInterval();
                     }
                 });
             });

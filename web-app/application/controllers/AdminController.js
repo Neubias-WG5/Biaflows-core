@@ -26,6 +26,7 @@ var AdminController = Backbone.Router.extend({
         "admin-tabs-users": "users",
         "admin-tabs-groups": "groups",
         "admin-tabs-permissions": "permissions",
+        "admin-tabs-softwares": "softwares",
         "admin-tabs-config": "config"
     },
 
@@ -107,6 +108,17 @@ var AdminController = Backbone.Router.extend({
             self.view.refreshPermissions();
             var tabs = $("#admin").find(".nav-tabs");
             tabs.find('a[href=#admin-tabs-permissions]').tab('show');
+        };
+        self.init(func);
+    },
+
+    softwares: function () {
+
+        var self = this;
+        var func = function () {
+            self.view.refreshSoftwares();
+            var tabs = $("#admin").find(".nav-tabs");
+            tabs.find('a[href=#admin-tabs-softwares]').tab('show');
         };
         self.init(func);
     },

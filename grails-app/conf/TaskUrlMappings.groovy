@@ -15,7 +15,7 @@
 */
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: lrollus
  * Date: 07/11/12
  * Time: 13:40

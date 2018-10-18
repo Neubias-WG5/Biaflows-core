@@ -15,7 +15,7 @@
 */
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: stevben
  * Date: 10/10/11
  * Time: 13:49
@@ -41,7 +41,7 @@ class ImageSequenceUrlMappings {
         }
 
         "/api/imagegroup/$id/$channel/$zstack/$slice/$time/imagesequence.$format"(controller: "restImageSequence"){
-            action = [GET:"getByImageGroupAndIndex"]
+            action = [GET:"getByImageGroupAndIndexes"]
         }
 
     }

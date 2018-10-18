@@ -29,7 +29,6 @@ import java.awt.image.BufferedImage
 /**
  * User: lrollus
  * Date: 6/12/11
- * GIGA-ULg
  * This class is a root class for all xxxAPI class. These class allow to manage (get/create/update/delete/...) each domain instance easily durint test.
  * It encapsulate all HTTP request to have clean test
  *

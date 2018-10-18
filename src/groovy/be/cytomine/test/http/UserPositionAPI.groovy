@@ -21,7 +21,6 @@ import be.cytomine.test.Infos
 /**
  * User: lrollus
  * Date: 6/12/11
- * GIGA-ULg
  * This class implement all method to easily get/create/update/delete/manage Annotation to Cytomine with HTTP request during functional test
  */
 class UserPositionAPI extends DomainAPI {

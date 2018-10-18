@@ -50,11 +50,11 @@ class RestSoftwareParameterController extends RestController{
     @RestApiMethod(description="Get all software parameters for a software", listing = true)
     @RestApiParams(params=[
         @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The software id"),
-        @RestApiParam(name="setByServer", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) Include params set by server"),
+        @RestApiParam(name="withSetByServer", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) Include params set by server"),
     ])
     def listBySoftware() {
         Software software = Software.read(params.long('id'))
-        boolean includeSetByServer = params.boolean('setByServer', false)
+        boolean includeSetByServer = params.boolean('withSetByServer', false)
         if(software) {
             responseSuccess(softwareParameterService.list(software, includeSetByServer))
         } else {

@@ -37,8 +37,8 @@ class ImageFilterProject extends CytomineDomain implements Serializable {
     Project project
 
     @RestApiObjectFields(params=[
-        @RestApiObjectField(apiFieldName = "processingServer", description = "The URL of the processing server",allowedType = "string",useForCreation = false),
-        @RestApiObjectField(apiFieldName = "baseUrl", description = "The URL path of the filter on the processing server",allowedType = "string",useForCreation = false),
+        @RestApiObjectField(apiFieldName = "imagingServer", description = "The URL of the imaging server",allowedType = "string",useForCreation = false),
+        @RestApiObjectField(apiFieldName = "baseUrl", description = "The URL path of the filter on the imaging server",allowedType = "string",useForCreation = false),
         @RestApiObjectField(apiFieldName = "name", description = "The filter name",allowedType = "string",useForCreation = false)
     ])
     static transients = []
@@ -91,7 +91,7 @@ class ImageFilterProject extends CytomineDomain implements Serializable {
         returnArray['imageFilter'] = domain?.imageFilter?.id
         returnArray['project'] = domain?.project?.id
 
-        returnArray['processingServer'] = domain?.imageFilter?.processingServer?.url
+        returnArray['imagingServer'] = domain?.imageFilter?.imagingServer?.url
         returnArray['baseUrl'] = domain?.imageFilter?.baseUrl
         returnArray['name'] = domain?.imageFilter?.name
         return returnArray

@@ -19,6 +19,7 @@ package be.cytomine.ontology
 import be.cytomine.AnnotationDomain
 import be.cytomine.Exception.CytomineException
 import be.cytomine.Exception.ForbiddenException
+import be.cytomine.Exception.WrongArgumentException
 import be.cytomine.api.UrlApi
 import be.cytomine.command.*
 import be.cytomine.image.ImageInstance
@@ -35,6 +36,7 @@ import be.cytomine.utils.ModelService
 import be.cytomine.utils.Task
 import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.WKTWriter
+import grails.converters.JSON
 import groovy.sql.Sql
 import org.codehaus.groovy.grails.web.json.JSONObject
 import org.hibernate.criterion.Restrictions
@@ -188,6 +190,17 @@ class UserAnnotationService extends ModelService {
     def add(def json,def minPoint = null, def maxPoint = null) {
         log.info "log.addannotation1"
 
+        if (!json.project || json.isNull('project')) {
+            ImageInstance image = ImageInstance.read(json.image)
+            if (image) json.project = image.project.id
+        }
+        if (json.isNull('project')) {
+            throw new WrongArgumentException("Annotation must have a valide project:" + json.project)
+        }
+        if (json.isNull('location')) {
+            throw new WrongArgumentException("Annotation must have a valide geometry:" + json.location)
+        }
+
         securityACLService.check(json.project, Project,READ)
         securityACLService.checkisNotReadOnly(json.project,Project)
         SecUser currentUser = cytomineService.getCurrentUser()
@@ -221,14 +234,34 @@ class UserAnnotationService extends ModelService {
 
         annotationID = result?.data?.annotation?.id
         log.info "userAnnotation=" + annotationID + " json.term=" + json.term
-        //Add annotation-term if term
+
         if (annotationID) {
+            //Add annotation-term if term
             def term = JSONUtils.getJSONList(json.term);
             if (term) {
                 term.each { idTerm ->
                     annotationTermService.addAnnotationTerm(annotationID, idTerm, null, currentUser.id, currentUser, transaction)
                 }
             }
+
+            def properties = JSONUtils.getJSONList(json.property)
+            if (properties) {
+                properties.each {
+                    def key = it.key as String
+                    def value = it.value as String
+                    log.info(it)
+                    log.info(key)
+                    log.info(value)
+                    propertyService.add(JSON.parse("""{"domainClassName": "be.cytomine.ontology.UserAnnotation", "domainIdent": "$annotationID", "key": "$key", "value": "$value" }"""), transaction)
+//            log.info "it.key"
+//            log.info it.key
+//            log.info "it.value"
+//            log.info it.value
+//                    cytomine.addDomainProperties(image.getStr("class"), image.getLong("id"),
+//                            it.key.toString(), it.value.toString())
+                }
+            }
+
         }
 
 

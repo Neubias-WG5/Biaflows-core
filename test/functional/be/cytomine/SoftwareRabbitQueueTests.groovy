@@ -35,9 +35,6 @@ import grails.util.Holders
  */
 class SoftwareRabbitQueueTests {
 
-    def amqpQueueService = Holders.getGrailsApplication().getMainContext().getBean("amqpQueueService")
-    def rabbitConnectionService = Holders.getGrailsApplication().getMainContext().getBean("rabbitConnectionService")
-
     void testAddSoftwareRabbitQueue() {
         def softwareToAdd = BasicInstanceBuilder.getSoftwareNotExistForRabbit(false)
         softwareToAdd.executeCommand = "groovy -cp algo/computeAnnotationStats/Cytomine-Java-Client.jar:algo/computeAnnotationStats/jts-1.13.jar algo/computeAnnotationStats/computeAnnotationStats.groovy"
@@ -45,6 +42,8 @@ class SoftwareRabbitQueueTests {
 
         def result = SoftwareAPI.create(softwareToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         softwareToAdd = result.data as Software
+
+        def amqpQueueService = Holders.getGrailsApplication().getMainContext().getBean("amqpQueueService")
 
         String queueName = amqpQueueService.queuePrefixSoftware + (String) softwareToAdd.name.capitalize()
 
@@ -59,12 +58,12 @@ class SoftwareRabbitQueueTests {
         result = JobAPI.execute(job.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert result.code == 200
 
+        def rabbitConnectionService = Holders.getGrailsApplication().getMainContext().getBean("rabbitConnectionService")
 
         Channel channel = rabbitConnectionService.getRabbitChannel(queueName, mbs)
         GetResponse getResponse = channel.basicGet(queueName, true)
 
         String message = new String(getResponse.body)
         assert message.length() > 0
-        println "Message read : " + (new String(getResponse.body))
     }
 }

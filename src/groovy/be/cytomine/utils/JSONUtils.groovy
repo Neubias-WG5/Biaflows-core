@@ -25,7 +25,6 @@ import org.json.JSONArray
 /**
  * User: lrollus
  * Date: 11/01/13
- * GIGA-ULg
  *
  *
  * Utility class to extract/read data from JSON

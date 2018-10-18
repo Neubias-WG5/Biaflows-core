@@ -45,7 +45,9 @@ grails.mime.types = [
         multipartForm: 'multipart/form-data'
 ]
 cytomine.maxRequestSize = 10485760
-storage_path="/data" //default path for image locations
+storage_path="/data/images" //default path for image locations
+fast_data_path="/data/images" //default path for HDF5 files location (for ex: a SSD)
+cytomine.software.path.softwareImages = "/data/softwares/images"
 
 // The default codec used to encode data with ${}
 grails.views.default.codec = "none" // none, html, base64
@@ -61,7 +63,7 @@ grails.doc.subtitle="Documentation"
 grails.doc.authors="Hoyoux Renaud, Marée Raphaël, Rollus Loïc, Stévens Benjamin"
 grails.doc.license="Apache2"
 grails.doc.copyright="University of liège"
-grails.doc.footer="www.cytomine.be"
+grails.doc.footer="www.cytomine.org"
 
 // enable Sitemesh preprocessing of GSP pages
 grails.views.gsp.sitemesh.preprocess = true
@@ -81,7 +83,7 @@ cytomine.jobdata.filesystem = false
 cytomine.jobdata.filesystemPath = "algo/data/"
 
 // RabbitMQ server
-grails.messageBrokerServerURL = "localhost:5672"
+grails.messageBrokerServerURL = "rabbitmq:5672"
 grails.LTIConsumer = []
 
 // set per-environment serverURL stem for creating absolute links
@@ -104,21 +106,23 @@ environments {
         grails.retrievalServerURL = []
     }
     development {
-        grails.serverURL = "http://localhost:8080"
+        grails.serverURL = "http://localhost-core:8080"
         grails.uploadURL = "http://localhost-upload"
-        grails.imageServerURL = ["http://localhost:9080"]
+        grails.imageServerURL = ["http://localhost-ims"]
         grails.retrievalServerURL = ["http://localhost-retrieval"]
         grails.converters.default.pretty.print = true
         grails.plugin.springsecurity.useBasicAuth = false
         grails.resources.adhoc.patterns = ['/images/*', '/css/jsondoc/*', '/js/*', '/plugins/*']
         grails.readOnlyProjectsByDefault = true
         grails.adminPassword="admin"
-        grails.ImageServerPrivateKey=""
-        grails.ImageServerPublicKey=""
-        grails.adminPrivateKey="XXX"
-        grails.adminPublicKey="XXX"
-        grails.superAdminPrivateKey="X"
-        grails.superAdminPublicKey="X"
+        grails.ImageServerPrivateKey="ABC"
+        grails.ImageServerPublicKey="DEF"
+        grails.adminPrivateKey="GHI"
+        grails.adminPublicKey="JKL"
+        grails.superAdminPrivateKey="MNO"
+        grails.superAdminPublicKey="PQR"
+        grails.rabbitMQPrivateKey="STU"
+        grails.rabbitMQPublicKey="VWX"
     }
     test {
         grails.serverURL = "http://localhost:8090"
@@ -293,7 +297,7 @@ grails.plugin.springsecurity.useSwitchUserFilter = true
 
 grails.plugin.springsecurity.cas.serviceUrl = 'http://localhost:8080/j_spring_cas_security_check'
 
-// LDAP Config
+// LDAP Configuration
 grails.plugin.springsecurity.auth.loginFormUrl = '/'
 grails.plugin.springsecurity.ldap.search.base = ''
 grails.plugin.springsecurity.ldap.context.managerDn = ''
@@ -328,7 +332,7 @@ grails.plugins.dynamicController.mixins = [
 
 // Rest API Doc plugin
 grails.plugins.restapidoc.docVersion = "0.1"
-grails.plugins.restapidoc.basePath = "http://demo.cytomine.be"
+grails.plugins.restapidoc.basePath = "http://demo.cytomine.coop"
 grails.plugins.restapidoc.customClassName = "be.cytomine.api.doc.CustomResponseDoc"
 grails.plugins.restapidoc.controllerPrefix = "Rest"
 grails.plugins.restapidoc.grailsDomainDefaultType = "long"
@@ -366,6 +370,7 @@ cytomine.customUI.global = [
         project: ["ALL"],
         ontology: ["ROLE_ADMIN"],
         storage : ["ROLE_USER","ROLE_ADMIN"],
+        software : ["ROLE_USER", "ROLE_ADMIN"],
         activity : ["ALL"],
         feedback : ["ROLE_USER","ROLE_ADMIN"],
         explore : ["ROLE_USER","ROLE_ADMIN"],
@@ -400,7 +405,7 @@ environments {
 }
 
 
-grails.admin.email = "info@cytomine.be"
+grails.admin.email = "info@cytomine.org"
 grails.notification.email = ""
 grails.notification.password = ""
 grails.notification.smtp.host = "smtp.gmail.com"

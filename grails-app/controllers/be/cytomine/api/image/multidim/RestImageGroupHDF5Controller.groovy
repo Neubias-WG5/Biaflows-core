@@ -117,7 +117,7 @@ class RestImageGroupHDF5Controller extends RestController {
     @RestApiParams(params=[
             @RestApiParam(name="id", type="long", paramType= RestApiParamType.PATH, description="The HDF5 image group ID", required=true),
             @RestApiParam(name="x", type="int", paramType= RestApiParamType.PATH, description="The x coordinate (0 is left)", required=true),
-            @RestApiParam(name="y", type="int", paramType= RestApiParamType.PATH, description="The y coordinate (0 is bottom)", required=true),
+            @RestApiParam(name="y", type="int", paramType= RestApiParamType.PATH, description="The y coordinate (0 is top)", required=true),
             @RestApiParam(name="minChannel", type="int", paramType=RestApiParamType.QUERY, description="The minimum channel", required=false),
             @RestApiParam(name="maxChannel", type="int", paramType=RestApiParamType.QUERY, description="The maximum channel", required=false),
     ])
@@ -127,11 +127,9 @@ class RestImageGroupHDF5Controller extends RestController {
 //            ImageGroupHDF5 groupHDF5 = imageGroupHDF5Service.getByGroup(group)
             ImageGroupHDF5 groupHDF5 = imageGroupHDF5Service.read(params.id)
             if(groupHDF5){
-                ImageSequence is = ImageSequence.findByImageGroup(groupHDF5.group)
-
                 def parameters = [:]
                 parameters.x = params.int('x')
-                parameters.y = is.image.baseImage.height - params.int('y')
+                parameters.y = params.int('y')
                 parameters.fif = groupHDF5.filename
                 if (params.minChannel) parameters.minChannel = params.minChannel
                 if (params.maxChannel) parameters.maxChannel = params.maxChannel
@@ -153,7 +151,7 @@ class RestImageGroupHDF5Controller extends RestController {
     @RestApiParams(params=[
             @RestApiParam(name="id", type="long", paramType= RestApiParamType.PATH, description="The HDF5 image group ID", required=true),
             @RestApiParam(name="x", type="int", paramType= RestApiParamType.PATH, description="The x coordinate (0 is left)", required=true),
-            @RestApiParam(name="y", type="int", paramType= RestApiParamType.PATH, description="The y coordinate (0 is bottom)", required=true),
+            @RestApiParam(name="y", type="int", paramType= RestApiParamType.PATH, description="The y coordinate (0 is top)", required=true),
             @RestApiParam(name="w", type="int", paramType= RestApiParamType.QUERY, description="The width of the rectangle"),
             @RestApiParam(name="h", type="int", paramType= RestApiParamType.QUERY, description="The height of the rectangle"),
             @RestApiParam(name="minChannel", type="int", paramType=RestApiParamType.QUERY, description="The minimum channel", required=false),
@@ -165,11 +163,9 @@ class RestImageGroupHDF5Controller extends RestController {
 //            ImageGroupHDF5 groupHDF5 = imageGroupHDF5Service.getByGroup(group)
             ImageGroupHDF5 groupHDF5 = imageGroupHDF5Service.read(params.id)
             if(groupHDF5){
-                ImageSequence is = ImageSequence.findByImageGroup(groupHDF5.group)
-
                 def parameters = [:]
                 parameters.x = params.int('x')
-                parameters.y = is.image.baseImage.height - params.int('y')
+                parameters.y = params.int('y')
                 parameters.w = params.int('w')
                 parameters.h = params.int('h')
                 parameters.fif = groupHDF5.filename
@@ -177,7 +173,7 @@ class RestImageGroupHDF5Controller extends RestController {
                 if (params.maxChannel) parameters.maxChannel = params.maxChannel
 
                 String imageServerURL =  grailsApplication.config.grails.imageServerURL[0]
-                String url = "$imageServerURL/multidim/pixel.json?" + parameters.collect {k, v -> "$k=$v"}.join("&")
+                String url = "$imageServerURL/multidim/rectangle.json?" + parameters.collect {k, v -> "$k=$v"}.join("&")
                 log.info url
                 responseSuccess(JSON.parse( new URL(url).text ))
             }

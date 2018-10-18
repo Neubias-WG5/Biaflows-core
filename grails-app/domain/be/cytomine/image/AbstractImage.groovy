@@ -57,10 +57,10 @@ class AbstractImage extends CytomineDomain implements Serializable {
     @RestApiObjectField(description = "The image type. For creation, use the ext (not the mime id!)")
     Mime mime
 
-    @RestApiObjectField(description = "The image width lenght", mandatory = false, defaultValue = "-1")
+    @RestApiObjectField(description = "The image width", mandatory = false, defaultValue = "-1")
     Integer width
 
-    @RestApiObjectField(description = "The image height lenght", mandatory = false, defaultValue = "-1")
+    @RestApiObjectField(description = "The image height", mandatory = false, defaultValue = "-1")
     Integer height
 
     @RestApiObjectField(description = "The image max zoom")
@@ -68,6 +68,12 @@ class AbstractImage extends CytomineDomain implements Serializable {
 
     @RestApiObjectField(description = "The image resolution (microm per pixel)")
     Double resolution
+
+    @RestApiObjectField(description = "The image bit depth (bits per channel)")
+    Integer bitDepth
+
+    @RestApiObjectField(description = "The image colorspace")
+    String colorspace
 
     @RestApiObjectField(description = "The image owner", mandatory = false, defaultValue = "current user")
     SecUser user //owner
@@ -98,6 +104,8 @@ class AbstractImage extends CytomineDomain implements Serializable {
         height(nullable: true)
         resolution(nullable: true)
         magnification(nullable: true)
+        bitDepth(nullable: true)
+        colorspace(nullable: true)
         user(nullable: true)
     }
 
@@ -147,6 +155,8 @@ class AbstractImage extends CytomineDomain implements Serializable {
         domain.mime = JSONUtils.getJSONAttrDomain(json,"mime",new Mime(),'extension','String',true)
         domain.magnification = JSONUtils.getJSONAttrInteger(json,'magnification',null)
         domain.resolution = JSONUtils.getJSONAttrDouble(json,'resolution',null)
+        domain.bitDepth = JSONUtils.getJSONAttrInteger(json, 'bitDepth', null)
+        domain.colorspace = JSONUtils.getJSONAttrStr(json, 'colorspace', false)
         domain.deleted = JSONUtils.getJSONAttrDate(json, "deleted")
 
         if (domain.mime.imageServers().size() == 0) {
@@ -173,6 +183,8 @@ class AbstractImage extends CytomineDomain implements Serializable {
         returnArray['depth'] = image?.getZoomLevels()?.max
         returnArray['resolution'] = image?.resolution
         returnArray['magnification'] = image?.magnification
+        returnArray['bitDepth'] = image?.bitDepth
+        returnArray['colorspace'] = image?.colorspace
         returnArray['thumb'] = UrlApi.getThumbImage(image ? (long)image?.id : null, 512)
         returnArray['preview'] = UrlApi.getThumbImage(image ? (long)image?.id : null, 1024)
         returnArray['fullPath'] = image?.getAbsolutePath()

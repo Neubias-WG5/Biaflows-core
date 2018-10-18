@@ -17,7 +17,7 @@ package be.cytomine.utils
 */
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: stevben
  * Date: 13/03/13
  * Time: 11:48

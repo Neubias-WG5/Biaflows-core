@@ -65,6 +65,7 @@ class SharedAnnotation extends CytomineDomain {
         def returnArray = CytomineDomain.getDataFromDomain(domain)
         returnArray['comment'] = domain?.comment
         returnArray['sender'] = domain?.sender?.id
+        returnArray['senderName'] = domain?.sender.toString()
         returnArray['annotationIdent'] = domain?.annotationIdent
         returnArray['annotationClassName'] = domain?.annotationClassName
         returnArray['receivers'] = domain?.receivers?.collect { it.id }

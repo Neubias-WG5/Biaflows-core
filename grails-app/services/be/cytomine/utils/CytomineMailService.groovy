@@ -21,6 +21,7 @@ import org.springframework.core.io.FileSystemResource
 import org.springframework.mail.javamail.JavaMailSenderImpl
 import org.springframework.mail.javamail.MimeMessageHelper
 
+import javax.mail.MessagingException
 import javax.mail.AuthenticationFailedException
 import javax.mail.internet.MimeMessage
 
@@ -54,7 +55,7 @@ class CytomineMailService {
         MimeMessage mail = sender.createMimeMessage()
         MimeMessageHelper helper = new MimeMessageHelper(mail, true)
 
-        helper.setReplyTo("noreply@cytomine.be")
+        helper.setReplyTo("noreply@cytomine.org")
         helper.setFrom(from)
         helper.setTo(to)
         //helper.setCc(cc)
@@ -67,10 +68,9 @@ class CytomineMailService {
         log.info "send $mail"
         try {
             sender.send(mail)
-        } catch (AuthenticationFailedException e) {
-            log.error "can't send email $mail (AuthenticationFailedException)"
-        } catch (Exception e) {
-            log.error "can't send email $mail (Exception)"
+        } catch (AuthenticationFailedException | MessagingException e) {
+            log.error "can't send email $mail (MessagingException)"
+            e.printStackTrace()
         }
     }
 }

@@ -21,7 +21,6 @@ import be.cytomine.test.Infos
 /**
  * User: lrollus
  * Date: 2013/10/07
- * GIGA-ULg
  * This class implement all method to easily get/create/update/delete/manage AttachedFile to Cytomine with HTTP request during functional test
  */
 class AttachedFileAPI extends DomainAPI {
@@ -49,5 +48,10 @@ class AttachedFileAPI extends DomainAPI {
     static def upload(String domainClassName, Long domainIdent, File file, String username, String password) {
         String URL = Infos.CYTOMINEURL + "api/attachedfile.json?domainClassName=$domainClassName&domainIdent=$domainIdent"
         return doPOSTUpload(URL,file,username,password)
+    }
+
+    static def delete(Long id, String username, String password) {
+        String URL = Infos.CYTOMINEURL + "api/attachedfile/" + id + ".json"
+        return doDELETE(URL,username,password)
     }
 }

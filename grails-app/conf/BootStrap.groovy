@@ -16,6 +16,7 @@
 
 
 import be.cytomine.image.ImageProcessingService
+import be.cytomine.utils.CytomineMailService
 import be.cytomine.image.multidim.ImageGroupHDF5Service
 import be.cytomine.integration.NotifyAuroraUploadJob
 import be.cytomine.middleware.ImageServerService
@@ -134,6 +135,8 @@ class BootStrap {
         log.info "init retrieve errors hack..."
         retrieveErrorsService.initMethods()
 
+        def rabbitmqInit = false
+
         /* Fill data just in test environment*/
         log.info "fill with data..."
         if (Environment.getCurrent() == Environment.TEST) {
@@ -160,10 +163,18 @@ class BootStrap {
                 String url, String username, String password, def image,String id, String storage, Map<String,String> properties -> println "\n\n mocked doRetrievalIndex \n\n";
                     return [code:200,response:"test"]
             }
+            //mock mail service
+            CytomineMailService.metaClass.send = {
+                String from, String[] to, String cc, String subject, String message, def attachment -> println "\n\n mocked mail send \n\n";
+            }
 
 
         }  else if (SecUser.count() == 0) {
             //if database is empty, put minimal data
+            // Initialize RabbitMQ server
+            bootstrapUtilsService.initRabbitMq()
+            rabbitmqInit = true
+
             bootstrapDataService.initData()
         }
 
@@ -185,15 +196,17 @@ class BootStrap {
             }
         }
 
-        // Initialize RabbitMQ server
-        bootstrapUtilsService.initRabbitMq()
-
         log.info "create multiple IS and Retrieval..."
         bootstrapUtilsService.createMultipleIS()
         bootstrapUtilsService.createMultipleRetrieval()
 
         log.info "init change for old version..."
         bootstrapOldVersionService.execChangeForOldVersion()
+
+        if (!rabbitmqInit) {
+            // Initialize RabbitMQ server
+            bootstrapUtilsService.initRabbitMq()
+        }
 
         if(grailsApplication.config.grails.client=="AURORA") {
             if(Environment.getCurrent() != Environment.TEST) {

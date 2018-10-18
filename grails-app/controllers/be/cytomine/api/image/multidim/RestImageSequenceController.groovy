@@ -102,7 +102,7 @@ class RestImageSequenceController extends RestController {
         @RestApiParam(name="channel", type="long", paramType = RestApiParamType.PATH, description = "Channel filter"),
         @RestApiParam(name="slice", type="long", paramType = RestApiParamType.PATH, description = "Slice filter")
     ])
-    def getByImageGroupAndIndex () {
+    def getByImageGroupAndIndexes() {
         try {
             ImageGroup imageGroup = imageGroupService.read(params.long('id'))
             if (imageGroup)  {

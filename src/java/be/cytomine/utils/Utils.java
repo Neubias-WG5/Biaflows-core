@@ -21,7 +21,6 @@ import java.util.*;
 /**
  * User: lrollus
  * Date: 6/02/12
- * GIGA-ULg
  * This class implement method
  */
 public class Utils {

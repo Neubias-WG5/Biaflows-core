@@ -144,7 +144,7 @@ class AbstractImageTests {
   }
 
   void testEditImage() {
-      def image = BasicInstanceBuilder.getAbstractImage()
+      def image = BasicInstanceBuilder.getAbstractImageNotExist(true)
       def data = UpdateData.createUpdateSet(
               image,
                     [height:[10000,900000],

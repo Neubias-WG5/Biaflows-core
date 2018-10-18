@@ -2,8 +2,9 @@
     <dl class="dl-horizontal">
         <dt>Name</dt>
         <dd><%= name %></dd>
-        <dt>Description</dt>
-        <dd><%= description %></dd>
+        <dt>Version</dt>
+        <dd><%= softwareVersion %></dd>
+
         <dt></dt>
         <dd><a id="softwareShowDetailsButton">More details</a> <i class="icon-info-sign"></i></dd>
     </dl>
@@ -13,12 +14,11 @@
     <dl class="dl-horizontal">
         <dt>Name</dt>
         <dd><%= name %>&nbsp;</dd>
-        <dt>Description</dt>
-        <dd><%= description %>&nbsp;</dd>
+        <dt>Version</dt>
+        <dd><%= softwareVersion %></dd>
+
         <dt>Created</dt>
-        <dd><%= created %>&nbsp;</dd>
-        <dt>Service associated</dt>
-        <dd><%= serviceName %>&nbsp;</dd>
+        <dd><%= _created %>&nbsp;</dd>
         <dt>Result generator</dt>
         <dd><%= resultName %>&nbsp;</dd>
         <dt>Number of job</dt>
@@ -30,15 +30,15 @@
     <div id="softwareParams">
         <h4>Parameters</h4>
         <hr />
-        <div id="softwareParamsTableDiv" style="padding: 25px;">
+        <div id="softwareParamsTableDiv">
             <table id="softwareParamsTable" cellpadding="0" cellspacing="0" border="0" class="table table-hover table-condensed">
                 <thead>
                 <tr>
                     <th>Name</th>
                     <th>Type</th>
                     <th>Default Value</th>
-                    <th>Require</th>
-                    <th>Index</th>
+                    <th>Required</th>
+                    <th>Variable</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -53,20 +53,23 @@
             <dl class="dl-horizontal">
                 <dt>Total Job</dt>
                 <dd><%= numberOfJob %></dd>
-                <dt>Not Launch</dt>
+                <dt>Not Launched</dt>
                 <dd><span class="label label-default"><%= numberOfNotLaunch %></span></dd>
-                <dt>In Queue</dt>
-                <dd><span class="label label-default"><%= numberOfInQueue %></span></dd>
-                <dt>Running</dt>
-                <dd><span class="label label-info"><%= numberOfRunning %></span></dd>
-                <dt>Success</dt>
-                <dd><span class="label label-success"><%= numberOfSuccess %></span></dd>
-                <dt>Indeterminate</dt>
-                <dd><span class="label label-default"><%= numberOfIndeterminate %></span></dd>
                 <dt>Wait</dt>
                 <dd><span class="label label-warning"><%= numberOfWait %></span></dd>
+                <dt>In Queue</dt>
+                <dd><span class="label label-info"><%= numberOfInQueue %></span></dd>
+                <dt>Running</dt>
+                <dd><span class="label label-primary"><%= numberOfRunning %></span></dd>
+                <dt>Success</dt>
+                <dd><span class="label label-success"><%= numberOfSuccess %></span></dd>
                 <dt>Failed</dt>
                 <dd><span class="label label-danger"><%= numberOfFailed %></span></dd>
+                <dt>Indeterminate</dt>
+                <dd><span class="label label-default"><%= numberOfIndeterminate %></span></dd>
+                <dt>Killed</dt>
+                <dd><span class="label" style="background: black;"><%= numberOfKilled %></span></dd>
+
             </dl>
         </div>
         <div id="softwareInfoChart"></div>

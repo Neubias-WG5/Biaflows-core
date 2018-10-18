@@ -23,7 +23,6 @@ import grails.converters.JSON
 /**
  * User: rhoyoux
  * Date: 30/10/14
- * GIGA-ULg
  * This class implement all method to easily get/create/update/delete/manage SearchEngineFilter to Cytomine with HTTP request during functional test
  */
 class SearchEngineFilterAPI extends DomainAPI {

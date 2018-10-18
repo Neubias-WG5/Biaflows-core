@@ -119,7 +119,7 @@ class PropertyService extends ModelService {
 
     def read(def id) {
         def property = Property.read(id)
-        if (property && !property.domainClassName.contains("AbstractImage")) {
+        if (property && !property.domainClassName.contains("AbstractImage") && !property.domainClassName.contains("Software")) {
             securityACLService.check(property.container(),READ)
         }
         property
@@ -127,13 +127,13 @@ class PropertyService extends ModelService {
 
     def read(CytomineDomain domain, String key) {
         def property = Property.findByDomainIdentAndKey(domain.id,key)
-        if (property && !property.domainClassName.contains("AbstractImage")) {
+        if (property && !property.domainClassName.contains("AbstractImage") && !property.domainClassName.contains("Software")) {
             securityACLService.check(property.container(),READ)
         }
         property
     }
 
-    def add(def json) {
+    def add(def json, def transaction = null) {
         def domainClass = json.domainClassName
         CytomineDomain domain
 
@@ -153,11 +153,11 @@ class PropertyService extends ModelService {
         }
 
         SecUser currentUser = cytomineService.getCurrentUser()
-        Command command = new AddCommand(user: currentUser)
+        Command command = new AddCommand(user: currentUser, transaction: transaction)
         return executeCommand(command,null,json)
     }
     @Override
-    protected def afterAdd(def domain, def response) {
+    def afterAdd(def domain, def response) {
         Property property = (Property) domain
         if(property.key.equals("ANNOTATION_GROUP_ID")){
             Long id = -1

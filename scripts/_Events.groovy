@@ -81,7 +81,6 @@ eventConfigureTomcat = { tomcat ->
 /**
  * User: lrollus
  * Date: 16/03/12
- * GIGA-ULg
  * Extract data from viewport (import cytomine js + lib js) and build 2 xml files with application and lib data.
  * Thanks to these two xml files, we ca create application.js and lib.js
  * application.js: all js files from cytomine

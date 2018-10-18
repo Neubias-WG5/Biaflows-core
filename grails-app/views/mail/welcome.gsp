@@ -26,8 +26,8 @@
                             </p>
                             
                             <p>
-                            For more information about Cytomine open-source project, please <a href='http://www.cytomine.be/'>visit our website</a>.<br>
-                            <a href='http://www.cytomine.be/'><img src="http://www.cytomine.be/cytominelogo.png" align="left" height="100"></a>
+                            For more information about Cytomine open-source project, please <a href='http://www.cytomine.org/'>visit our website</a>.<br>
+                            <a href='http://www.cytomine.org/'><img src="http://www.cytomine.be/cytominelogo.png" align="left" height="100"></a>
                             </p>
 
                             <!-- social & contact -->

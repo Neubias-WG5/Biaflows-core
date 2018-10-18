@@ -19,11 +19,10 @@ package be.cytomine
 import be.cytomine.project.Project
 import be.cytomine.security.User
 import be.cytomine.test.BasicInstanceBuilder
-import be.cytomine.test.HttpClient
 import be.cytomine.test.Infos
+import be.cytomine.test.http.JobAPI
 import be.cytomine.test.http.ProjectAPI
 import be.cytomine.test.http.UserAPI
-import be.cytomine.test.http.ProjectConnectionAPI
 import be.cytomine.utils.UpdateData
 import grails.converters.JSON
 import org.codehaus.groovy.grails.web.json.JSONArray
@@ -363,25 +362,16 @@ class UserTests  {
 
 
     void testAddUserChildCorrect() {
-       log.info("create user")
-       def parent = User.findByUsername(Infos.SUPERADMINLOGIN);
-       def json = "{parent:"+ parent.id +", username:"+ Math.random()+", software: ${BasicInstanceBuilder.getSoftware().id}}";
+        log.info("create user")
+        def parent = User.findByUsername(Infos.SUPERADMINLOGIN);
+        def json = "{parent:"+ parent.id +", username:"+ Math.random()+", software: ${BasicInstanceBuilder.getSoftware().id}, project: ${BasicInstanceBuilder.getProject().id}}";
 
-       log.info("post user child")
-       String URL = Infos.CYTOMINEURL+"api/userJob.json"
-       HttpClient client = new HttpClient()
-       client.connect(URL,Infos.SUPERADMINLOGIN,Infos.SUPERADMINPASSWORD)
-       client.post(json.toString())
-       int code  = client.getResponseCode()
-       String response = client.getResponseData()
-       println response
-       client.disconnect();
+        log.info("post user child")
+        def response = JobAPI.createUserJob(json.toString(), Infos.SUPERADMINLOGIN,Infos.SUPERADMINPASSWORD)
 
-       log.info("check response")
-       assert 200==code
-       json = JSON.parse(response)
-       assert json instanceof JSONObject
-     }
+        log.info("check response")
+        assert 200==response.code
+    }
 
 
 

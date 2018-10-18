@@ -17,6 +17,7 @@ package be.cytomine.api.security
 */
 
 import be.cytomine.Exception.CytomineException
+import be.cytomine.Exception.WrongArgumentException
 import be.cytomine.api.RestController
 import be.cytomine.processing.Job
 import be.cytomine.processing.Software
@@ -46,6 +47,7 @@ class RestUserJobController extends RestController {
     def jobService
     def dataSource
     def currentRoleServiceProxy
+    def userJobService
 
     /**
      * Get a user job
@@ -77,35 +79,41 @@ class RestUserJobController extends RestController {
     @RestApiResponseObject(objectIdentifier = "[userJob: x]")
     def createUserJob() {
         def json = request.JSON
-            try {
-                //get user job parent
-                User user
-                if (json.parent.toString().equals("null")) {
-                    user = User.read(springSecurityService.currentUser.id)
-                } else {
-                    user = User.read(json.parent.toString())
-                }
 
-                //get job for this user
-                Job job
-                if (json.job.toString().equals("null")) {
+        try {
+            //get user job parent
+            User user
+            if (json.parent.toString().equals("null")) {
+                user = User.read(springSecurityService.currentUser.id)
+            } else {
+                securityACLService.checkAdmin(springSecurityService.currentUser)
+                user = User.read(json.parent.toString())
+            }
+
+            //get job for this user
+            Job job
+            if (json.job.toString().equals("null")) {
+                if(json.software && json.project){
                     //Job is not defined, create a new one
                     log.debug "create new job:" + json
                     job = createJob(json.software, json.project)
                 } else {
-                    log.debug "add job " + json.job + " to userjob"
-                    //Job is define, juste get it
-                    job = Job.get(Long.parseLong(json.job.toString()))
+                    throw new WrongArgumentException("Must have a job id or software & project id")
                 }
+            } else {
+                log.debug "add job " + json.job + " to userjob"
+                //Job is define, juste get it
+                job = Job.get(Long.parseLong(json.job.toString()))
+            }
 
-                //create user job
-                UserJob userJob = addUserJob(user, job, json)
+            //create user job
+            UserJob userJob = addUserJob(user, job, json)
 
-                response([userJob: userJob], 200)
-            } catch (CytomineException e) {
+            response([userJob: userJob], 200)
+        } catch (CytomineException e) {
             log.error(e)
             response([success: false, errors: e.msg], e.code)
-         }
+        }
     }
 
     /**
@@ -279,12 +287,24 @@ class RestUserJobController extends RestController {
 
         }
         userJob.created = date
-        jobService.saveDomain(userJob)
+        secUserService.saveDomain(userJob)
 
         //add the same role to user job
         currentRoleServiceProxy.findCurrentRole(user).each { secRole ->
             SecUserSecRole.create(userJob, secRole)
         }
         return userJob
+    }
+
+    /**
+     * Update a userjob
+     */
+    @RestApiMethod(description="Edit a user job")
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The userjob id")
+    ])
+    def update() {
+
+        update(userJobService, request.JSON)
     }
 }

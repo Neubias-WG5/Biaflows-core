@@ -28,17 +28,22 @@ import be.cytomine.middleware.MessageBrokerServer
 import be.cytomine.ontology.Property
 import be.cytomine.ontology.Relation
 import be.cytomine.ontology.RelationTerm
-import be.cytomine.processing.Software
+import be.cytomine.processing.ImageFilter
+import be.cytomine.processing.ImagingServer
+import be.cytomine.processing.ParameterConstraint
+import be.cytomine.processing.ProcessingServer
 import be.cytomine.security.*
 import be.cytomine.social.PersistentImageConsultation
 import be.cytomine.social.PersistentProjectConnection
+import be.cytomine.utils.Configuration
 import grails.plugin.springsecurity.SpringSecurityUtils
 import grails.util.Environment
 import groovy.json.JsonBuilder
 import groovy.sql.Sql
+import org.json.simple.JSONObject
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine
  * User: stevben
  * Date: 13/03/13
  * Time: 11:59
@@ -54,7 +59,8 @@ class BootstrapUtilsService {
     def amqpQueueConfigService
     def rabbitConnectionService
     def storageService
-
+    def processingServerService
+    def configurationService
 
     public def createUsers(def usersSamples) {
 
@@ -139,6 +145,21 @@ class BootstrapUtilsService {
             }
         }
     }
+    
+    def createFilters(def filters) {
+        filters.each {
+            if (!ImageFilter.findByName(it.name)) {
+                ImageFilter filter = new ImageFilter(name: it.name, baseUrl: it.baseUrl, imagingServer: it.imagingServer)
+                if (filter.validate()) {
+                    filter.save(flush:true)
+                } else {
+                    filter.errors?.each {
+                        log.info it
+                    }
+                }
+            }
+        }
+    }
 
     public def createMimes(def mimeSamples) {
         mimeSamples.each {
@@ -170,6 +191,53 @@ class BootstrapUtilsService {
                                 imageServer: imageServer
                         ).save()
                     }
+                }
+            }
+        }
+    }
+
+    def createConfigurations(){
+        SecRole adminRole = SecRole.findByAuthority("ROLE_ADMIN")
+        SecRole guestRole = SecRole.findByAuthority("ROLE_GUEST")
+
+        def configs = []
+
+        configs << new Configuration(key: "welcome", value: "<p>Welcome to the Cytomine software.</p><p>This software is supported by the <a href='https://cytomine.coop'>Cytomine company</a></p>", readingRole: guestRole)
+
+        configs << new Configuration(key: "retrieval.enabled", value: true, readingRole: guestRole)
+
+        configs << new Configuration(key: "admin.email", value: grailsApplication.config.grails.admin.email, readingRole: adminRole)
+
+        //SMTP values
+        configs << new Configuration(key: "notification.email", value: grailsApplication.config.grails.notification.email, readingRole: adminRole)
+        configs << new Configuration(key: "notification.password", value: grailsApplication.config.grails.notification.password, readingRole: adminRole)
+        configs << new Configuration(key: "notification.smtp.host", value: grailsApplication.config.grails.notification.smtp.host, readingRole: adminRole)
+        configs << new Configuration(key: "notification.smtp.port", value: grailsApplication.config.grails.notification.smtp.port, readingRole: adminRole)
+
+
+        //Default project values
+        //configs << new Configuration(key: , value: , readingRole: )
+
+        //LDAP values
+        configs << new Configuration(key: "ldap.active", value: grailsApplication.config.grails.plugin.springsecurity.ldap.active, readingRole: guestRole)
+        configs << new Configuration(key: "ldap.context.server", value: grailsApplication.config.grails.plugin.springsecurity.ldap.context.server, readingRole: adminRole)
+        configs << new Configuration(key: "ldap.search.base", value: grailsApplication.config.grails.plugin.springsecurity.ldap.search.base, readingRole: adminRole)
+        configs << new Configuration(key: "ldap.context.managerDn", value: grailsApplication.config.grails.plugin.springsecurity.ldap.context.managerDn, readingRole: adminRole)
+        configs << new Configuration(key: "ldap.context.managerPassword", value: grailsApplication.config.grails.plugin.springsecurity.ldap.context.managerPassword, readingRole: adminRole)
+        //grails.plugin.springsecurity.ldap.authorities.groupSearchBase = ''
+
+        //LTI values
+        //grailsApplication.config.grails.LTIConsumer.each{}
+        //add key secret and name
+        //role invited user values
+
+
+        configs.each { config ->
+            if (config.validate()) {
+                config.save()
+            } else {
+                config.errors?.each {
+                    log.info it
                 }
             }
         }
@@ -211,6 +279,14 @@ class BootstrapUtilsService {
     }
 
     def createMultipleRetrieval() {
+        Configuration retrieval = Configuration.findByKey("retrieval.enabled")
+        if(retrieval && retrieval.value.equals("false")){
+            RetrievalServer.list().each { server ->
+                server.delete()
+            }
+            return
+        }
+
         RetrievalServer.list().each { server ->
             if(!grailsApplication.config.grails.retrievalServerURL.contains(server.url)) {
                 log.info server.url + " is not in config, drop it"
@@ -249,8 +325,8 @@ class BootstrapUtilsService {
     def createMessageBrokerServer() {
         MessageBrokerServer.list().each { messageBroker ->
             if(!grailsApplication.config.grails.messageBrokerServerURL.contains(messageBroker.host)) {
-                log.info messageBroker.host + " is not in config, drop it"
-                log.info "delete Message Broker Server " + messageBroker.host
+                log.info messageBroker.host + "is not in config, drop it"
+                log.info "delete Message Broker Server " + messageBroker
                 AmqpQueue.findAllByHost(messageBroker.host).each {it.delete(failOnError:true)}
                 messageBroker.delete()
             }
@@ -335,6 +411,17 @@ class BootstrapUtilsService {
                 ).save()
             }
         }
+    }
+
+    def createNewImagingServer() {
+        def url = grailsApplication.config.grails.imageServerURL[0]
+        def imagingServer = ImagingServer.findByUrl(url)
+        if(!imagingServer) {
+            return new ImagingServer(url: grailsApplication.config.grails.imageServerURL[0]).save(flush: true,
+                    failOnError: true)
+        }
+
+        return imagingServer
     }
 
     def transfertProperty() {
@@ -485,25 +572,27 @@ class BootstrapUtilsService {
             AmqpQueue queueCommunication = amqpQueueService.read("queueCommunication")
             amqpQueueService.createAmqpQueueDefault(queueCommunication)
         }
-        Software.list().each {
-            String queueName = amqpQueueService.queuePrefixSoftware + ((it as Software).name).capitalize()
-            if(!amqpQueueService.checkAmqpQueueDomainExists(queueName)) {
-                String exchangeName = amqpQueueService.exchangePrefixSoftware + ((it as Software).name).capitalize()
-                String brokerServerURL = (MessageBrokerServer.findByName("MessageBrokerServer")).host
-                AmqpQueue aq = new AmqpQueue(name: queueName, host: brokerServerURL, exchange: exchangeName)
-                aq.save(failOnError: true)
-            }
-            if(!amqpQueueService.checkRabbitQueueExists(queueName,mbs)) {
-                AmqpQueue aq = amqpQueueService.read(queueName)
+        ProcessingServer.list().each {
+            if (it.name != null) {
+                String queueName = amqpQueueService.queuePrefixProcessingServer + ((it as ProcessingServer).name).capitalize()
+                if(!amqpQueueService.checkAmqpQueueDomainExists(queueName)) {
+                    String exchangeName = amqpQueueService.exchangePrefixProcessingServer + ((it as ProcessingServer).name).capitalize()
+                    String brokerServerURL = (MessageBrokerServer.findByName("MessageBrokerServer")).host
+                    AmqpQueue aq = new AmqpQueue(name: queueName, host: brokerServerURL, exchange: exchangeName)
+                    aq.save(failOnError: true)
+                }
+                if(!amqpQueueService.checkRabbitQueueExists(queueName,mbs)) {
+                    AmqpQueue aq = amqpQueueService.read(queueName)
 
-                // Creates the queue on the rabbit server
-                amqpQueueService.createAmqpQueueDefault(aq)
+                    // Creates the queue on the rabbit server
+                    amqpQueueService.createAmqpQueueDefault(aq)
 
-                // Notify the queueCommunication that a software has been added
-                def mapInfosQueue = [name: aq.name, host: aq.host, exchange: aq.exchange]
-                JsonBuilder builder = new JsonBuilder()
-                builder(mapInfosQueue)
-                amqpQueueService.publishMessage(AmqpQueue.findByName("queueCommunication"), builder.toString())
+                    // Notify the queueCommunication that a software has been added
+                    def mapInfosQueue = [name: aq.name, host: aq.host, exchange: aq.exchange]
+                    JsonBuilder builder = new JsonBuilder()
+                    builder(mapInfosQueue)
+                    amqpQueueService.publishMessage(AmqpQueue.findByName("queueCommunication"), builder.toString())
+                }
             }
         }
 
@@ -626,4 +715,95 @@ class BootstrapUtilsService {
         session.clear()
         propertyInstanceMap.get().clear()
     }
+
+    void addDefaultProcessingServer() {
+        log.info("Add the default processing server")
+
+        SpringSecurityUtils.doWithAuth {
+            if (!ProcessingServer.findByName("local-server")) {
+                ProcessingServer processingServer = new ProcessingServer(
+                        name: "local-server",
+                        host: "slurm",
+                        username: "cytomine",
+                        port: 22,
+                        type: "cpu",
+                        processingMethodName: "SlurmProcessingMethod",
+                        persistentDirectory: grailsApplication.config.cytomine.software.path.softwareImages,
+                        index: 1
+                )
+
+                String processingServerName = processingServer.name.capitalize()
+                String queueName = amqpQueueService.queuePrefixProcessingServer + processingServerName
+
+                if (!amqpQueueService.checkAmqpQueueDomainExists(queueName)) {
+                    // Creation of the default processing server queue
+                    String exchangeName = amqpQueueService.exchangePrefixProcessingServer + processingServerName
+                    String brokerServerURL = (MessageBrokerServer.findByName("MessageBrokerServer")).host
+                    AmqpQueue amqpQueue = new AmqpQueue(name: queueName, host: brokerServerURL, exchange: exchangeName)
+                    amqpQueue.save(flush: true, failOnError: true)
+
+                    amqpQueueService.createAmqpQueueDefault(amqpQueue)
+
+                    // Associates the processing server to an amqp queue
+                    processingServer.amqpQueue = amqpQueue
+                    processingServer.save(flush: true)
+
+                    // Sends a message on the communication queue to warn the software router a new queue has been created
+                    def message = [requestType: "addProcessingServer",
+                                   name: amqpQueue.name,
+                                   host: amqpQueue.host,
+                                   exchange: amqpQueue.exchange,
+                                   processingServerId: processingServer.id]
+
+                    JsonBuilder jsonBuilder = new JsonBuilder()
+                    jsonBuilder(message)
+
+                    amqpQueueService.publishMessage(AmqpQueue.findByName("queueCommunication"), jsonBuilder.toString())
+                }
+            }
+        }
+    }
+
+    void addDefaultConstraints() {
+        log.info("Add the default constraints")
+
+        SpringSecurityUtils.doWithAuth {
+            def constraints = []
+            
+            // "Number" dataType
+            log.info("Add Number constraints")
+            constraints.add(new ParameterConstraint(name: "integer", expression: '("[value]".isInteger()', dataType: "Number"))
+            constraints.add(new ParameterConstraint(name: "minimum", expression: '(Double.valueOf("[parameterValue]") as Number) <= (Double.valueOf("[value]") as Number)', dataType: "Number"))
+            constraints.add(new ParameterConstraint(name: "maximum", expression: '(Double.valueOf("[parameterValue]") as Number) >= (Double.valueOf("[value]") as Number)', dataType: "Number"))
+            constraints.add(new ParameterConstraint(name: "equals", expression: '(Double.valueOf("[parameterValue]") as Number) == (Double.valueOf("[value]") as Number)', dataType: "Number"))
+            constraints.add(new ParameterConstraint(name: "in", expression: '"[value]".tokenize("[separator]").find { elem -> (Double.valueOf(elem) as Number) == (Double.valueOf("[parameterValue]") as Number) } != null', dataType: "Number"))
+
+            // "String" dataType
+            log.info("Add String constraints")
+            constraints.add(new ParameterConstraint(name: "minimum", expression: '"[parameterValue]".length() < [value]', dataType: "String"))
+            constraints.add(new ParameterConstraint(name: "maximum", expression: '"[parameterValue]".length() > [value]', dataType: "String"))
+            constraints.add(new ParameterConstraint(name: "equals", expression: '"[parameterValue]" == "[value]"', dataType: "String"))
+            constraints.add(new ParameterConstraint(name: "in", expression: '"[value]".tokenize("[separator]").contains("[parameterValue]")', dataType: "String"))
+
+            // "Boolean" dataType
+            log.info("Add Boolean constraints")
+            constraints.add(new ParameterConstraint(name: "equals", expression: 'Boolean.parseBoolean("[value]") == Boolean.parseBoolean("[parameterValue]")', dataType: "Boolean"))
+
+            // "Date" dataType
+            log.info("Add Date constraints")
+            constraints.add(new ParameterConstraint(name: "minimum", expression: 'new Date().parse("HH:mm:ss", "[parameterValue]").format("HH:mm:ss") < new Date().parse("HH:mm:ss", "[value]").format("HH:mm:ss")', dataType: "Date"))
+            constraints.add(new ParameterConstraint(name: "maximum", expression: 'new Date().parse("HH:mm:ss", "[parameterValue]").format("HH:mm:ss") > new Date().parse("HH:mm:ss", "[value]").format("HH:mm:ss")', dataType: "Date"))
+            constraints.add(new ParameterConstraint(name: "equals", expression: 'new Date().parse("HH:mm:ss", "[parameterValue]").format("HH:mm:ss") == new Date().parse("HH:mm:ss", "[value]").format("HH:mm:ss")', dataType: "Date"))
+            constraints.add(new ParameterConstraint(name: "in", expression: '"[value]".tokenize("[separator]").contains("[parameterValue]")', dataType: "Date"))
+
+            // dateMin, dateMax, timeEquals, timeIn
+            constraints.each { constraint ->
+                if (!ParameterConstraint.findByNameAndDataType(constraint.name as String, constraint.dataType as String)) {
+                    constraint.save(flush: true)
+                }
+            }
+
+        }
+    }
+
 }

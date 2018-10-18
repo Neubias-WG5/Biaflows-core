@@ -40,7 +40,7 @@ import be.cytomine.security.*
 import be.cytomine.social.PersistentImageConsultation
 import be.cytomine.social.PersistentProjectConnection
 import be.cytomine.utils.AttachedFile
-import be.cytomine.utils.Config
+import be.cytomine.utils.Configuration
 import be.cytomine.utils.Description
 import com.vividsolutions.jts.io.WKTReader
 import grails.converters.JSON
@@ -696,14 +696,14 @@ class BasicInstanceBuilder {
     static ImageFilter getImageFilter() {
        def imagefilter = ImageFilter.findByName("imagetest")
        if(!imagefilter) {
-           imagefilter = new ImageFilter(name:"imagetest",baseUrl:"baseurl",processingServer:getProcessingServer())
+           imagefilter = new ImageFilter(name:"imagetest",baseUrl:"baseurl",imagingServer:getImagingServer())
            saveDomain(imagefilter)
        }
         imagefilter
     }
 
     static ImageFilter getImageFilterNotExist(boolean save = false) {
-       def imagefilter = new ImageFilter(name:"imagetest"+new Date(),baseUrl:"baseurl",processingServer:getProcessingServer())
+       def imagefilter = new ImageFilter(name:"imagetest"+new Date(),baseUrl:"baseurl",imagingServer:getImagingServer())
         save ? saveDomain(imagefilter) : checkDomain(imagefilter)
     }
 
@@ -761,17 +761,17 @@ class BasicInstanceBuilder {
         sai
     }
 
-    static ProcessingServer getProcessingServer() {
-        def ps = ProcessingServer.findByUrl("processing_server_url")
+    static ImagingServer getImagingServer() {
+        def ps = ImagingServer.findByUrl("processing_server_url")
         if (!ps) {
-            ps = new ProcessingServer(url: "processing_server_url")
+            ps = new ImagingServer(url: "processing_server_url")
             saveDomain(ps)
         }
         ps
     }
 
-    static ProcessingServer getProcessingServerNotExist (boolean save = false) {
-        ProcessingServer ps = new ProcessingServer(url: getRandomString())
+    static ImagingServer getImagingServerNotExist(boolean save = false) {
+        ImagingServer ps = new ImagingServer(url: getRandomString())
         if(save) {
             saveDomain(ps)
         } else {
@@ -1546,11 +1546,11 @@ class BasicInstanceBuilder {
         }
 
 
-        ProcessingServer processingServer = ProcessingServer.findByUrl("http://image.cytomine.be")
-        if (!processingServer) {
-            processingServer = new ProcessingServer()
-            processingServer.url = "http://image.cytomine.be"
-            BasicInstanceBuilder.saveDomain(processingServer)
+        ImagingServer imagingServer = ImagingServer.findByUrl("http://image.cytomine.be")
+        if (!imagingServer) {
+            imagingServer = new ImagingServer()
+            imagingServer.url = "http://image.cytomine.be"
+            BasicInstanceBuilder.saveDomain(imagingServer)
         }
 
         ReviewedAnnotation.findAllByImage(imageInstance).each {
@@ -1656,14 +1656,14 @@ class BasicInstanceBuilder {
     static AmqpQueue getAmqpQueue() {
         AmqpQueue amqpQueue = AmqpQueue.findByName("BasicAmqpQueue")
         if(!amqpQueue) {
-            amqpQueue = new AmqpQueue(name: "BasicAmqpQueue", host: "rabbitmq", exchange: "exchange"+getRandomString())
+            amqpQueue = new AmqpQueue(name: "BasicAmqpQueue", host: "localhost", exchange: "exchange"+getRandomString())
             saveDomain(amqpQueue)
         }
         amqpQueue
     }
 
     static AmqpQueue getAmqpQueueNotExist(boolean save = false){
-        AmqpQueue amqpQueue = new AmqpQueue(name: getRandomString(), host: "rabbitmq", exchange: "exchange"+getRandomString())
+        AmqpQueue amqpQueue = new AmqpQueue(name: getRandomString(), host: "localhost", exchange: "exchange"+getRandomString())
         save ? saveDomain(amqpQueue) : checkDomain(amqpQueue)
         amqpQueue
     }
@@ -1703,22 +1703,22 @@ class BasicInstanceBuilder {
 
     }
 
-    static Config getConfig() {
+    static Configuration getConfiguration() {
         def key = "test".toUpperCase()
         def value = "test"
-        def config = Config.findByKey(key)
+        def config = Configuration.findByKey(key)
 
         if (!config) {
-            config = new Config(key: key, value: value)
+            config = new Configuration(key: key, value: value, readingRole: SecRole.findByAuthority("ROLE_GUEST"))
             config = saveDomain(config)
         }
         config
     }
 
-    static Config getConfigNotExist(boolean save = false) {
-        def config = new Config(key: getRandomString(), value: getRandomString())
+    static Configuration getConfigurationNotExist(boolean save = false) {
+        def config = new Configuration(key: getRandomString(), value: getRandomString(), readingRole: SecRole.findByAuthority("ROLE_GUEST"))
         log.debug "add config "+ config.key
-        Config.list().each {
+        Configuration.list().each {
             log.debug it.id + " " + it.version + " " + it.key
         }
 
