@@ -224,7 +224,7 @@ class ImageInstance extends CytomineDomain implements Serializable {
      * @return True if image is review but not validate, otherwise false
      */
     public boolean isInReviewMode() {
-        return (reviewStart != null && reviewUser != null)
+        return (reviewStart != null && reviewUser != null && reviewStop == null)
     }
 
     /**

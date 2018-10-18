@@ -54,7 +54,12 @@ class DescriptionService extends ModelService {
      * Get a description thanks to its domain info (id and class)
      */
     def get(def domainIdent, def domainClassName) {
-        securityACLService.check(domainIdent,domainClassName,READ)
+        if (domainClassName.equals("be.cytomine.processing.Software") || domainClassName.equals("be.cytomine.processing.SoftwareParameter")) {
+            securityACLService.checkGuest(cytomineService.currentUser)
+        }
+        else {
+            securityACLService.check(domainIdent,domainClassName,READ)
+        }
         Description.findByDomainIdentAndDomainClassName(domainIdent,domainClassName)
     }
 

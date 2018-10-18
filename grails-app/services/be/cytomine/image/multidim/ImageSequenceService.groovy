@@ -178,6 +178,8 @@ class ImageSequenceService extends ModelService {
         return executeCommand(c,domain,null)
     }
 
+    // TODO: OK if group/sequence created from a multidimensional file (eg. ome.tiff)
+    // TODO: But images should be kept if the group is "artificial" (eg painting)
     def abstractImageService
     def deleteDependentImageInstance(ImageSequence domain, Transaction transaction, Task task = null) {
         imageInstanceService.delete(domain.image,transaction,null,false)

@@ -33,7 +33,7 @@ class AttachedFileUrlMappings {
         }
 
         "/api/attachedfile/$id.$format"(controller: "restAttachedFile") {
-            action = [GET:"show"]
+            action = [GET:"show", DELETE: "delete"]
         }
 
         "/api/attachedfile/$id/download"(controller: "restAttachedFile") {

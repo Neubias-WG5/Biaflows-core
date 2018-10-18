@@ -119,7 +119,7 @@ class PropertyService extends ModelService {
 
     def read(def id) {
         def property = Property.read(id)
-        if (property && !property.domainClassName.contains("AbstractImage")) {
+        if (property && !property.domainClassName.contains("AbstractImage") && !property.domainClassName.contains("Software")) {
             securityACLService.check(property.container(),READ)
         }
         property
@@ -127,7 +127,7 @@ class PropertyService extends ModelService {
 
     def read(CytomineDomain domain, String key) {
         def property = Property.findByDomainIdentAndKey(domain.id,key)
-        if (property && !property.domainClassName.contains("AbstractImage")) {
+        if (property && !property.domainClassName.contains("AbstractImage") && !property.domainClassName.contains("Software")) {
             securityACLService.check(property.container(),READ)
         }
         property

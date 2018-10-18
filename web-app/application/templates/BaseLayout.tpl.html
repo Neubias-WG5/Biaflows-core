@@ -13,46 +13,111 @@
             </div>
             <div id="navbar" class="collapse navbar-collapse" aria-expanded="true">
                 <ul class="nav navbar-nav">
-                    <li class="custom-ui-dashboard" style="display:none;"><a id="userdashboard-button" href="#userdashboard"><i class="glyphicon glyphicon-dashboard" /> Dashboard</a></li>
+                    <li class="custom-ui-dashboard" style="display:none;">
+                        <a id="userdashboard-button" href="#userdashboard">
+                            <i class="glyphicon glyphicon-dashboard" /> Dashboard
+                        </a>
+                    </li>
 
-                    <li class="custom-ui-project" style="display:none;"><a id="project-button" href="#project"><i class="glyphicon glyphicon-list-alt" /> Projects</a></li>
-                    <li class="custom-ui-ontology" style="display:none;"><a id="ontology-button" href="#ontology"><i class="glyphicon glyphicon-book" /> Ontologies</a></li>
-                    <li class="custom-ui-explore" style="display:none;"><a id="explorer-button" href="#explorer"><i class="glyphicon glyphicon-eye-open" /> Explore</a></li>
-                    <li class="custom-ui-storage" style="display:none;"><a id="upload-button" href="#upload"><span class="glyphicon glyphicon-hdd"></span> Storage</a></li>
-                    <li class="custom-ui-activity" style="display:none;" ><a id="activity-button" href="#activity-"><span class="glyphicon glyphicon-fire"></span> Activity</a></li>
-                    <li class="custom-ui-search" style="display:none;" ><a id="search-button" href="#search-"><span class="glyphicon glyphicon-search"></span> Search</a></li>
-                    <li class="custom-ui-admin" style="display:none;"><a id="admin-button" href="#admin"><span class="glyphicon glyphicon-wrench"></span> Admin</a></li>
+                    <li class="custom-ui-project" style="display:none;">
+                        <a id="project-button" href="#project">
+                            <i class="glyphicon glyphicon-list-alt" /> Projects
+                        </a>
+                    </li>
+
+                    <li class="custom-ui-ontology" style="display:none;">
+                        <a id="ontology-button" href="#ontology">
+                            <i class="glyphicon glyphicon-book" /> Ontologies
+                        </a>
+                    </li>
+
+                    <li class="custom-ui-explore" style="display:none;">
+                        <a id="explorer-button" href="#explorer">
+                            <i class="glyphicon glyphicon-eye-open" /> Explore</a>
+                    </li>
+
+                    <li class="custom-ui-storage" style="display:none;">
+                        <a id="upload-button" href="#upload">
+                            <span class="glyphicon glyphicon-hdd"></span> Storage
+                        </a>
+                    </li>
+
+                    <li class="custom-ui-software" style="display:none;">
+                        <a id="software-button" href="#software">
+                            <i class="fas fa-flask"></i> Software
+                        </a>
+                    </li>
+
+                    <li class="custom-ui-activity" style="display:none;" >
+                        <a id="activity-button" href="#activity-">
+                            <span class="glyphicon glyphicon-fire"></span> Activity
+                        </a>
+                    </li>
+
+                    <li class="custom-ui-search" style="display:none;" >
+                        <a id="search-button" href="#search-">
+                            <span class="glyphicon glyphicon-search"></span> Search
+                        </a>
+                    </li>
+
+                    <li class="custom-ui-admin" style="display:none;">
+                        <a id="admin-button" href="#admin">
+                            <span class="glyphicon glyphicon-wrench"></span> Admin
+                        </a>
+                    </li>
 
                 </ul>
                 <div class="navbar-header  navbar-right">
                     <ul class="nav navbar-nav navbar-left">
-                        <li class="divider-vertical"></li>
-                        <li class="divider-vertical"></li>
-
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                 <i class="glyphicon glyphicon-question-sign"/>
                                 <span>Help</span><b class="caret"></b>
                             </a>
                             <ul class="dropdown-menu">
-                                <li class="custom-ui-help"><a id="hotkeysModalButton" href="#hotkeysModal"  data-toggle="modal"><i class="glyphicon glyphicon-th" /> Hotkeys</a> <li>
+                                <li class="custom-ui-help">
+                                    <a id="hotkeysModalButton" href="#hotkeysModal"  data-toggle="modal">
+                                        <i class="glyphicon glyphicon-th" /> Hotkeys</a>
+                                <li>
                                 <li class="divider"></li>
-                                <li class="custom-ui-feedback"><a id="feedback" href="#"><i class="glyphicon glyphicon-bullhorn" /> Support</a></li>
-                                <li class="divider"></li>
-                                <li id="li-info-cytomine"><a id="a-info-cytomine" href="#"><i class="glyphicon glyphicon-info-sign"/> About Cytomine</a></li>
+                                <li id="li-info-cytomine">
+                                    <a id="a-info-cytomine" href="#">
+                                        <i class="glyphicon glyphicon-info-sign"/> About Cytomine
+                                    </a>
+                                </li>
                             </ul>
                         </li>
-                        <li class="divider-vertical"></li>
+
                         <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" id="account-button"><i id="userIcon" class=""/> <span id="loggedUser"></span><b class="caret"></b>&nbsp;<span id="warning-user-logged-as-admin" style="display:none;" class="label label-danger">Logged as admin!</span></a>
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" id="account-button">
+                                <i id="userIcon" class=""/>
+                                <span id="loggedUser"></span>&nbsp;
+                                <span id="warning-user-logged-as-admin" style="display:none;" class="label label-danger">Logged as admin!</span>
+                                <b class="caret"></b>
+                            </a>
+
                             <ul class="dropdown-menu">
                                 <li><a href="#account"><i class="glyphicon glyphicon-user"/> Account</a></li>
                                 <li class="divider"></li>
-                                    <li id="li-open-admin-session" style="display: none;"><a id="a-open-admin-session" href="#"> <i class="glyphicon glyphicon glyphicon-chevron-up"/> Open admin session</a></li>
-                                    <li id="li-close-admin-session" style="display: none;"><a id="a-close-admin-session" href="#" > <i class="glyphicon glyphicon glyphicon-chevron-down"/> Close admin session</a></li>
+                                <li id="li-open-admin-session" style="display: none;">
+                                    <a id="a-open-admin-session" href="#">
+                                        <i class="glyphicon glyphicon glyphicon-chevron-up"/> Open admin session
+                                    </a>
+                                </li>
+                                <li id="li-close-admin-session" style="display: none;">
+                                    <a id="a-close-admin-session" href="#" >
+                                        <i class="glyphicon glyphicon glyphicon-chevron-down"/> Close admin session
+                                    </a>
+                                </li>
                                 <li class="divider"></li>
-                                <li id="li-cancel-switch-user"><a id="a-cancel-switch-user" href="/j_spring_security_exit_user"><i class="glyphicon glyphicon-transfer"/></a></li>
-                                <li><a id="logout" href="#"><i class="glyphicon glyphicon-off "/> Logout</a></li>
+                                <li id="li-cancel-switch-user">
+                                    <a id="a-cancel-switch-user" href="/j_spring_security_exit_user">
+                                        <i class="glyphicon glyphicon-transfer"/>
+                                    </a>
+                                </li>
+                                <li><a id="logout" href="#">
+                                    <i class="glyphicon glyphicon-off "/> Logout
+                                </a></li>
                             </ul>
                         </li>
                     </ul>
@@ -62,7 +127,6 @@
         </div>
     </nav>
 </div>
-<div id="content">
-</div>
-<div id="popup-wrapper"></div>
 
+<div id="content"></div>
+<div id="popup-wrapper"></div>

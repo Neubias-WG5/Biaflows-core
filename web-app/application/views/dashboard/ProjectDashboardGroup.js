@@ -27,16 +27,17 @@ var ProjectDashboardGroup = Backbone.View.extend({
         return this;
     },
     doLayout: function (imageGroupTableTemplate) {
-        var self = this;
-        if (this.imagesGroupTabsView == null) {
-            this.imagesGroupTabsView = new ImageGroupTabsView({
-                model: new ImageGroupCollection({project: self.model.get('id')}),
-                el: _.template(imageGroupTableTemplate, {id : self.model.get('id')}),
-                idProject: this.model.id,
-                project: this.model
-            }).render();
-            $(this.el).append(this.imagesGroupTabsView.el);
-        }
+        // var self = this;
+        // if (this.imagesGroupTabsView == null) {
+        //     this.imagesGroupTabsView = new ImageGroupTabsView({
+        //         model: new ImageGroupCollection({project: self.model.get('id')}),
+        //         el: _.template(imageGroupTableTemplate, {id : self.model.get('id')}),
+        //         idProject: this.model.id,
+        //         project: this.model
+        //     }).render();
+        //     $(this.el).append(this.imagesGroupTabsView.el);
+        // }
+        window.setImageGroupTabInstance(this.model.get('id'));
     },
     refresh: function(){
         var self = this;

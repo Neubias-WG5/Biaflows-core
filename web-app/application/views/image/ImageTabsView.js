@@ -119,17 +119,17 @@ var ImageTabsView = Backbone.View.extend({
             { data: "mime", defaultContent: "", orderable: false, render : function( data, type, row ) {
                 var mimeType = row["mime"];
                 if (mimeType == "openslide/ndpi" || mimeType == "openslide/vms") {
-                    return '<img src="images/brands/hamamatsu.jpg" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
+                    return '<img src="images/brands/hamamatsu.png" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
                 } else if (mimeType == "openslide/mrxs") {
                     return '<img src="images/brands/3dh.png" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
                 } else if (mimeType == "openslide/svs") {
-                    return '<img src="images/brands/aperio.jpg" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
+                    return '<img src="images/brands/aperio.png" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
                 } else if (mimeType == "openslide/scn") {
                     return '<img src="images/brands/leica.png" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
-                } else if (mimeType == "ventana/tif" || mimeType == "ventana/bif") {
-                    return '<img src="images/brands/roche.gif" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
+                } else if (mimeType == "openslide/ventana" || mimeType == "openslide/bif") {
+                    return '<img src="images/brands/roche.png" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
                 } else if (mimeType == "philips/tif") {
-                    return '<img src="images/brands/philips.jpg" alt="philips" style="max-width : 100px;max-height : 40px;" >';
+                    return '<img src="images/brands/philips.png" alt="philips" style="max-width : 100px;max-height : 40px;" >';
                 }
                 else return '<span class="label label-default">Undefined</span>';
             }, targets: [10] },

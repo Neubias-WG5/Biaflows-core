@@ -54,7 +54,8 @@ class RestUserPositionController extends RestController {
             @RestApiParam(name="topRightY", type="double", paramType = RestApiParamType.QUERY, description = "Top Right Y coordinate of the user viewport"),
             @RestApiParam(name="bottomLeftY", type="double", paramType = RestApiParamType.QUERY, description = "Bottom Left Y coordinate of the user viewport"),
             @RestApiParam(name="bottomRightY", type="double", paramType = RestApiParamType.QUERY, description = "Bottom Right Y coordinate of the user viewport"),
-            @RestApiParam(name="zoom", type="integer", paramType = RestApiParamType.QUERY, description = "Zoom level in the user viewport")
+            @RestApiParam(name="zoom", type="integer", paramType = RestApiParamType.QUERY, description = "Zoom level in the user viewport"),
+            @RestApiParam(name="rotation", type="double", paramType = RestApiParamType.QUERY, description = "Rotation level in the user viewport")
     ])
     def add() {
         try {

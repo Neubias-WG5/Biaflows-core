@@ -19,6 +19,7 @@ import be.cytomine.Exception.WrongArgumentException
 */
 
 import be.cytomine.api.RestController
+import grails.converters.JSON
 import org.restapidoc.annotation.*
 import org.restapidoc.pojo.RestApiParamType
 import org.springframework.web.multipart.support.AbstractMultipartHttpServletRequest
@@ -122,6 +123,14 @@ class RestAttachedFileController extends RestController {
 
         responseSuccess(result)
 
+    }
+
+    @RestApiMethod(description="Delete an attached file")
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH,description = "The attached file id")
+    ])
+    def delete() {
+        delete(attachedFileService, JSON.parse("{id : $params.id}"),null)
     }
 }
 

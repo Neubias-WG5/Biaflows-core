@@ -68,6 +68,7 @@ class Software extends CytomineDomain {
     String softwareVersion
 
     @RestApiObjectFields(params=[
+        @RestApiObjectField(apiFieldName = "fullName", description = "Full name, including version.", useForCreation = false),
         @RestApiObjectField(apiFieldName = "parameters", description = "List of 'software parameter' for this software (sort by index asc)",allowedType = "list",useForCreation = false),
         @RestApiObjectField(apiFieldName = "numberOfJob", description = "The number of job for this software",allowedType = "long",useForCreation = false),
         @RestApiObjectField(apiFieldName = "numberOfKilled", description = "The number of job killed for this software",allowedType = "long",useForCreation = false),
@@ -159,6 +160,7 @@ class Software extends CytomineDomain {
         returnArray['pullingCommand'] = domain?.pullingCommand
         returnArray['deprecated'] = domain?.deprecated
         returnArray['softwareVersion'] = domain?.softwareVersion
+        returnArray['fullName'] = domain?.fullName()
         returnArray['executable'] = domain?.executable()
         try {
             returnArray['parameters'] = SoftwareParameter.findAllBySoftwareAndSetByServer(domain, false, [sort : "index", order : "asc"])
@@ -185,6 +187,13 @@ class Software extends CytomineDomain {
 
     def executable() {
         return this.executeCommand?.trim() && this.pullingCommand?.trim()
+    }
+
+    def fullName() {
+        if (this.softwareVersion?.trim())
+            return "${this.name} (${this.softwareVersion})"
+
+        return this.name;
     }
 
 }

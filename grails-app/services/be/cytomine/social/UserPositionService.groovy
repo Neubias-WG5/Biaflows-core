@@ -35,7 +35,8 @@ class UserPositionService extends ModelService {
                 [JSONUtils.getJSONAttrDouble(json,"bottomLeftX",-1),JSONUtils.getJSONAttrDouble(json,"bottomLeftY",-1)]
         ]
         position.location = polygon
-        position.zoom = JSONUtils.getJSONAttrInteger(json,"zoom",-1)
+        position.zoom = JSONUtils.getJSONAttrInteger(json,"zoom",0)
+        position.rotation = JSONUtils.getJSONAttrDouble(json,"rotation",0)
         position.created = new Date()
         position.updated = position.created
         position.imageName = image.getFileName()
@@ -52,7 +53,8 @@ class UserPositionService extends ModelService {
                 [JSONUtils.getJSONAttrDouble(json,"bottomLeftX",-1),JSONUtils.getJSONAttrDouble(json,"bottomLeftY",-1)]
         ]
         position.location = polygon
-        position.zoom = JSONUtils.getJSONAttrInteger(json,"zoom",-1)
+        position.zoom = JSONUtils.getJSONAttrInteger(json,"zoom",0)
+        position.rotation = JSONUtils.getJSONAttrDouble(json,"rotation",0)
         position.session = RequestContextHolder.currentRequestAttributes().getSessionId()
         position.created = new Date()
         position.updated = position.created
@@ -84,7 +86,7 @@ class UserPositionService extends ModelService {
         );
 
         def result= userPositions.results().collect{it["_id"]}
-        return ["users": result.join(",")]
+        return ["users": result]
     }
 
     def list(ImageInstance image, User user, Long afterThan = null, Long beforeThan = null){
@@ -116,12 +118,14 @@ class UserPositionService extends ModelService {
 
         userPositions = db.persistentUserPosition.aggregate(
                 [$match: match],
-                [$group : [_id : [location : '$location', zoom : '$zoom'], frequency : [$sum : 1], image : [$first: '$image']]]
+                [$group : [_id : [location : '$location', zoom : '$zoom', rotation : '$rotation'],
+                           frequency : [$sum : 1], image : [$first: '$image']]]
         );
 
         def results = []
         userPositions.results().each{
-            results << [location : it["_id"].location, zoom : it["_id"].zoom, frequency : it.frequency, image : it.image]
+            results << [location : it["_id"].location, zoom : it["_id"].zoom, rotation: it["_id"].rotation,
+                        frequency : it.frequency, image : it.image]
         }
         return results
     }

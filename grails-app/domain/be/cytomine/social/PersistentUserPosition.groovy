@@ -56,6 +56,8 @@ class PersistentUserPosition extends CytomineDomain {
      */
     int zoom
 
+    float  rotation
+
     static constraints = {
         project nullable: true
     }
@@ -80,6 +82,7 @@ class PersistentUserPosition extends CytomineDomain {
         returnArray.image = domain?.image?.id
         returnArray.project = domain?.project?.id
         returnArray.zoom = domain?.zoom
+        returnArray.rotation = domain?.rotation
         Polygon polygon = getPolygonFromMongo(domain?.location)
         returnArray.location = polygon.toString()
         returnArray.x = polygon.getCentroid().getX()

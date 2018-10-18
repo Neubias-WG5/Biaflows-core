@@ -58,7 +58,7 @@ BrowseImageView = Backbone.View.extend({
             this.addToTab = options.addToTab;
         }
         this.merge = options.merge;
-        _.bindAll(this, "initVectorLayers");
+        // _.bindAll(this, "initVectorLayers");
 
     },
 
@@ -90,38 +90,41 @@ BrowseImageView = Backbone.View.extend({
             self.changeValidateColor(false);
         }
 
-        this.initToolbar();
+        // [VUEJS - Create new Explore instance]
+        window.addExploreInstance(this.model.id);
 
-        var sidebarRightMini = $(".sidebar-map-right-mini");
-        var sidebarRightBig = $(".sidebar-map-right-big");
-        $("#hide-sidebar-map-right").on("click", function () {
-            sidebarRightBig.css("right", -300);
-            sidebarRightBig.hide();
-            sidebarRightMini.css("right", 0);
-            sidebarRightMini.show();
-        });
+        // this.initToolbar();
 
-        $("#show-sidebar-map-right").on("click", function () {
-            sidebarRightMini.css("right", -120);
-            sidebarRightMini.hide();
-            sidebarRightBig.css("right", 0);
-            sidebarRightBig.show();
-        });
-
-        if (this.review) {
-            new UserJobCollection({project: window.app.status.currentProject, image: self.model.id}).fetch({
-                success: function (collection, response) {
-                    self.userJobForImage = collection;
-                    self.initMap();
-                    self.initAnnotationsTabs();
-                    self.initSpectraTabs();
-                }
-            });
-        } else {
-            this.initMap();
-            this.initAnnotationsTabs();
-            this.initSpectraTabs();
-        }
+        // var sidebarRightMini = $(".sidebar-map-right-mini");
+        // var sidebarRightBig = $(".sidebar-map-right-big");
+        // $("#hide-sidebar-map-right").on("click", function () {
+        //     sidebarRightBig.css("right", -300);
+        //     sidebarRightBig.hide();
+        //     sidebarRightMini.css("right", 0);
+        //     sidebarRightMini.show();
+        // });
+        //
+        // $("#show-sidebar-map-right").on("click", function () {
+        //     sidebarRightMini.css("right", -120);
+        //     sidebarRightMini.hide();
+        //     sidebarRightBig.css("right", 0);
+        //     sidebarRightBig.show();
+        // });
+        //
+        // if (this.review) {
+        //     new UserJobCollection({project: window.app.status.currentProject, image: self.model.id}).fetch({
+        //         success: function (collection, response) {
+        //             self.userJobForImage = collection;
+        //             self.initMap();
+        //             self.initAnnotationsTabs();
+        //             self.initSpectraTabs();
+        //         }
+        //     });
+        // } else {
+        //     this.initMap();
+        //     this.initAnnotationsTabs();
+        //     this.initSpectraTabs();
+        // }
         return this;
     },
     changeValidateColor: function (isValidate) {
