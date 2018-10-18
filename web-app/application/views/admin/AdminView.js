@@ -19,6 +19,7 @@ var AdminView = Backbone.View.extend({
     adminUsersView: null,
     adminGroupsView: null,
     adminPermissionsView : null,
+    adminSoftwaresView: null,
     adminConfigView : null,
     initialize: function (options) {
         _.bindAll(this, 'render');
@@ -38,7 +39,7 @@ var AdminView = Backbone.View.extend({
     },
     destroy: function() {
         var self = this;
-        var views = [self.adminDashboard,self.adminUsersView,self.adminGroupsView,self.adminPermissionsView,self.adminConfigView];
+        var views = [self.adminDashboard,self.adminUsersView,self.adminGroupsView,self.adminPermissionsView,self.adminSoftwaresView,self.adminConfigView];
         for(var i=0;i<views.length;i++){
             if(views[i]) {
                 $(views[i].el).empty();
@@ -85,6 +86,16 @@ var AdminView = Backbone.View.extend({
             });
         }
         this.adminPermissionsView.render();
+    },
+    refreshSoftwares: function () {
+        var self = this;
+        if (this.adminSoftwaresView == null) {
+            this.adminSoftwaresView = new AdminSoftwaresView({
+                //model: this.model,
+                el: $(self.el).find("#admin-tabs-softwares")
+            });
+        }
+        this.adminSoftwaresView.render();
     },
     refreshConfig: function () {
         var self = this;
