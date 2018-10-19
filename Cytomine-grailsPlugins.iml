@@ -122,6 +122,9 @@
     <content url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/spring-security-ldap-2.0-RC2">
       <sourceFolder url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/spring-security-ldap-2.0-RC2/src/java" isTestSource="false" />
     </content>
+    <content url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/teamcity-1.0.3">
+      <sourceFolder url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/teamcity-1.0.3/src/groovy" isTestSource="false" />
+    </content>
     <content url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/tomcat-7.0.54">
       <sourceFolder url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/tomcat-7.0.54/src/java" isTestSource="false" />
       <sourceFolder url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/tomcat-7.0.54/src/groovy" isTestSource="false" />
