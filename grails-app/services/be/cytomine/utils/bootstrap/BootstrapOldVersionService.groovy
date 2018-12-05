@@ -85,6 +85,7 @@ class BootstrapOldVersionService {
     void init20181206() {
         log.info "20181206"
         bootstrapUtilsService.createDisciplines(bootstrapDataService.defaultDisciplines())
+        bootstrapUtilsService.createMetrics(bootstrapDataService.defaultMetrics())
     }
 
     void init20180904() {

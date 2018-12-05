@@ -137,6 +137,7 @@ class BootstrapDataService {
         bootstrapUtilsService.addDefaultConstraints()
 
         bootstrapUtilsService.createDisciplines(defaultDisciplines())
+        bootstrapUtilsService.createMetrics(defaultMetrics())
     }
 
     def defaultDisciplines() {
@@ -150,6 +151,43 @@ class BootstrapDataService {
                 [name: "Particle tracking", shortName: "PrtTrk"],
                 [name: "Filament tracing (trees)", shortName: "TreTrc"],
                 [name: "Filament tracing (loopy networks)", shortName: "LooTrc"]
+        ]
+    }
+
+    def defaultMetrics() {
+        return [
+                [name: "Dice coefficient", shortName: "DC", disciplines: ["ObjSeg"]],
+                [name: "Average Hausdorff distance", shortName: "AHD", disciplines: ["ObjSeg"]],
+                [name: "Relative error count", shortName: "REC", disciplines: ["SptCnt"]],
+                [name: "Confusion matrix: true positives", shortName: "TP", disciplines: ["PixCla", "ObjDet"]],
+                [name: "Confusion matrix: false positives", shortName: "FP", disciplines: ["PixCla", "ObjDet"]],
+                [name: "Confusion matrix: true positives", shortName: "TP", disciplines: ["PixCla", "ObjDet"]],
+                [name: "Confusion matrix: true negatives", shortName: "TN", disciplines: ["PixCla", "ObjDet"]],
+                [name: "Confusion matrix: false negative", shortName: "FN", disciplines: ["PixCla", "ObjDet"]],
+                [name: "F1 score", shortName: "F1", disciplines: ["PixCla", "ObjDet"]],
+                [name: "Precision", shortName: "PR", disciplines: ["PixCla", "ObjDet"]],
+                [name: "Recall", shortName: "RE", disciplines: ["PixCla", "ObjDet"]],
+                [name: "Accuracy", shortName: "ACC", disciplines: ["PixCla"]],
+                [name: "Unmatched voxel rate", shortName: "UVR", disciplines: ["TreTrc", "LooTrc"]],
+                [name: "Gating distance", shortName: "GD", disciplines: ["TreTrc", "LooTrc"]],
+                [name: "MRE", shortName: "MRE", disciplines: ["LndDet"]],
+                [name: "SEG", shortName: "SEG", disciplines: ["ObjTrk"]],
+                [name: "TRA", shortName: "TRA", disciplines: ["ObjTrk"]],
+                [name: "Pairing distance", shortName: "PD", disciplines: ["PrtTrk"]],
+                [name: "Normalized pairing score alpha", shortName: "NPSA", disciplines: ["PrtTrk"]],
+                [name: "Full normalized pairing score beta", shortName: "FNPSB", disciplines: ["PrtTrk"]],
+                [name: "Number of reference tracks", shortName: "NRT", disciplines: ["PrtTrk"]],
+                [name: "Number of candidate tracks", shortName: "NCT", disciplines: ["PrtTrk"]],
+                [name: "Jaccard similarity tracks", shortName: "JST", disciplines: ["PrtTrk"]],
+                [name: "Number of paired tracks", shortName: "NPT", disciplines: ["PrtTrk"]],
+                [name: "Number of missed tracks", shortName: "NMT", disciplines: ["PrtTrk"]],
+                [name: "Number of spurious tracks", shortName: "NST", disciplines: ["PrtTrk"]],
+                [name: "Number of reference detections", shortName: "NRD", disciplines: ["PrtTrk"]],
+                [name: "Number of candidate detections", shortName: "NCD", disciplines: ["PrtTrk"]],
+                [name: "Jaccard similarity detections", shortName: "JSD", disciplines: ["PrtTrk"]],
+                [name: "Number of paired detections", shortName: "NPD", disciplines: ["PrtTrk"]],
+                [name: "Number of missed detections", shortName: "NMD", disciplines: ["PrtTrk"]],
+                [name: "Number of spurious detections", shortName: "NSD", disciplines: ["PrtTrk"]]
         ]
     }
 

@@ -32,6 +32,7 @@ import be.cytomine.processing.ImageFilter
 import be.cytomine.processing.ImagingServer
 import be.cytomine.processing.ParameterConstraint
 import be.cytomine.processing.ProcessingServer
+import be.cytomine.processing.metric.Metric
 import be.cytomine.project.Discipline
 import be.cytomine.security.*
 import be.cytomine.social.PersistentImageConsultation
@@ -180,12 +181,30 @@ class BootstrapUtilsService {
 
     def createDisciplines(def disciplineSamples) {
         disciplineSamples.each {
-            if (!Discipline.findByName(it.name)) {
+            if (!Discipline.findByShortName(it.shortName)) {
                 Discipline discipline = new Discipline(name: it.name, shortName: it.shortName)
                 if (discipline.validate()) {
                     discipline.save(flush: true)
                 } else {
                     discipline.errors?.each {
+                        log.info it
+                    }
+                }
+            }
+        }
+    }
+
+    def createMetrics(def metricSamples) {
+        def disciplines = Discipline.findAll()
+        
+        metricSamples.each {
+            if (!Metric.findByShortName(it.shortName)) {
+                def disciplineIds = disciplines.findAll { d -> d.shortName in it.disciplines }
+                Metric metric = new Metric(name: it.name, shortName: it.shortName, disciplines: disciplineIds)
+                if (metric.validate()) {
+                    metric.save(flush: true)
+                } else {
+                    metric.errors?.each {
                         log.info it
                     }
                 }
