@@ -34,7 +34,6 @@ class BootstrapDataService {
     def amqpQueueConfigService
 
     def initData() {
-
         recreateTableFromNotDomainClass()
         amqpQueueConfigService.initAmqpQueueConfigDefaultValues()
 
@@ -136,6 +135,22 @@ class BootstrapDataService {
 
         bootstrapUtilsService.addDefaultProcessingServer()
         bootstrapUtilsService.addDefaultConstraints()
+
+        bootstrapUtilsService.createDisciplines(defaultDisciplines())
+    }
+
+    def defaultDisciplines() {
+        return [
+                [name: "Object segmentation", shortName: "ObjSeg"],
+                [name: "Object detection", shortName: "ObjDet"],
+                [name: "Pixel classification", shortName: "PixCla"],
+                [name: "Spot counting", shortName: "SptCnt"],
+                [name: "Landmark detection", shortName: "LndDet"],
+                [name: "Object tracking", shortName: "ObjTrk"],
+                [name: "Particle tracking", shortName: "PrtTrk"],
+                [name: "Filament tracing (trees)", shortName: "TreTrc"],
+                [name: "Filament tracing (loopy networks)", shortName: "LooTrc"]
+        ]
     }
 
     public void recreateTableFromNotDomainClass() {

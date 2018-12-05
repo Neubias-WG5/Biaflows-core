@@ -40,13 +40,12 @@
       <sourceFolder url="file://$MODULE_DIR$/grails-app/domain" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/grails-app/services" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/grails-app/taglib" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/test/integration" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/grails-app" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/web-app/images" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/web-app" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/web-app/css" type="java-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/web-app/js" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/test/unit" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/test/integration" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

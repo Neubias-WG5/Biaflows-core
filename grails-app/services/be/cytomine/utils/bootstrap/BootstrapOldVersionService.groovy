@@ -60,6 +60,7 @@ class BootstrapOldVersionService {
     def mongo
     def noSQLCollectionService
     def executorService
+    def bootstrapDataService
 
 
     void execChangeForOldVersion() {
@@ -79,6 +80,11 @@ class BootstrapOldVersionService {
         }
 
         Version.setCurrentVersion(Long.parseLong(grailsApplication.metadata.'app.versionDate'))
+    }
+
+    void init20181206() {
+        log.info "20181206"
+        bootstrapUtilsService.createDisciplines(bootstrapDataService.defaultDisciplines())
     }
 
     void init20180904() {

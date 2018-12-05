@@ -32,6 +32,7 @@ import be.cytomine.processing.ImageFilter
 import be.cytomine.processing.ImagingServer
 import be.cytomine.processing.ParameterConstraint
 import be.cytomine.processing.ProcessingServer
+import be.cytomine.project.Discipline
 import be.cytomine.security.*
 import be.cytomine.social.PersistentImageConsultation
 import be.cytomine.social.PersistentProjectConnection
@@ -174,6 +175,21 @@ class BootstrapUtilsService {
                 }
             }
 
+        }
+    }
+
+    def createDisciplines(def disciplineSamples) {
+        disciplineSamples.each {
+            if (!Discipline.findByName(it.name)) {
+                Discipline discipline = new Discipline(name: it.name, shortName: it.shortName)
+                if (discipline.validate()) {
+                    discipline.save(flush: true)
+                } else {
+                    discipline.errors?.each {
+                        log.info it
+                    }
+                }
+            }
         }
     }
 
