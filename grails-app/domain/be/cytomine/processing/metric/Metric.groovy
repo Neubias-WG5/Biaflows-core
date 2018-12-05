@@ -98,4 +98,13 @@ class Metric extends CytomineDomain implements Serializable{
         return returnArray
     }
 
+    static def findAllByDiscipline(Discipline discipline) {
+        def criteria = createCriteria()
+        return criteria.list {
+            disciplines {
+                idEq(discipline.id)
+            }
+        }
+    }
+
 }
