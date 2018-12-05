@@ -175,6 +175,16 @@ var GeneralConfigPanel = Backbone.View.extend({
             $(self.el).find("input#EditingModeFull-radio-config").attr('checked', 'checked');
         }
 
+        new DisciplineCollection().fetch({
+            success: function(collection) {
+                collection.each(function (discipline) {
+                    var selected = (discipline.get('id') == self.model.get('discipline')) ? 'selected' : '';
+                    var option = _.template("<option value='<%= id %>'" + selected + "><%= name %> (<%= shortName %>)</option>", discipline.toJSON());
+                    $(self.el).find("#project-edit-discipline").append(option);
+                });
+            }
+        });
+
 
         new ProjectCollection().fetch({
             success: function (collection) {
@@ -221,7 +231,7 @@ var GeneralConfigPanel = Backbone.View.extend({
             }
         });
 
-        $(self.el).find("input#EditingModeFull-radio-config,input#EditingModeRestricted-radio-config,input#EditingModeReadOnly-radio-config").change(function () {
+        $(self.el).find("input#EditingModeFull-radio-config,input#EditingModeRestricted-radio-config,input#EditingModeReadOnly-radio-config,#project-edit-discipline").change(function () {
             self.update();
         });
 
@@ -281,6 +291,8 @@ var GeneralConfigPanel = Backbone.View.extend({
 
         var project = self.model;
 
+        var discipline = $(self.el).find("#project-edit-discipline").val();
+
         var blindMode = $(self.el).find("input#blindMode-checkbox-config").is(':checked');
         var hideUsersLayers = $(self.el).find("input#hideUsersLayers-checkbox-config").is(':checked');
         var hideAdminsLayers = $(self.el).find("input#hideAdminsLayers-checkbox-config").is(':checked');
@@ -299,10 +311,29 @@ var GeneralConfigPanel = Backbone.View.extend({
         // name is important, to change name, it MUST have the boolean at true. We don't update name "by accident"
         name = changeName ? $(self.el).find("#project-edit-name").val() : self.model.get('name');
 
-        project.set({name: name, retrievalDisable: retrievalDisable, retrievalAllOntology: retrievalProjectAll, retrievalProjects: self.projectRetrieval,
-            blindMode:blindMode,isReadOnly:isReadOnly,isRestricted:isRestricted,hideUsersLayers:hideUsersLayers,hideAdminsLayers:hideAdminsLayers});
-        project.save({name: name, retrievalDisable: retrievalDisable, retrievalAllOntology: retrievalProjectAll, retrievalProjects: self.projectRetrieval,
-            blindMode:blindMode,isReadOnly:isReadOnly,isRestricted:isRestricted,hideUsersLayers:hideUsersLayers,hideAdminsLayers:hideAdminsLayers}, {
+        project.set({
+            name: name,
+            retrievalDisable: retrievalDisable,
+            retrievalAllOntology: retrievalProjectAll,
+            retrievalProjects: self.projectRetrieval,
+            blindMode:blindMode,
+            isReadOnly:isReadOnly,
+            isRestricted:isRestricted,
+            hideUsersLayers:hideUsersLayers,
+            hideAdminsLayers:hideAdminsLayers,
+            discipline: discipline
+        });
+        project.save({name: name,
+            retrievalDisable: retrievalDisable,
+            retrievalAllOntology: retrievalProjectAll,
+            retrievalProjects: self.projectRetrieval,
+            blindMode:blindMode,
+            isReadOnly:isReadOnly,
+            isRestricted:isRestricted,
+            hideUsersLayers:hideUsersLayers,
+            hideAdminsLayers:hideAdminsLayers,
+            discipline: discipline
+        }, {
             success: function (model, response) {
                 console.log("1. Project edited!");
                 window.app.view.message("Project", response.message, "success");
