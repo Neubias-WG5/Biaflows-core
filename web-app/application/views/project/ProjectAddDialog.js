@@ -23,19 +23,22 @@ var AddProjectDialog = Backbone.View.extend({
         this.container = options.container;
         this.projectsPanel = options.projectsPanel;
         this.ontologies = options.ontologies;
+        this.disciplines = options.disciplines;
         _.bindAll(this, 'render');
     },
     render: function () {
         var self = this;
         require([
-                "text!application/templates/project/ProjectAddDialog.tpl.html"
+                "text!application/templates/project/ProjectAddDialog.tpl.html",
+                "text!application/templates/project/OntologiesChoicesRadio.tpl.html",
+                "text!application/templates/project/DisciplinesChoicesRadio.tpl.html"
             ],
-            function (projectAddDialogTpl) {
-                self.doLayout(projectAddDialogTpl);
+            function (projectAddDialogTpl, ontologiesChoicesRadioTpl, disciplinesChoicesRadioTpl) {
+                self.doLayout(projectAddDialogTpl, ontologiesChoicesRadioTpl, disciplinesChoicesRadioTpl);
             });
         return this;
     },
-    doLayout: function (projectAddDialogTpl) {
+    doLayout: function (projectAddDialogTpl, ontologiesChoicesRadioTpl, disciplinesChoicesRadioTpl) {
         var self = this;
         var dialog = _.template(projectAddDialogTpl, {});
         $("#editproject").replaceWith("");
@@ -43,7 +46,7 @@ var AddProjectDialog = Backbone.View.extend({
         $(self.el).append(dialog);
 
         self.initStepy();
-        self.createProjectInfo();
+        self.createProjectInfo(ontologiesChoicesRadioTpl, disciplinesChoicesRadioTpl);
         self.createUserList();
         self.createRetrievalProject();
 
@@ -78,6 +81,10 @@ var AddProjectDialog = Backbone.View.extend({
                     window.app.view.message("Ontology", "You must provide a ontology name!", "error");
                     error = true;
                 }
+                if ($("#projectdiscipline").val() === undefined) {
+                    window.app.view.message("Discipline", "You must provide a discipline name!", "error");
+                    error = true;
+                }
                 return !error;
             }
             //show save button on last step
@@ -96,7 +103,7 @@ var AddProjectDialog = Backbone.View.extend({
         $("fieldset").find("a").removeClass("button-back");
         $("fieldset").find("a").addClass("btn btn-default btn-primary");
     },
-    createProjectInfo: function () {
+    createProjectInfo: function (ontologiesChoicesRadioTpl, disciplinesChoicesRadioTpl) {
         var self = this;
         $("#login-form-add-project").submit(function () {
             self.createProject();
@@ -109,7 +116,21 @@ var AddProjectDialog = Backbone.View.extend({
             }
         });
 
-        var ontologiesChoicesRadioTpl = "<option value=\"<%= id %>\"><%= name %></option>";
+        $("#projectdiscipline").empty();
+        $("#choiceListDiscipline").empty();
+        $("#choiceListDiscipline").append('<select class="input-xlarge focused" id="projectdiscipline" />');
+        var choice = _.template(disciplinesChoicesRadioTpl, {id: -1, name: "*** Undefined ***"});
+        $("#projectdiscipline").append(choice);
+        window.app.models.disciplines.fetch({
+            success: function (collection) {
+
+                collection.each(function (discipline) {
+                    var choice = _.template(ontologiesChoicesRadioTpl, {id: discipline.id, name: discipline.get("name")});
+                    $("#projectdiscipline").append(choice);
+                });
+                $("#projectdiscipline").find("option:selected").removeAttr("selected");
+            }
+        });
         $("#projectontology").empty();
         window.app.models.ontologiesLigth.fetch({
             success: function (collection) {
@@ -255,9 +276,14 @@ var AddProjectDialog = Backbone.View.extend({
         $("#addproject").modal('show');
     },
     clearAddProjectPanel: function () {
+        var self = this;
         $("#errormessage").empty();
         $("#projecterrorlabel").hide();
         $("#project-name").val("");
+
+        $(self.addProjectCheckedOntologiesRadioElem).attr("checked", false);
+        $(self.addProjectCheckedDisciplinesRadioElem).attr("checked", false);
+        $(self.addProjectCheckedUsersCheckboxElem).attr("checked", false);
     },
     changeProgressBarStatus: function (progress) {
         console.log("changeProgressBarStatus:" + progress);
@@ -273,6 +299,10 @@ var AddProjectDialog = Backbone.View.extend({
         $("#projecterrorlabel").hide();
 
         var name = $("#project-name").val().toUpperCase();
+        var discipline = $("#projectdiscipline").val();
+        if (discipline == -1) {
+            discipline = null;
+        }
         var ontology = $("#projectontology").val();
         var users = self.userMaggicSuggest.getValue();
         var admins = self.adminMaggicSuggest.getValue();
@@ -311,7 +341,7 @@ var AddProjectDialog = Backbone.View.extend({
                 var timer = window.app.view.printTaskEvolution(response.task, $("#progressBarAddProjectContainer").find("#task-" + response.task.id), 1000);
 
                 //create project
-                new ProjectModel({task:response.task.id,users: users, admins: admins,name: name, ontology: ontology, discipline: null, retrievalDisable: retrievalDisable, retrievalAllOntology: retrievalProjectAll, retrievalProjects: projectRetrieval}).save({name: name, ontology: ontology, discipline: null, retrievalDisable: retrievalDisable, retrievalAllOntology: retrievalProjectAll, retrievalProjects: projectRetrieval, blindMode: blindMode, isReadOnly: isReadOnly,isRestricted:isRestricted,hideUsersLayers:hideUsersLayers,hideAdminsLayers:hideAdminsLayers}, {
+                new ProjectModel({task:response.task.id,users: users, admins: admins,name: name, ontology: ontology, discipline: discipline, retrievalDisable: retrievalDisable, retrievalAllOntology: retrievalProjectAll, retrievalProjects: projectRetrieval}).save({name: name, ontology: ontology, discipline: discipline, retrievalDisable: retrievalDisable, retrievalAllOntology: retrievalProjectAll, retrievalProjects: projectRetrieval, blindMode: blindMode, isReadOnly: isReadOnly,isRestricted:isRestricted,hideUsersLayers:hideUsersLayers,hideAdminsLayers:hideAdminsLayers}, {
                     success: function (model, response) {
                         console.log("1. Project added!");
                         clearInterval(timer);
