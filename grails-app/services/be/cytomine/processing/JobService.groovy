@@ -56,8 +56,24 @@ class JobService extends ModelService {
         def job = Job.read(id)
         if(job) {
             securityACLService.check(job.container(),READ)
+            checkDeleted(job)
         }
         job
+    }
+
+    def readMany(def ids) {
+        def jobs = Job.findAllByIdInList(ids)
+        if(jobs) {
+            jobs.each { job ->
+                securityACLService.check(job.container(),READ)
+                checkDeleted(job)
+            }
+        }
+        jobs
+    }
+
+    def list(def projects) {
+        list(Software.list(), projects, false)
     }
 
     /**
