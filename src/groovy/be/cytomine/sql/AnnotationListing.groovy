@@ -412,6 +412,41 @@ abstract class AnnotationListing {
             return ""
         }
     }
+
+    @Override
+    public String toString(){
+        return """ AnnotationListing
+columnToPrint : $columnToPrint
+project = $project
+user = $user
+term = $term
+image = $image
+suggestedTerm = $suggestedTerm
+userForTermAlgo = $userForTermAlgo
+users = $users
+usersForTerm = $usersForTerm
+usersForTermAlgo = $usersForTermAlgo
+reviewUsers = $reviewUsers
+terms = $terms
+images = $images
+afterThan = $afterThan
+beforeThan = $beforeThan
+suggestedTerms = $suggestedTerms
+notReviewedOnly = $notReviewedOnly
+noTerm = $noTerm
+noAlgoTerm = $noAlgoTerm
+multipleTerm = $multipleTerm
+bboxAnnotation = $bboxAnnotation
+baseAnnotation = $baseAnnotation
+maxDistanceBaseAnnotation = $maxDistanceBaseAnnotation
+bbox = $bbox
+parents=$parents
+avoidEmptyCentroid = $avoidEmptyCentroid
+excludedAnnotation = $excludedAnnotation
+kmeans = $kmeans
+"""
+
+    }
 }
 
 class UserAnnotationListing extends AnnotationListing {
@@ -447,7 +482,7 @@ class UserAnnotationListing extends AnnotationListing {
                     wkt: [location: 'a.wkt_location'],
                     gis: [area: 'area', areaUnit: 'area_unit', perimeter: 'perimeter', perimeterUnit: 'perimeter_unit', x: 'ST_X(ST_centroid(a.location))', y: 'ST_Y(ST_centroid(a.location))'],
                     term: [term: 'at.term_id', annotationTerms: 'at.id', userTerm: 'at.user_id'],
-                    image: [originalfilename: 'ai.original_filename'],
+                    image: [originalfilename: 'ai.original_filename', instancefilename: 'ii.instance_filename'],
                     algo: [id: 'aat.id', rate: 'aat.rate', idTerm: 'aat.term_id', idExpectedTerm: 'aat.expected_term_id'],
                     user: [creator: 'u.username', lastname: 'u.lastname', firstname: 'u.firstname']
             ]
@@ -559,7 +594,7 @@ class AlgoAnnotationListing extends AnnotationListing {
                     wkt: [location: 'a.wkt_location'],
                     gis: [area: 'area', areaUnit: 'area_unit', perimeter: 'perimeter', perimeterUnit: 'perimeter_unit', x: 'ST_X(ST_centroid(a.location))', y: 'ST_Y(ST_centroid(a.location))'],
                     term: [term: 'aat.term_id', annotationTerms: 'aat.id', userTerm: 'aat.user_job_id', rate: 'aat.rate'],
-                    image: [originalfilename: 'ai.original_filename'],
+                    image: [originalfilename: 'ai.original_filename', instancefilename: 'ii.instance_filename'],
                     user: [creator: 'u.username', software: 's.name', job: 'j.created']
             ]
 
@@ -698,7 +733,7 @@ class ReviewedAnnotationListing extends AnnotationListing {
                             annotationTerms: "0",
                             userTerm: 'a.user_id'
                     ],//user who add the term, is the user that create reviewedannotation (a.user_id)
-                    image: [originalfilename: 'ai.original_filename'],
+                    image: [originalfilename: 'ai.original_filename', instancefilename: 'ii.instance_filename'],
                     algo: [id: 'aat.id', rate: 'aat.rate'],
                     user: [creator: 'u.username', lastname: 'u.lastname', firstname: 'u.firstname']
             ]
@@ -838,7 +873,7 @@ class RoiAnnotationListing extends AnnotationListing {
                     ],
                     wkt: [location: 'a.wkt_location'],
                     gis: [area: 'area', areaUnit: 'area_unit', perimeter: 'perimeter', perimeterUnit: 'perimeter_unit', x: 'ST_X(ST_centroid(a.location))', y: 'ST_Y(ST_centroid(a.location))'],
-                    image: [originalfilename: 'ai.original_filename'],
+                    image: [originalfilename: 'ai.original_filename', instancefilename: 'ii.instance_filename'],
                     user: [creator: 'u.username', lastname: 'u.lastname', firstname: 'u.firstname']
             ]
 

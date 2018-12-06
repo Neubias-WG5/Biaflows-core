@@ -22,6 +22,7 @@ import be.cytomine.social.PersistentConnection
 import grails.converters.JSON
 import grails.converters.XML
 import grails.plugin.springsecurity.annotation.Secured
+import org.springframework.dao.NonTransientDataAccessException
 import org.springframework.web.context.request.RequestContextHolder
 
 class ServerController {
@@ -74,17 +75,21 @@ class ServerController {
     }
 
     def addLastConnection(def idUser, def idProject) {
-        LastConnection connection = new LastConnection()
-        connection.user = SecUser.read(idUser)
-        connection.project = Project.read(idProject)
-        connection.date = new Date()
-        connection.insert(flush:true) //don't use save (stateless collection)
-        PersistentConnection connectionPersist = new PersistentConnection()
-        connectionPersist.user = SecUser.read(idUser)
-        connectionPersist.project = Project.read(idProject)
-        connectionPersist.session = RequestContextHolder.currentRequestAttributes().getSessionId()
-        connectionPersist.date = new Date()
-        connectionPersist.insert(flush:true) //don't use save (stateless collection)
+        try {
+            LastConnection connection = new LastConnection()
+            connection.user = SecUser.read(idUser)
+            connection.date = new Date()
+            connection.project = Project.read(idProject)
+            connection.insert(flush:true) //don't use save (stateless collection)
+
+            PersistentConnection connectionPersist = new PersistentConnection()
+            connectionPersist.user = SecUser.read(idUser)
+            connectionPersist.project = Project.read(idProject)
+            connectionPersist.session = RequestContextHolder.currentRequestAttributes().getSessionId()
+            connectionPersist.insert(flush:true) //don't use save (stateless collection)
+        } catch (NonTransientDataAccessException e) {
+            log.error e.message
+        }
     }
 
     @Secured(['ROLE_USER','ROLE_ADMIN','ROLE_SUPER_ADMIN'])

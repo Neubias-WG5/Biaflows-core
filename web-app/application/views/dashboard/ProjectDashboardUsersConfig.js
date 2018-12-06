@@ -59,8 +59,8 @@ var ProjectDashboardUsersConfig = Backbone.View.extend({
             { searchable: true, orderable: false, render : function ( data, type, row ) {
                 return row["firstname"] + " "+row["lastname"];
             }, targets: [2]},
-            { data: "lastConnection", defaultContent: "No record", render : function( data, type, row ) {
-                return window.app.convertLongToPrettyDate(row["lastConnection"]);
+            { data: "lastConnection", className: "prettyTime", defaultContent: "No record", render : function( data, type, row ) {
+                return "<span title='"+window.app.convertLongToDate(row["lastConnection"])+"'> "+window.app.convertLongToPrettyDate(row["lastConnection"])+"</span>";
             }, targets: [3]},
             { data: "lastImageName", defaultContent: "No record", orderable: false, targets: [4]},
             { data: "LDAP", defaultContent: "", render : function( data) {

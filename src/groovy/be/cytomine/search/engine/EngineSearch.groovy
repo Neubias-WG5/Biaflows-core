@@ -31,7 +31,7 @@ abstract class EngineSearch {
 
     public abstract String createRequestOnAttributes(List<String> words)
 
-    public abstract String createRequestOnProperty(List<String> words)
+    public abstract String createRequestOnProperty(List<String> words, String attribute = null)
 
     public abstract String createRequestOnDescription(List<String> words)
 

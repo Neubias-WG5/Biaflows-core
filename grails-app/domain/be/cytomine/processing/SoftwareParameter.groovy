@@ -163,7 +163,7 @@ class SoftwareParameter extends CytomineDomain {
         returnArray['uriSortAttribut'] = domain?.uriSortAttribut
         returnArray['setByServer'] = domain?.setByServer
         returnArray['serverParameter'] = domain?.serverParameter
-        returnArray['humanName'] = domain?.humanName ?: domain.name
+        returnArray['humanName'] = domain?.humanName ?: domain?.name
         returnArray['valueKey'] = domain?.valueKey
         returnArray['commandLineFlag'] = domain?.commandLineFlag
         return returnArray

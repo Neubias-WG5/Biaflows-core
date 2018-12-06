@@ -50,12 +50,12 @@ var AddImageSequenceDialog = Backbone.View.extend({
         var table = $("#addImageSequenceTable" + self.model.id);
         var columns = [
             { className: 'center', data: "id", targets: [0]},
-            { data: "macroURL", defaultContent: "", orderable: false, render : function ( data, type, row ) {
+            { data: "thumb", defaultContent: "", orderable: false, render : function ( data, type, row ) {
                 return _.template("<div style='width : 130px;'><a href='#tabs-image-<%= project %>-<%=  id  %>-'><img src='<%= thumb %>?maxSize=128' alt='originalFilename' style='max-height : 45px;max-width : 128px;'/></a></div>",
                     {
                         project : self.model.get("project"),
                         id : row["id"],
-                        thumb : row["macroURL"]
+                        thumb : row["thumb"]
                     });
             }, targets: [1]},
             { data: "originalFilename", defaultContent: "", searchable: true, targets: [2]},

@@ -1,6 +1,3 @@
-import org.apache.log4j.Logger
-import org.springframework.context.ApplicationListener
-import org.springframework.security.core.session.SessionDestroyedEvent
 
 /*
 * Copyright (c) 2009-2017. Authors: see NOTICE file.
@@ -17,6 +14,10 @@ import org.springframework.security.core.session.SessionDestroyedEvent
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
+import org.apache.log4j.Logger
+import org.springframework.context.ApplicationListener
+import org.springframework.security.core.session.SessionDestroyedEvent
 
 public class LogoutEventListener implements ApplicationListener<SessionDestroyedEvent> {
 

@@ -21,7 +21,7 @@ import groovy.sql.Sql
 import org.apache.commons.lang.RandomStringUtils
 
 /**
- * Cytomine @ GIGA-ULG
+ * Cytomine @ ULG
  * User: stevben
  * Date: 13/03/13
  * Time: 11:30
@@ -34,7 +34,6 @@ class BootstrapDataService {
     def amqpQueueConfigService
 
     def initData() {
-
         recreateTableFromNotDomainClass()
         amqpQueueConfigService.initAmqpQueueConfigDefaultValues()
 
@@ -74,8 +73,9 @@ class BootstrapDataService {
         def IIPMimeSamples = [
                 [extension : 'mrxs', mimeType : 'openslide/mrxs'],
                 [extension : 'vms', mimeType : 'openslide/vms'],
-                [extension : 'tif', mimeType : 'openslide/ventana'],					
+                [extension : 'tif', mimeType : 'openslide/ventana'],
                 [extension : 'tif', mimeType : 'image/tif'],
+                [extension : 'tif', mimeType : 'philips/tif'],
                 [extension : 'tiff', mimeType : 'image/tiff'],
                 [extension : 'tif', mimeType : 'image/pyrtiff'],
                 [extension : 'svs', mimeType : 'openslide/svs'],
@@ -89,14 +89,11 @@ class BootstrapDataService {
 
 
         def usersSamples = [
-                [username : 'ImageServer1', firstname : 'Image', lastname : 'Server', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : RandomStringUtils.random(32,  (('A'..'Z') + ('0'..'0')).join().toCharArray()), color : "#FF0000", roles : ["ROLE_USER", "ROLE_ADMIN"]],
-                [username : 'superadmin', firstname : 'Super', lastname : 'Admin', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : grailsApplication.config.grails.adminPassword, color : "#FF0000", roles : ["ROLE_USER", "ROLE_ADMIN","ROLE_SUPER_ADMIN"]],
-                [username : 'admin', firstname : 'Just an', lastname : 'Admin', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : grailsApplication.config.grails.adminPassword, color : "#FF0000", roles : ["ROLE_USER", "ROLE_ADMIN"]],
-                [username : 'rabbitmq', firstname : 'rabbitmq', lastname : 'user', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : RandomStringUtils.random(32,  (('A'..'Z') + ('0'..'0')).join().toCharArray()), color : "#FF0000", roles : ["ROLE_USER", "ROLE_SUPER_ADMIN"]],
-                [username : 'monitoring', firstname : 'Monitoring', lastname : 'Monitoring', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : RandomStringUtils.random(32,  (('A'..'Z') + ('0'..'0')).join().toCharArray()), color : "#FF0000", roles : ["ROLE_USER","ROLE_SUPER_ADMIN"]],
-                [username : 'jsnow', firstname : 'John', lastname : 'Snow', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : "jsnow", color : "#FF0000", roles : ["ROLE_USER"]],
-                [username : 'estark', firstname : 'Eddard', lastname : 'Stark', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : "estark", color : "#FF0000", roles : ["ROLE_USER"]],
-                [username : 'clannister', firstname : 'Cersei', lastname : 'Lannister', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : "clannister", color : "#FF0000", roles : ["ROLE_USER"]]
+                [username : 'ImageServer1', firstname : 'Image', lastname : 'Server', email : grailsApplication.config.grails.admin.email, group : [[name : "Cytomine"]], password : RandomStringUtils.random(32,  (('A'..'Z') + ('0'..'0')).join().toCharArray()), color : "#FF0000", roles : ["ROLE_USER", "ROLE_ADMIN", "ROLE_SUPER_ADMIN"]],
+                [username : 'superadmin', firstname : 'Super', lastname : 'Admin', email : grailsApplication.config.grails.admin.email, group : [[name : "Cytomine"]], password : grailsApplication.config.grails.adminPassword, color : "#FF0000", roles : ["ROLE_USER", "ROLE_ADMIN","ROLE_SUPER_ADMIN"]],
+                [username : 'admin', firstname : 'Just an', lastname : 'Admin', email : grailsApplication.config.grails.admin.email, group : [[name : "Cytomine"]], password : grailsApplication.config.grails.adminPassword, color : "#FF0000", roles : ["ROLE_USER", "ROLE_ADMIN"]],
+                [username : 'rabbitmq', firstname : 'rabbitmq', lastname : 'user', email : grailsApplication.config.grails.admin.email, group : [[name : "Cytomine"]], password : RandomStringUtils.random(32,  (('A'..'Z') + ('0'..'0')).join().toCharArray()), color : "#FF0000", roles : ["ROLE_USER", "ROLE_SUPER_ADMIN"]],
+                [username : 'monitoring', firstname : 'Monitoring', lastname : 'Monitoring', email : grailsApplication.config.grails.admin.email, group : [[name : "Cytomine"]], password : RandomStringUtils.random(32,  (('A'..'Z') + ('0'..'0')).join().toCharArray()), color : "#FF0000", roles : ["ROLE_USER","ROLE_SUPER_ADMIN"]]
         ]
 
         bootstrapUtilsService.createUsers(usersSamples)
@@ -125,9 +122,73 @@ class BootstrapDataService {
         superAdmin.setPublicKey((String) grailsApplication.config.grails.superAdminPublicKey)
         superAdmin.save(flush : true)
 
+        SecUser rabbitMQUser = SecUser.findByUsername("rabbitmq")
+        if(!grailsApplication.config.grails.rabbitMQPrivateKey) {
+            throw new IllegalArgumentException("rabbitMQPrivateKey must be set!")
+        }
+        if(!grailsApplication.config.grails.rabbitMQPublicKey) {
+            throw new IllegalArgumentException("rabbitMQPublicKey must be set!")
+        }
+        rabbitMQUser.setPrivateKey(grailsApplication.config.grails.rabbitMQPrivateKey)
+        rabbitMQUser.setPublicKey(grailsApplication.config.grails.rabbitMQPublicKey)
+        rabbitMQUser.save(flush : true)
 
         bootstrapUtilsService.addDefaultProcessingServer()
         bootstrapUtilsService.addDefaultConstraints()
+
+        bootstrapUtilsService.createDisciplines(defaultDisciplines())
+        bootstrapUtilsService.createMetrics(defaultMetrics())
+    }
+
+    def defaultDisciplines() {
+        return [
+                [name: "Object segmentation", shortName: "ObjSeg"],
+                [name: "Object detection", shortName: "ObjDet"],
+                [name: "Pixel classification", shortName: "PixCla"],
+                [name: "Spot counting", shortName: "SptCnt"],
+                [name: "Landmark detection", shortName: "LndDet"],
+                [name: "Object tracking", shortName: "ObjTrk"],
+                [name: "Particle tracking", shortName: "PrtTrk"],
+                [name: "Filament tracing (trees)", shortName: "TreTrc"],
+                [name: "Filament tracing (loopy networks)", shortName: "LooTrc"]
+        ]
+    }
+
+    def defaultMetrics() {
+        return [
+                [name: "Dice coefficient", shortName: "DC", disciplines: ["ObjSeg"]],
+                [name: "Average Hausdorff distance", shortName: "AHD", disciplines: ["ObjSeg"]],
+                [name: "Relative error count", shortName: "REC", disciplines: ["SptCnt"]],
+                [name: "Confusion matrix: true positives", shortName: "TP", disciplines: ["PixCla", "ObjDet"]],
+                [name: "Confusion matrix: false positives", shortName: "FP", disciplines: ["PixCla", "ObjDet"]],
+                [name: "Confusion matrix: true positives", shortName: "TP", disciplines: ["PixCla", "ObjDet"]],
+                [name: "Confusion matrix: true negatives", shortName: "TN", disciplines: ["PixCla", "ObjDet"]],
+                [name: "Confusion matrix: false negative", shortName: "FN", disciplines: ["PixCla", "ObjDet"]],
+                [name: "F1 score", shortName: "F1", disciplines: ["PixCla", "ObjDet"]],
+                [name: "Precision", shortName: "PR", disciplines: ["PixCla", "ObjDet"]],
+                [name: "Recall", shortName: "RE", disciplines: ["PixCla", "ObjDet"]],
+                [name: "Accuracy", shortName: "ACC", disciplines: ["PixCla"]],
+                [name: "Unmatched voxel rate", shortName: "UVR", disciplines: ["TreTrc", "LooTrc"]],
+                [name: "Gating distance", shortName: "GD", disciplines: ["TreTrc", "LooTrc"]],
+                [name: "MRE", shortName: "MRE", disciplines: ["LndDet"]],
+                [name: "SEG", shortName: "SEG", disciplines: ["ObjTrk"]],
+                [name: "TRA", shortName: "TRA", disciplines: ["ObjTrk"]],
+                [name: "Pairing distance", shortName: "PD", disciplines: ["PrtTrk"]],
+                [name: "Normalized pairing score alpha", shortName: "NPSA", disciplines: ["PrtTrk"]],
+                [name: "Full normalized pairing score beta", shortName: "FNPSB", disciplines: ["PrtTrk"]],
+                [name: "Number of reference tracks", shortName: "NRT", disciplines: ["PrtTrk"]],
+                [name: "Number of candidate tracks", shortName: "NCT", disciplines: ["PrtTrk"]],
+                [name: "Jaccard similarity tracks", shortName: "JST", disciplines: ["PrtTrk"]],
+                [name: "Number of paired tracks", shortName: "NPT", disciplines: ["PrtTrk"]],
+                [name: "Number of missed tracks", shortName: "NMT", disciplines: ["PrtTrk"]],
+                [name: "Number of spurious tracks", shortName: "NST", disciplines: ["PrtTrk"]],
+                [name: "Number of reference detections", shortName: "NRD", disciplines: ["PrtTrk"]],
+                [name: "Number of candidate detections", shortName: "NCD", disciplines: ["PrtTrk"]],
+                [name: "Jaccard similarity detections", shortName: "JSD", disciplines: ["PrtTrk"]],
+                [name: "Number of paired detections", shortName: "NPD", disciplines: ["PrtTrk"]],
+                [name: "Number of missed detections", shortName: "NMD", disciplines: ["PrtTrk"]],
+                [name: "Number of spurious detections", shortName: "NSD", disciplines: ["PrtTrk"]]
+        ]
     }
 
     public void recreateTableFromNotDomainClass() {

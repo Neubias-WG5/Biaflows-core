@@ -66,12 +66,12 @@ var ImageTabsView = Backbone.View.extend({
         var body = $(this.el).find("#imageProjectArray" + self.idProject);
         var columns = [
             { className: "center", data: "id", targets: [0]},
-            { data: "macroURL", defaultContent: "", orderable: false, render: function ( data, type, row ) {
+            { data: "thumb", defaultContent: "", orderable: false, render: function ( data, type, row ) {
                 return _.template("<div style='width : 130px;'><a href='#tabs-image-<%= project %>-<%=  id  %>-0'><img src='<%= thumb %>' alt='originalFilename' style='max-height : 45px;max-width : 128px;'/></a></div>",
                     {
                         project : self.idProject,
                         id : row["id"],
-                        thumb : row["macroURL"]+"?maxWidth=128"
+                        thumb : row["thumb"]+"?maxWidth=128"
                     });
             }, targets: [1]},
             { data: "originalFilename", searchable: true, defaultContent: "", render : function ( data, type, row ) {

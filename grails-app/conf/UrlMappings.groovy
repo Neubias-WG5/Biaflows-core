@@ -68,6 +68,9 @@ class UrlMappings {
         "/api/commandhistory.$format"(controller: "restProject") {
             action = [GET:"listCommandHistory"]
         }
+        "/api/deletecommand.$format"(controller: "command") {
+            action = [GET:"listDelete"]
+        }
 
         "/api/search.$format"(controller: "search") {
             action = [GET:"listResponse"]

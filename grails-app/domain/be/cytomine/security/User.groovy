@@ -116,7 +116,7 @@ class User extends SecUser {
         }
         domain.created = JSONUtils.getJSONAttrDate(json, 'created')
         domain.updated = JSONUtils.getJSONAttrDate(json, 'updated')
-        domain.enabled = true
+        domain.enabled = JSONUtils.getJSONAttrBoolean(json,'enabled', true)
 
         if (domain.getPublicKey() == null || domain.getPrivateKey() == null || json.publicKey == "" || json.privateKey == "") {
             domain.generateKeys()
@@ -140,6 +140,7 @@ class User extends SecUser {
             returnArray['privateKey'] = domain?.privateKey
             returnArray['passwordExpired'] = domain?.passwordExpired
         }
+        returnArray['enabled'] = domain?.enabled
         returnArray['color'] = domain?.color
         returnArray
     }

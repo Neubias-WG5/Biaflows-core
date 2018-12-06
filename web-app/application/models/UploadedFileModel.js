@@ -22,6 +22,49 @@ var UploadedFileModel = Backbone.Model.extend({
         }
         this.image = options.image;
     },
+    getStatus: function() {
+        var result;
+        switch(this.get('status')){
+            case 0:
+                result = "UPLOADED";
+                break;
+            case 1:
+                result = "CONVERTED";
+                break;
+            case 2:
+                result = "DEPLOYED";
+                break;
+            case 3:
+                result = "ERROR FORMAT";
+                break;
+            case 4:
+                result = "ERROR CONVERSION";
+                break;
+            case 5:
+                result = "UNCOMPRESSED";
+                break;
+            case 6:
+                result = "TO DEPLOY";
+                break;
+            case 7:
+                result = "TO CONVERT";
+                break;
+            case 8:
+                result = "ERROR CONVERSION";
+                break;
+            case 9:
+                result = "ERROR DEPLOYMENT";
+                break;
+        }
+        return result;
+    },
+    downloadUrl : function() {
+        if (this.get('id')) {
+            return 'api/uploadedfile/' + this.get('id') + "/download";
+        } else {
+            return null;
+        }
+    },
     url: function () {
         var base = 'api/uploadedfile';
         var format = '.json';
@@ -44,13 +87,30 @@ var UploadedFileCollection = PaginatedCollection.extend({
         if (!options) {
             return;
         }
-        this.dataTables = options.dataTables;
+        this.datatables = options.datatables;
+        this.root = options.root;
+        this.parent = options.parent;
+        this.onlyRoots = options.onlyRoots;
     },
     url: function () {
-        if (this.dataTables) {
-            return 'api/uploadedfile.json?dataTables=true';
+        var baseUrl = 'api/uploadedfile.json';
+
+        if (this.datatables || this.parent || this.root || this.onlyRoots) {
+            baseUrl += '?';
         } else {
-            return 'api/uploadedfile.json';
+            return baseUrl
         }
+
+        if (this.datatables) {
+            baseUrl += 'datatables=true&';
+        }
+        if (this.parent) {
+            baseUrl += 'parent='+this.parent+'&';
+        } else if (this.onlyRoots) {
+            baseUrl += 'onlyRoots='+this.onlyRoots+'&';
+        } else if (this.root) {
+            baseUrl += 'root='+this.root+'&';
+        }
+        return baseUrl.substr(0,baseUrl.length-1);
     }
 });

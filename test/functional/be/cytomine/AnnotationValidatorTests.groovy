@@ -57,7 +57,7 @@ class AnnotationValidatorTests {
         def json = JSON.parse(annotationToAdd.encodeAsJSON())
         json.location = SELF_INTERSECT
         def result = UserAnnotationAPI.create(json.toString(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
-        assert 200 == result.code
+        assert 400 == result.code
     }
 
     public void testAnnotationNotValidBis() {

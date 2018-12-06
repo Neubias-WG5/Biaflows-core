@@ -113,7 +113,7 @@ class AttachedFileTests {
 
       //try to download attached file
       def result = AttachedFileAPI.show(attachedFile.id, "testDownloadForGuest", "password")
-      assert 200 == result.code
+      assert 403 == result.code
 
   }
 

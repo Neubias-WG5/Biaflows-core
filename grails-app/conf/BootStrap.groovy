@@ -18,7 +18,6 @@
 import be.cytomine.image.ImageProcessingService
 import be.cytomine.utils.CytomineMailService
 import be.cytomine.image.multidim.ImageGroupHDF5Service
-import be.cytomine.integration.NotifyAuroraUploadJob
 import be.cytomine.middleware.ImageServerService
 import be.cytomine.processing.ImageRetrievalService
 import be.cytomine.security.SecUser
@@ -29,7 +28,12 @@ import grails.plugin.springsecurity.SpringSecurityUtils
 import grails.util.Environment
 import grails.util.Holders
 import org.codehaus.groovy.grails.commons.ApplicationAttributes
+import org.grails.plugin.resource.ResourceMeta
+import org.grails.plugin.resource.ResourceProcessor
+import org.grails.plugin.resource.URLUtils
 
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import java.lang.management.ManagementFactory
 
 /**
@@ -106,8 +110,8 @@ class BootStrap {
         log.info "#############################################################################"
 
         if(Version.count()==0) {
-            log.info "Version was not set, set to 0"
-            Version.setCurrentVersion(0)
+            log.info "Version was not set, set to last version"
+            Version.setCurrentVersion(Long.parseLong(grailsApplication.metadata.'app.versionDate'))
         }
 
         //Initialize marshallers and services
@@ -135,7 +139,8 @@ class BootStrap {
         log.info "init retrieve errors hack..."
         retrieveErrorsService.initMethods()
 
-        def rabbitmqInit = false
+        // Initialize RabbitMQ server
+        bootstrapUtilsService.initRabbitMq()
 
         /* Fill data just in test environment*/
         log.info "fill with data..."
@@ -143,38 +148,14 @@ class BootStrap {
             bootstrapDataService.initData()
             noSQLCollectionService.cleanActivityDB()
             def usersSamples = [
-                    [username : Infos.ANOTHERLOGIN, firstname : 'Just another', lastname : 'User', email : grailsApplication.config.grails.admin.email, group : [[name : "GIGA"]], password : grailsApplication.config.grails.adminPassword, color : "#FF0000", roles : ["ROLE_USER", "ROLE_ADMIN","ROLE_SUPER_ADMIN"]]
+                    [username : Infos.ANOTHERLOGIN, firstname : 'Just another', lastname : 'User', email : grailsApplication.config.grails.admin.email, group : [[name : "Cytomine"]], password : grailsApplication.config.grails.adminPassword, color : "#FF0000", roles : ["ROLE_USER", "ROLE_ADMIN","ROLE_SUPER_ADMIN"]]
             ]
             bootstrapUtilsService.createUsers(usersSamples)
 
-            //mock services which use IMS
-            ImageProcessingService.metaClass.getImageFromURL = {
-                String url -> println "\n\n mocked getImageFromURL \n\n";
-                    return javax.imageio.ImageIO.read(new File("test/functional/be/cytomine/utils/images/thumb256.png"))
-            }
-            ImageGroupHDF5Service.metaClass.callIMSConversion = {
-                SecUser currentUser, def imagesFilenames, String filename -> println "\n\n mocked callIMSConversion \n\n";
-            }
-            ImageServerService.metaClass.getStorageSpaces = {
-                return [[used : 0, available : 10]]
-            }
-            //mock services which use Retrieval
-            ImageRetrievalService.metaClass.doRetrievalIndex = {
-                String url, String username, String password, def image,String id, String storage, Map<String,String> properties -> println "\n\n mocked doRetrievalIndex \n\n";
-                    return [code:200,response:"test"]
-            }
-            //mock mail service
-            CytomineMailService.metaClass.send = {
-                String from, String[] to, String cc, String subject, String message, def attachment -> println "\n\n mocked mail send \n\n";
-            }
-
+            mockServicesForTests()
 
         }  else if (SecUser.count() == 0) {
             //if database is empty, put minimal data
-            // Initialize RabbitMQ server
-            bootstrapUtilsService.initRabbitMq()
-            rabbitmqInit = true
-
             bootstrapDataService.initData()
         }
 
@@ -196,25 +177,62 @@ class BootStrap {
             }
         }
 
+        log.info "init change for old version..."
+        bootstrapOldVersionService.execChangeForOldVersion()
+
         log.info "create multiple IS and Retrieval..."
         bootstrapUtilsService.createMultipleIS()
         bootstrapUtilsService.createMultipleRetrieval()
 
-        log.info "init change for old version..."
-        bootstrapOldVersionService.execChangeForOldVersion()
-
-        if (!rabbitmqInit) {
-            // Initialize RabbitMQ server
-            bootstrapUtilsService.initRabbitMq()
-        }
-
-        if(grailsApplication.config.grails.client=="AURORA") {
-            if(Environment.getCurrent() != Environment.TEST) {
-                NotifyAuroraUploadJob.schedule(grailsApplication.config.grails.integration.aurora.interval,-1, [:])
-            }
-        }
-
         bootstrapUtilsService.fillProjectConnections();
         bootstrapUtilsService.fillImageConsultations();
+
+        bootstrapUtilsService.initProcessingServerQueues()
+
+        fixPlugins()
+    }
+
+    private void mockServicesForTests(){
+        //mock services which use IMS
+        ImageProcessingService.metaClass.getImageFromURL = {
+            String url -> println "\n\n mocked getImageFromURL \n\n";
+                return javax.imageio.ImageIO.read(new File("test/functional/be/cytomine/utils/images/thumb256.png"))
+        }
+        ImageGroupHDF5Service.metaClass.callIMSConversion = {
+            SecUser currentUser, def imagesFilenames, String filename -> println "\n\n mocked callIMSConversion \n\n";
+        }
+        ImageServerService.metaClass.getStorageSpaces = {
+            return [[used : 0, available : 10]]
+        }
+        //mock services which use Retrieval
+        ImageRetrievalService.metaClass.doRetrievalIndex = {
+            String url, String username, String password, def image,String id, String storage, Map<String,String> properties -> println "\n\n mocked doRetrievalIndex \n\n";
+                return [code:200,response:"test"]
+        }
+        //mock mail service
+        CytomineMailService.metaClass.send = {
+            String from, String[] to, String cc, String subject, String message, def attachment -> println "\n\n mocked mail send \n\n";
+        }
+    }
+
+    private void fixPlugins(){
+        //grails resources
+        //for https
+        ResourceProcessor.metaClass.redirectToActualUrl = {
+            ResourceMeta res, HttpServletRequest request, HttpServletResponse response ->
+                String url
+                if (URLUtils.isExternalURL(res.linkUrl)) {
+                    url = res.linkUrl
+
+                } else {
+                    url = grailsApplication.config.grails.serverURL + request.contextPath + staticUrlPrefix + res.linkUrl
+                }
+
+                log.debug "Redirecting ad-hoc resource ${request.requestURI} " +
+                        "to $url which makes it UNCACHEABLE - declare this resource " +
+                        "and use resourceLink/module tags to avoid redirects and enable client-side caching"
+
+                response.sendRedirect url
+        }
     }
 }

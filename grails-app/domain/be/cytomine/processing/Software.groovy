@@ -122,7 +122,7 @@ class Software extends CytomineDomain {
     }
 
     String toString() {
-        name
+        fullName()
     }
 
     /**

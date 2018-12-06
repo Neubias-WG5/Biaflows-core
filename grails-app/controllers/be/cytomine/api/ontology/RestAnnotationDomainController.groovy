@@ -23,6 +23,7 @@ import be.cytomine.Exception.ObjectNotFoundException
 import be.cytomine.Exception.WrongArgumentException
 import be.cytomine.api.RestController
 import be.cytomine.api.UrlApi
+import be.cytomine.image.AbstractImage
 import be.cytomine.image.ImageInstance
 import be.cytomine.ontology.AlgoAnnotation
 import be.cytomine.ontology.ReviewedAnnotation
@@ -164,6 +165,19 @@ class RestAnnotationDomainController extends RestController {
         }
     }
 
+    def abstractImageService
+    def cropParameters() {
+        def annotation = AnnotationDomain.getAnnotationDomain(params.long("id"))
+        def parameters = annotation.toCropParams(params)
+        AbstractImage abstractImage = abstractImageService.read(parameters.id)
+        parameters.remove("id")
+        parameters.fif = abstractImage.absolutePath//URLEncoder.encode(abstractImage.absolutePath, "UTF-8")
+        parameters.mimeType = abstractImage.mimeType
+        parameters.resolution = abstractImage.resolution
+
+        responseSuccess(parameters)
+    }
+
     /**
      * Get annotation crop (image area that frame annotation)
      * This work for all kinds of annotations
@@ -296,6 +310,8 @@ class RestAnnotationDomainController extends RestController {
      * Check if we ask algo annotation
      */
     private boolean isAlgoAnnotationAsked(def params) {
+        if(params.getBoolean('includeAlgo')) return true;
+
         def idUser = params.getLong('user')
         if(idUser) {
            def user = SecUser.read(idUser)
@@ -1068,6 +1084,7 @@ class RestAnnotationDomainController extends RestController {
 
         def result
         if (remove) {
+            log.info "doCorrectUserAnnotation : remove"
             //diff will be made
             //-remove the new geometry from the based annotation location
             //-remove the new geometry from all other annotation location
@@ -1079,6 +1096,7 @@ class RestAnnotationDomainController extends RestController {
                 userAnnotationService.update(other,JSON.parse(other.encodeAsJSON()))
             }
         } else {
+            log.info "doCorrectUserAnnotation : union"
             //union will be made:
             // -add the new geometry to the based annotation location.
             // -add all other annotation geometry to the based annotation location (and delete other annotation)

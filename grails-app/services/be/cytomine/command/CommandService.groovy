@@ -17,11 +17,14 @@ package be.cytomine.command
 */
 
 import be.cytomine.Exception.CytomineException
+import grails.util.GrailsNameUtils
 
 class CommandService {
 
     def springSecurityService
     def grailsApplication
+    def securityACLService
+    def cytomineService
 
     static final int SUCCESS_ADD_CODE = 200
     static final int SUCCESS_EDIT_CODE = 200
@@ -75,5 +78,18 @@ class CommandService {
             }
         }
         return result
+    }
+
+    def list(String domain, Class commandclass, Long afterThan) {
+        securityACLService.checkAdmin(cytomineService.currentUser)
+        if(domain) {
+            String serviceName = GrailsNameUtils.getPropertyName(domain) + 'Service'
+
+            if(afterThan){
+                return commandclass.findAllByServiceNameAndCreatedGreaterThan(serviceName, new Date(afterThan))
+            }
+            return commandclass.findAllByServiceName(serviceName)
+        }
+        return commandclass.findAll()
     }
 }

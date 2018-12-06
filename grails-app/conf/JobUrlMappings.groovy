@@ -18,7 +18,7 @@ class JobUrlMappings {
 
     static mappings = {
         /* Job */
-        "/api/job.$fomat"(controller:"restJob"){
+        "/api/job.$format"(controller:"restJob"){
             action = [GET: "list",POST:"add"]
         }
         "/api/job/$id.$format"(controller:"restJob"){
@@ -48,18 +48,18 @@ class JobUrlMappings {
         }
 
         /* Job template */
-        "/api/jobtemplate.$fomat"(controller:"restJobTemplate"){
+        "/api/jobtemplate.$format"(controller:"restJobTemplate"){
             action = [POST:"add"]
         }
         "/api/jobtemplate/$id.$format"(controller:"restJobTemplate"){
             action = [GET:"show",PUT:"update", DELETE:"delete"]
         }
-        "/api/project/$project/jobtemplate.$fomat"(controller:"restJobTemplate"){
+        "/api/project/$project/jobtemplate.$format"(controller:"restJobTemplate"){
             action = [GET: "list"]
         }
 
         /* Job template annotation */
-        "/api/jobtemplateannotation.$fomat"(controller:"restJobTemplateAnnotation"){
+        "/api/jobtemplateannotation.$format"(controller:"restJobTemplateAnnotation"){
             action = [POST:"add",GET: "list"]
         }
         "/api/jobtemplateannotation/$id.$format"(controller:"restJobTemplateAnnotation"){

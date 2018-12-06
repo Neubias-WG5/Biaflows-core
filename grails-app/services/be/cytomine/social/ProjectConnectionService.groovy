@@ -22,6 +22,7 @@ class ProjectConnectionService extends ModelService {
     def mongo
     def noSQLCollectionService
     def imageConsultationService
+    def secUserService
 
     def add(def json){
 
@@ -42,7 +43,12 @@ class ProjectConnectionService extends ModelService {
     }
 
     def lastConnectionInProject(Project project, Long userId = null){
-        securityACLService.check(project,WRITE)
+        if(userId) {
+            SecUser user = secUserService.read(userId)
+            securityACLService.checkIsSameUserOrAdminContainer(project, user , cytomineService.currentUser)
+        } else {
+            securityACLService.check(project,WRITE)
+        }
 
         if (userId) {
             return PersistentProjectConnection.findAllByUserAndProject(userId, project.id, [sort: 'created', order: 'desc', max: 1])

@@ -45,9 +45,44 @@ class ConfigurationSecurityTests extends SecurityTestsAbstract{
     void testConfigurationSecurityForCytomineGuest() {
 
         //Get user1
-        User user1 = getUser1()
-        User user2 = getUser2()
+        User guest = getGuest1()
 
+        //Get admin user
+        User admin = getUserAdmin()
+
+        Configuration configuration = BasicInstanceBuilder.getConfigurationNotExist(false)
+
+        def result = ConfigurationAPI.create(configuration.encodeAsJSON(),SecurityTestsAbstract.GUEST1,SecurityTestsAbstract.GPASSWORD1)
+        assert 403 == result.code
+        result = ConfigurationAPI.create(configuration.encodeAsJSON(),SecurityTestsAbstract.USERNAMEADMIN,SecurityTestsAbstract.PASSWORDADMIN)
+        assert 200 == result.code
+        def json = JSON.parse(result.data).configuration
+        assert (200 == ConfigurationAPI.show(json.key,SecurityTestsAbstract.GUEST1,SecurityTestsAbstract.GPASSWORD1).code)
+        assert (403 == ConfigurationAPI.update(json.key,configuration.encodeAsJSON(),SecurityTestsAbstract.GUEST1,SecurityTestsAbstract.GPASSWORD1).code)
+        assert (403 == ConfigurationAPI.delete(json.key,SecurityTestsAbstract.GUEST1,SecurityTestsAbstract.GPASSWORD1).code)
+
+        configuration.readingRole = Configuration.Role.USER
+        result = ConfigurationAPI.update(json.key, configuration.encodeAsJSON(),SecurityTestsAbstract.USERNAMEADMIN,SecurityTestsAbstract.PASSWORDADMIN)
+        assert 200 == result.code
+        json = JSON.parse(result.data).configuration
+
+        assert (403 == ConfigurationAPI.show(json.key,SecurityTestsAbstract.GUEST1,SecurityTestsAbstract.GPASSWORD1).code)
+        assert (403 == ConfigurationAPI.update(json.key,configuration.encodeAsJSON(),SecurityTestsAbstract.GUEST1,SecurityTestsAbstract.GPASSWORD1).code)
+        assert (403 == ConfigurationAPI.delete(json.key,SecurityTestsAbstract.GUEST1,SecurityTestsAbstract.GPASSWORD1).code)
+
+        configuration.readingRole = Configuration.Role.ALL
+        result = ConfigurationAPI.update(json.key, configuration.encodeAsJSON(),SecurityTestsAbstract.USERNAMEADMIN,SecurityTestsAbstract.PASSWORDADMIN)
+        assert 200 == result.code
+        json = JSON.parse(result.data).configuration
+
+        assert (200 == ConfigurationAPI.show(json.key,SecurityTestsAbstract.GUEST1,SecurityTestsAbstract.GPASSWORD1).code)
+        assert (403 == ConfigurationAPI.update(json.key,configuration.encodeAsJSON(),SecurityTestsAbstract.GUEST1,SecurityTestsAbstract.GPASSWORD1).code)
+        assert (403 == ConfigurationAPI.delete(json.key,SecurityTestsAbstract.GUEST1,SecurityTestsAbstract.GPASSWORD1).code)
+    }
+
+    void testConfigurationSecurityForCytomineUser() {
+
+        getUser2()
         //Get admin user
         User admin = getUserAdmin()
 
@@ -62,15 +97,14 @@ class ConfigurationSecurityTests extends SecurityTestsAbstract{
         assert (403 == ConfigurationAPI.update(json.key,configuration.encodeAsJSON(),SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2).code)
         assert (403 == ConfigurationAPI.delete(json.key,SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2).code)
 
-        configuration.readingRole = SecRole.findByAuthority("ROLE_ADMIN")
+        configuration.readingRole = Configuration.Role.USER
         result = ConfigurationAPI.update(json.key, configuration.encodeAsJSON(),SecurityTestsAbstract.USERNAMEADMIN,SecurityTestsAbstract.PASSWORDADMIN)
         assert 200 == result.code
         json = JSON.parse(result.data).configuration
 
-        assert (403 == ConfigurationAPI.show(json.key,SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2).code)
+        assert (200 == ConfigurationAPI.show(json.key,SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2).code)
         assert (403 == ConfigurationAPI.update(json.key,configuration.encodeAsJSON(),SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2).code)
         assert (403 == ConfigurationAPI.delete(json.key,SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2).code)
     }
-
 
 }

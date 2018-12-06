@@ -1,5 +1,7 @@
 package be.cytomine
 
+import be.cytomine.image.ImageInstance
+
 /*
 * Copyright (c) 2009-2017. Authors: see NOTICE file.
 *
@@ -89,6 +91,19 @@ class RoiAnnotationTests {
         assert 400 == result.code
     }
 
+    void testAddRoiAnnotationOutOfBoundsGeom() {
+        def annotationToAdd = BasicInstanceBuilder.getRoiAnnotation()
+        ImageInstance im = annotationToAdd.image
+
+        def updateAnnotation = JSON.parse((String)annotationToAdd.encodeAsJSON())
+        updateAnnotation.location = "POLYGON((-1 -1,-1 $im.baseImage.height,${im.baseImage.width+5} $im.baseImage.height,$im.baseImage.width 0,-1 -1))"
+
+        def result = RoiAnnotationAPI.create(updateAnnotation.toString(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        assert result.data.location.toString() == "POLYGON ((0 $im.baseImage.height, $im.baseImage.width $im.baseImage.height, $im.baseImage.width 0, 0 0, 0 $im.baseImage.height))"
+
+    }
+
     void testAddRoiAnnotationBadGeomEmpty() {
         def annotationToAdd = BasicInstanceBuilder.getRoiAnnotation()
         def updateAnnotation = JSON.parse((String)annotationToAdd.encodeAsJSON())
@@ -109,7 +124,7 @@ class RoiAnnotationTests {
         RoiAnnotation annotationToAdd = BasicInstanceBuilder.getRoiAnnotation()
         def data = UpdateData.createUpdateSet(
                 BasicInstanceBuilder.getRoiAnnotation(),
-                [location: [new WKTReader().read("POLYGON ((2107 2160, 2047 2074, 1983 2168, 1983 2168, 2107 2160))"),new WKTReader().read("POLYGON ((1983 2168, 2107 2160, 2047 2074, 1983 2168, 1983 2168))")]]
+                [location: [new WKTReader().read("POLYGON ((2107 2160, 2047 2074, 1983 2168, 1983 2168, 2107 2160))"),new WKTReader().read("POLYGON ((1983 2168, 2107 2160, 2047 2074, 1983 2168))")]]
         )
 
         def result = RoiAnnotationAPI.update(annotationToAdd.id, data.postData,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)

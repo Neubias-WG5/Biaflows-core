@@ -109,9 +109,9 @@ ProjectUserActivityView = Backbone.View.extend({
         //$(self.el).find("#totalConsultedImages"+self.model.id).html(self.);
         $(self.el).find("#totalUserAnnotations-"+self.model.id).html(self.numberAnnotations);
 
-        var prettyDate = window.app.convertLongToPrettyDate(self.lastConnexionDate);
+        var prettyDate = "<span title='"+ window.app.convertLongToDate(self.lastConnexionDate) +"'>"+ window.app.convertLongToPrettyDate(self.lastConnexionDate) +"</span>";
         $(self.el).find("#lastProjectConnexion-"+self.model.id).html(prettyDate);
-        prettyDate = window.app.convertLongToPrettyDate(self.firstConnexionDate);
+        prettyDate = "<span title='"+ window.app.convertLongToDate(self.firstConnexionDate) +"'>"+ window.app.convertLongToPrettyDate(self.firstConnexionDate) +"</span>";
         $(self.el).find("#firstProjectConnexion-"+self.model.id).html(prettyDate);
 
 
@@ -122,7 +122,7 @@ ProjectUserActivityView = Backbone.View.extend({
         var columns = [
             { data: "created", render : function ( data, type ) {
                 if(type === "display"){
-                    return window.app.convertLongToPrettyDate(data);
+                    return "<span title='"+window.app.convertLongToDate(data)+"'> "+window.app.convertLongToPrettyDate(data)+"</span>";
                 } else {
                     return data
                 }
@@ -202,7 +202,7 @@ ProjectUserActivityView = Backbone.View.extend({
         var columns = [
             { data: "created", render : function ( data, type ) {
                 if(type === "display"){
-                    return window.app.convertLongToPrettyDate(data);
+                    return "<span title='"+window.app.convertLongToDate(data)+"'> "+window.app.convertLongToPrettyDate(data)+"</span>";
                 } else {
                     return data
                 }
@@ -301,7 +301,8 @@ ProjectUserActivityView = Backbone.View.extend({
                 }
             }, targets: [1]},
             { data: "first", defaultContent: "", render : function ( data, type, row ) {
-                return window.app.convertLongToPrettyDate(row['first'])+"<br/>"+window.app.convertLongToPrettyDate(row['last']);
+                return "<span title='"+window.app.convertLongToDate(row['first'])+"'> "+window.app.convertLongToPrettyDate(row['first'])+"</span><br/>"+
+                    "<span title='"+window.app.convertLongToDate(row['last'])+"'> "+window.app.convertLongToPrettyDate(row['last'])+"</span>"
             }, targets: [2]},
             { data: "countCreatedAnnotations", defaultContent: "Unknown value", targets: [3]},
             { searchable: false, orderable: false, targets: "_all" }

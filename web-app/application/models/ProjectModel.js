@@ -151,7 +151,7 @@ var ProjectCollection = PaginatedCollection.extend({
         } else if (!window.app.isUndefined(this.ontology)) {
             return "api/ontology/" + this.ontology + "/project.json";
         } else if (!window.app.isUndefined(this.description) && this.description == true) {
-            return "api/project.json?description=true";
+            return "api/project.json?withDescription=true";
         } else {
             return "api/project.json";
         }

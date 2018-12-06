@@ -16,15 +16,6 @@
 
 var UploadFormView = Backbone.View.extend({
 
-    statusLabels: {
-        uploadedLabel: '<span class="label label-default">UPLOADED</span>',
-        errorFormatLabel: '<span class="label label-danger">ERROR FORMAT</span>',
-        convertedLabel: '<span class="label label-info">CONVERTED</span>',
-        deployedLabel: '<span class="label label-success">DEPLOYED</span>',
-        errorConvertLabel: '<span class="label label-danger">ERROR CONVERT</span>',
-        uncompressed : '<span class="label label-success">UNCOMPRESSED</span>',
-        to_deploy : '<span class="label label-info">TO DEPLOY</span>'
-    },
     fileUploadErrors: {
         maxFileSize: 'File is too big',
         minFileSize: 'File is too small',
@@ -179,6 +170,12 @@ var UploadFormView = Backbone.View.extend({
                         data.context.each(function (index) {
                             var file = ($.isArray(data.result) &&
                                 data.result[index]) || {error: 'emptyResult'};
+
+                            if(data.result.status != 200){
+                                file.error = data.result.error
+                            }
+
+
                             if (file.error) {
                                 that._adjustMaxNumberOfFiles(1);
                             }
@@ -221,7 +218,7 @@ var UploadFormView = Backbone.View.extend({
                             if (data.errorThrown !== 'abort') {
                                 var file = data.files[index];
                                 file.error = file.error || data.errorThrown ||
-                                    true;
+                                    "An error occured";
                                 that._transitionCallback(
                                     $(this).removeClass('in'),
                                     function (node) {
@@ -639,41 +636,45 @@ var UploadFormView = Backbone.View.extend({
             }
         });
     },
-    getStatusLabel: function (model) {
-        if (model.uploaded) {
-            return this.statusLabels.uploadedLabel;
-        } else if (model.converted) {
-            return this.statusLabels.convertedLabel;
-        } else if (model.deployed) {
-            return this.statusLabels.deployedLabel;
-        } else if (model.error_format) {
-            return this.statusLabels.errorFormatLabel;
-        } else if (model.error_convert) {
-            return this.statusLabels.errorConvertLabel;
-        } else if (model.uncompressed) {
-            return this.statusLabels.uncompressed;
-        } else if (model.to_deploy) {
-            return this.statusLabels.to_deploy;
-        }
+    getStatusLabel: function (file) {
+        var status = new UploadedFileModel(file).getStatus()
+        var result = "<span class=\"label ";
 
-        return "?";//this.statusLabels.deployedLabel;
-    },
-    appendUploadedFile: function (model, target) {
-        var rowTpl = "<tr><td><%= image %></td><td><%= originalFilename %></td><td><%= created %></td><td><%= size %></td><td><%= contentType %></td><td><%= status %></td></tr>";
-        model.set({status: this.getStatusLabel(model)});
-        target.append(_.template(rowTpl, model.toJSON()));
+        switch(file.status){
+            case 0:
+            case 6:
+            case 7:
+                result += "label-info";
+                break;
+            case 1:
+            case 2:
+                result += "label-success";
+                break;
+            case 3:
+            case 4:
+            case 5:
+            case 8:
+            case 9:
+                result += "label-danger";
+                break;
+        }
+        result += "\">"+status+"</span>";
+
+        return result;
     },
     renderUploadedFiles: function () {
         var self = this;
         var uploadTable = $('#uploaded_files');
         var loadingDiv = $("#loadingUploadedFiles");
-        var uploadedFileCollectionUrl = new UploadedFileCollection({ dataTables: true}).url();
+        var uploadedFileCollectionUrl = new UploadedFileCollection({ datatables: true}).url();
         uploadTable.hide();
         loadingDiv.show();
+
         self.uploadDataTables = uploadTable.DataTable({
             displayLength: 25,
             destroy: true,
             processing: true,
+            serverSide : true,
 
             columnDefs: [
                 {defaultContent: "No preview available", render : function (data, type, row) {
@@ -690,56 +691,94 @@ var UploadFormView = Backbone.View.extend({
                     return mbSize + "Mo";
                 },targets: [ 3 ]},
                 {data: "contentType", targets: [ 4 ]},
-                {orderable: true, render: function (data, type, row) {
-                    return self.getStatusLabel(row);
-                }, targets: [ 5 ] },
+                {data: "globalSize", orderable: true, render : function (data) {
+                    var mbSize = (data / (1024 * 1024));
+                    if(mbSize < 1024 ) return mbSize.toFixed(2) + "Mo";
+                    else return (mbSize/1024).toFixed(2) + "Go";
+                },targets: [ 5 ]},
+                {render: function (data, type, row) {
+                    var text =  self.getStatusLabel(row);
+                    if(row["nbChildren"] == 0) return text;
+                    text += " ("+row["nbChildren"]+" file";
+                    if(row["nbChildren"] > 1) {
+                        text += "s)";
+                    } else {
+                        text += ")";
+                    }
+                    return text;
+                }, targets: [ 6 ] },
+                {data: "parentFilename", targets: [ 7 ]},
                 {render: function ( data, type, row ) {
                     var result = "";
-                    // we allow deletion of non deployed image after a security gap of 24h.
-                    if(row["to_deploy"] || row["error_format"] || row["error_convert"]){
-                        if(($.now() - row["updated"])/3600000 > 24) {
-                            result+="<button class='btn btn-info btn-xs deleteimage' id='deleteimage-"+row["image"]+"' data-ufid="+row["id"]+" data-aiid="+row["image"]+">Delete</button>";
-                        } else {
-                            result+="<button class='btn btn-info btn-xs deleteimage' id='deleteimage-"+row["image"]+"' data-ufid="+row["id"]+" data-aiid="+row["image"]+" disabled>Delete</button>";
-                        }
-                    }else {
-                        result+="<button class='btn btn-info btn-xs deleteimage' id='deleteimage-"+row["image"]+"' data-ufid="+row["id"]+" data-aiid="+row["image"]+" disabled>Delete</button> ";
-                        if(row["image"] !== null && window.app.status.user.model.get("adminByNow")){
-                            result+="<a class='btn btn-info btn-xs' href='api/abstractimage/"+row["image"]+"/download'> Download</a>";
-                        }
-                    }
+                    result+="<button class='btn btn-info btn-xs detailsUploadedFile' data-ufid="+row["id"]+">Details</button>";
                     return result;
-                },targets: [ 6 ]},
+                },targets: [ 8 ]},
                 { searchable: false, orderable: false, targets: "_all" }
             ],
-            order: [[ 1, "desc" ]],
+            order: [[ 2, "desc" ]],
             ajax: {
-                url: uploadedFileCollectionUrl/*,
-                data: {
-                    "datatables": "true"
-                }*/
+                url: uploadedFileCollectionUrl
             },
-            drawCallback: function() {
-                new UploadedFileCollection().fetch({
-                    success: function(model,response) {
-
-                        $.get( "/api/abstractimage/unused.json", function( data ) {
-                            for(var i = 0; i<data.collection.length;i++) {
-                                $('button[id^=deleteimage-][id$=-'+data.collection[i].id+']').prop("disabled",false);
-                            }
-                        });
-                    }
-                });
-            }
+            autoWidth: false,
         });
+
         uploadTable.show();
         loadingDiv.hide();
 
-        $(document).on('click', "#refreshUploadedFiles", function (e) {
+        $(this.el).on('click', "#refreshUploadedFiles", function (e) {
             e.preventDefault();
             self.uploadDataTables.ajax.reload();
         });
-        $(document).on('click', ".deleteimage", function (e) {
+
+        var closeCallback = function () {
+            self.uploadDataTables.ajax.reload();
+        };
+
+        $(this.el).on('click', ".detailsUploadedFile", function (e) {
+            var idUpload = $(e.currentTarget).data("ufid");
+
+            //get data from the datatable
+            var tr = $(this).closest('tr');
+            var row = self.uploadDataTables.row( tr );
+
+            var data = $.extend(true, {}, row.data());
+
+            new DetailedUploadedFileTreeDialog({el: "#dialogs", model: data, callback : closeCallback}).render();
+
+
+            //var idImage = $(e.currentTarget).data("aiid");
+
+            /*DialogModal.initDialogModal(null, idUpload, 'UploadFile', 'Do you want to delete this image ?', 'CONFIRMATIONWARNING', function(){
+                var deleteUploadFile = function() {
+                    new UploadedFileModel({id: idUpload}).destroy({
+                        success: function (model, response) {
+                            window.app.view.message("Uploaded file", "deleted", "success");
+                            self.uploadDataTables.ajax.reload();
+                        },
+                        error: function (model, response) {
+                            var json = $.parseJSON(response.responseText);
+                            window.app.view.message("Delete failed", json.errors, "error");
+                        }
+                    });
+                };
+
+                if(idImage == null || idImage == 'null') {
+                    deleteUploadFile();
+                } else {
+                    new ImageModel({id: idImage}).destroy({
+                        success: function(model, response){
+                            deleteUploadFile();
+                        },
+                        error: function(model, response){
+                            var json = $.parseJSON(response.responseText);
+                            window.app.view.message("Delete failed", json.errors, "error");
+                        }
+                    });
+                }
+            });*/
+        });
+
+        /*$(document).on('click', ".deleteimage", function (e) {
             var idUpload = $(e.currentTarget).data("ufid");
             var idImage = $(e.currentTarget).data("aiid");
 
@@ -771,7 +810,7 @@ var UploadFormView = Backbone.View.extend({
                      });
                  }
              });
-        });
+        });*/
     },
     refreshProjectAndStorage : function() {
         var self = this;

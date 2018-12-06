@@ -23,6 +23,8 @@ import org.restapidoc.annotation.RestApiMethod
 import org.restapidoc.annotation.RestApiParam
 import org.restapidoc.annotation.RestApiParams
 import org.restapidoc.pojo.RestApiParamType
+import be.cytomine.security.SecUser
+import static org.springframework.security.acls.domain.BasePermission.READ
 
 import java.text.SimpleDateFormat
 
@@ -33,8 +35,11 @@ class RestImageConsultationController extends RestController {
     def projectService
     def imageConsultationService
     def exportService
+    def securityACLService
+    def cytomineService
+    def secUserService
 
-    @RestApiMethod(description = "Add a new image consultation record")
+    @RestApiMethod(description="Add a new image consultation record")
     def add() {
         try {
             responseSuccess(imageConsultationService.add(request.JSON))
@@ -51,6 +56,20 @@ class RestImageConsultationController extends RestController {
     def lastImageOfUsersByProject() {
         Project project = projectService.read(params.project)
         responseSuccess(imageConsultationService.lastImageOfUsersByProject(project))
+    }
+
+    @RestApiMethod(description="Get the last consultations of an user into a project")
+    @RestApiParams(params=[
+            @RestApiParam(name="project", type="long", paramType = RestApiParamType.PATH, description = "The project id"),
+            @RestApiParam(name="user", type="long", paramType = RestApiParamType.PATH, description = "The user id")
+    ])
+    def listImageConsultationByProjectAndUser(){
+        securityACLService.check(params.project, Project, READ)
+        Project project = projectService.read(params.project)
+        SecUser user = secUserService.read(params.user)
+        securityACLService.checkIsSameUserOrAdminContainer(project, user, cytomineService.currentUser)
+
+        responseSuccess(imageConsultationService.listImageConsultationByProjectAndUser(Long.parseLong(params.project), Long.parseLong(params.user), Boolean.parseBoolean(params.distinctImages), params.int("max",0), params.int("offset",0)))
     }
 
     @RestApiMethod(description = "Summarize the consulted images for a given user and a given project")

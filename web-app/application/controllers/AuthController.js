@@ -74,7 +74,7 @@ var AuthController = Backbone.Router.extend({
         });
         return false;
     },
-    createAccount : function () {
+    /*createAccount : function () {
         var app = new ApplicationView(); //in order to use message function
         var data = $("#login-form").serialize(); //should be in LoginDIalogView
         var self = this;
@@ -93,7 +93,7 @@ var AuthController = Backbone.Router.extend({
             }
         });
         return false;
-    },
+    },*/
     doLogin: function () {
         var app = new ApplicationView(); //in order to use message function
         var data = $("#login-form").serialize(); //should be in LoginDIalogView

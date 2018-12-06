@@ -299,17 +299,20 @@ class RestUserController extends RestController {
     @RestApiMethod(description="Get current user info")
     def showCurrent() {
         SecUser user = secUserService.readCurrentUser()
-        def  maps = JSON.parse(user.encodeAsJSON())
-        def  authMaps = secUserService.getAuth(user)
-        maps.admin = authMaps.get("admin")
-        maps.user = authMaps.get("user")
-        maps.guest = authMaps.get("guest")
-        maps.adminByNow = authMaps.get("adminByNow")
-        maps.userByNow = authMaps.get("userByNow")
-        maps.guestByNow = authMaps.get("guestByNow")
-        maps.isSwitched = SpringSecurityUtils.isSwitched()
-        if(maps.isSwitched) {
-            maps.realUser = SpringSecurityUtils.switchedUserOriginalUsername
+        def maps = JSON.parse(user.encodeAsJSON())
+        if(!user.algo()){
+            def authMaps = secUserService.getAuth(user)
+            maps.admin = authMaps.get("admin")
+            maps.user = authMaps.get("user")
+            maps.guest = authMaps.get("guest")
+            maps.adminByNow = authMaps.get("adminByNow")
+            maps.userByNow = authMaps.get("userByNow")
+            maps.guestByNow = authMaps.get("guestByNow")
+            maps.isSwitched = SpringSecurityUtils.isSwitched()
+            if(maps.isSwitched) {
+                maps.realUser = SpringSecurityUtils.switchedUserOriginalUsername
+            }
+
         }
         responseSuccess(maps)
     }
@@ -329,7 +332,7 @@ class RestUserController extends RestController {
      */
     @RestApiMethod(description="Edit a user")
     @RestApiParams(params=[
-        @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The user id")
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The user id")
     ])
     def update() {
         update(secUserService, request.JSON)
@@ -344,6 +347,24 @@ class RestUserController extends RestController {
     ])
     def delete() {
         delete(secUserService, JSON.parse("{id : $params.id}"),null)
+    }
+
+    @RestApiMethod(description="Lock an user")
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The user id")
+    ])
+    def lock() {
+        SecUser user = SecUser.get(params.id)
+        response(secUserService.lock(user))
+    }
+
+    @RestApiMethod(description="Unlock an user")
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The user id")
+    ])
+    def unlock() {
+        SecUser user = SecUser.get(params.id)
+        response(secUserService.unlock(user))
     }
 
     /**
@@ -572,6 +593,10 @@ class RestUserController extends RestController {
 
         }
 
+        if(field == null || field == "null") {
+            field = "id"
+        }
+
         Project project = projectService.read(params.long('id'))
 
         boolean online = params.boolean('onlineOnly');
@@ -604,12 +629,14 @@ class RestUserController extends RestController {
         Integer max = (params.max != null && params.getInt('max')!=0) ? params.getInt('max') : Integer.MAX_VALUE
         def maxForCollection = Math.min(users.size() - offset, max)
 
-        if(field && ["email","username"].contains(field)) {
+        if(field && ["id","email","username"].contains(field)) {
             users.sort { a,b->
                 if(field.equals("email")) {
                     (order)*(a.email <=>b.email)
                 } else if(field.equals("username")) {
                     (order)*(a.username.toLowerCase() <=>b.username.toLowerCase() )
+                } else if(field.equals("id")) {
+                    (order)*(a.id <=>b.id )
                 }
             }
             sorted = true;

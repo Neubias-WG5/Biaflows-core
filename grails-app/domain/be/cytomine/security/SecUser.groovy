@@ -58,12 +58,12 @@ class SecUser extends CytomineDomain implements Serializable {
 
 
     @RestApiObjectFields(params=[
-        @RestApiObjectField(apiFieldName = "algo", description = "If true, user is a userjob",allowedType = "boolean",useForCreation = false)
+            @RestApiObjectField(apiFieldName = "algo", description = "If true, user is a userjob",allowedType = "boolean",useForCreation = false)
     ])
     static transients = ["newPassword", "currentTransaction", "nextTransaction"]
 
     static constraints = {
-        username blank: false, unique: true
+        username blank: false
         password blank: false
         newPassword(nullable : true, blank : false)
         publicKey nullable : true, blank : false, unique: true
@@ -110,7 +110,7 @@ class SecUser extends CytomineDomain implements Serializable {
      */
     void checkAlreadyExist() {
         SecUser.withNewSession {
-            SecUser user = SecUser.findByUsername(username)
+            SecUser user = SecUser.findByUsernameIlike(username)
             if(user && (user.id!=id)) {
                 throw new AlreadyExistException("User "+username + " already exist!")
             }

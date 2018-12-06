@@ -199,16 +199,6 @@ var ApplicationView = Backbone.View.extend({
 
 
 
-
-        if(window.app.status.user.model.get('guest'))  {
-            $("#feedback").hide();
-        }
-
-        $("#feedback").on("click", function (e) {
-            e.preventDefault();
-			FreshWidget.show();
-        });
-
         $("#a-info-cytomine").click(function () {
             var body;
             require([

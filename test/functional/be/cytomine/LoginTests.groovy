@@ -34,6 +34,26 @@ class LoginTests {
         assert json.authenticated
     }
 
+    void testLoginWithIlikeUsername() {
+        def username = ""
+        int i = Math.abs(((new Random()).nextInt())%(Infos.SUPERADMINLOGIN.size()))
+
+        username += Infos.SUPERADMINLOGIN.substring(0,i)
+        if(Infos.SUPERADMINLOGIN.charAt(i).toUpperCase() == Infos.SUPERADMINLOGIN.charAt(i)) {
+            username += Infos.SUPERADMINLOGIN.charAt(i).toLowerCase()
+        } else {
+            username += Infos.SUPERADMINLOGIN.charAt(i).toUpperCase()
+        }
+        username += Infos.SUPERADMINLOGIN.substring(i+1)
+
+        def result = ProjectAPI.doPing(0,username, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+        assert json.alive
+        assert json.authenticated
+    }
+
     void testPingWithoutCredential() {
         def result = ProjectAPI.doPing(0,Infos.BADLOGIN, Infos.BADPASSWORD)
         assert 401 == result.code

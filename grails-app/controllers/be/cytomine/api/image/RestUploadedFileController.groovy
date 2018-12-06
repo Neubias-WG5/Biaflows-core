@@ -54,19 +54,35 @@ class RestUploadedFileController extends RestController {
 
     static allowedMethods = [image: 'POST']
 
+    def dataTablesService
     @RestApiMethod(description="Get all uploaded file made by the current user")
     def list() {
+
+        Long root
         def uploadedFiles
-        //get all uploaded file for this user
-        if(params["deleted"]) {
-            uploadedFiles = uploadedFileService.listDeleted()
+        if(params.root) {
+            root = Long.parseLong(params.root)
+            uploadedFiles = uploadedFileService.listHierarchicalTree((User)cytomineService.getCurrentUser(), root)
+            //if view is datatables, change way to store data
+        } else if (params.datatables) {
+            uploadedFiles = dataTablesService.process(params, UploadedFile, null, null, null)
         } else {
-            uploadedFiles = uploadedFileService.list((User)cytomineService.getCurrentUser())
+            Boolean onlyRoots
+            if(params.onlyRoots) {
+                onlyRoots = Boolean.parseBoolean(params.onlyRoots)
+            }
+            Long parent
+            if(params.parent){
+                parent = Long.parseLong(params.parent)
+            }
+            if(params.all){
+                uploadedFiles = uploadedFileService.list()
+            } else {
+                uploadedFiles = uploadedFileService.list((User)secUserService.getUser(cytomineService.getCurrentUser().id), parent, onlyRoots)
+            }
         }
-        //if view is datatables, change way to store data
-        if (params.dataTables) {
-            uploadedFiles = ["aaData" : uploadedFiles]
-        }
+
+
         responseSuccess(uploadedFiles)
     }
 
@@ -109,8 +125,9 @@ class RestUploadedFileController extends RestController {
     @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The uploaded file id")
     ])
     def show () {
-        UploadedFile up = uploadedFileService.read(params.long('id'))
+        UploadedFile up = uploadedFileService.get(params.long('id'))
         if (up) {
+            securityACLService.checkIsSameUser(up.user, cytomineService.getCurrentUser())
             responseSuccess(up)
         } else {
             responseNotFound("UploadedFile", params.id)
@@ -143,9 +160,9 @@ class RestUploadedFileController extends RestController {
      * Delete a new image
      * TODO:: how to manage security here?
      */
-    @RestApiMethod(description="Delete an uploaded file domain. This will not delete the file on disk by default.")
+    @RestApiMethod(description="Delete an uploaded file domain. This do not delete the file on disk.")
     @RestApiParams(params=[
-            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH,description = "The uploaded file id")
+    @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH,description = "The uploaded file id")
     ])
     def delete () {
         delete(uploadedFileService, JSON.parse("{id : $params.id}"),null)
@@ -169,6 +186,21 @@ class RestUploadedFileController extends RestController {
         redirect(url: "http://localhost:9090/upload")
     }
 
+    @RestApiMethod(description="Download the uploaded file")
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The uploaded file id")
+    ])
+    def downloadUploadedFile(){
+        UploadedFile up = uploadedFileService.get(params.long('id'));
+        if (up) {
+            String url = uploadedFileService.downloadURI(up)
+            log.info "redirect url"
+            redirect (url : url)
+        } else {
+            responseNotFound("UploadedFile", params.id)
+        }
+    }
+
     @RestApiMethod(description="Create an image thanks to an uploaded file domain. THis add the image in the good storage and the project (if needed). This send too an email at the end to the uploader and the project managers.")
     @RestApiParams(params=[
     @RestApiParam(name="uploadedFile", type="long", paramType = RestApiParamType.PATH,description = "The uploaded file id")
@@ -181,6 +213,7 @@ class RestUploadedFileController extends RestController {
         UploadedFile uploadedFile = UploadedFile.read(params.long('uploadedFile'))
         String path = request.JSON.path ?: uploadedFile.getFilename();
         String filename = request.JSON.filename ?: uploadedFile.getFilename();
+        String originalFilename = request.JSON.originalFilename ?: uploadedFile.getOriginalFilename();
         String mimeType = request.JSON.mimeType;
         Collection<Storage> storages = []
         uploadedFile.getStorages()?.each {
@@ -207,7 +240,7 @@ class RestUploadedFileController extends RestController {
         log.info "#################################################################"
         AbstractImage abstractImage = new AbstractImage(
                 filename: filename,
-                originalFilename:  uploadedFile.getOriginalFilename(),
+                originalFilename:  originalFilename,
                 scanner: null,
                 sample: sample,
                 path: path,

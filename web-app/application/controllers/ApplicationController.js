@@ -138,7 +138,6 @@ var ApplicationController = Backbone.Router.extend({
         window.app.controllers.activity = new ActivityController();
         window.app.controllers.search = new SearchController();
         window.app.controllers.account = new AccountController();
-        window.app.controllers.phono = new PhonoController();
         window.app.controllers.userdashboard = new UserDashboardController();
         window.app.controllers.admin = new AdminController();
         window.app.controllers.software = new SoftwareController();

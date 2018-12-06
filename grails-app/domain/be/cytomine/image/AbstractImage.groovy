@@ -152,7 +152,7 @@ class AbstractImage extends CytomineDomain implements Serializable {
         domain.updated = JSONUtils.getJSONAttrDate(json,'updated')
         domain.scanner = JSONUtils.getJSONAttrDomain(json,"scanner",new Instrument(),false)
         domain.sample = JSONUtils.getJSONAttrDomain(json,"sample",new Sample(),false)
-        domain.mime = JSONUtils.getJSONAttrDomain(json,"mime",new Mime(),'extension','String',true)
+        domain.mime = JSONUtils.getJSONAttrDomain(json,"mime",new Mime(),'mimeType','String',true)
         domain.magnification = JSONUtils.getJSONAttrInteger(json,'magnification',null)
         domain.resolution = JSONUtils.getJSONAttrDouble(json,'resolution',null)
         domain.bitDepth = JSONUtils.getJSONAttrInteger(json, 'bitDepth', null)
@@ -177,7 +177,7 @@ class AbstractImage extends CytomineDomain implements Serializable {
         returnArray['scanner'] = image?.scanner?.id
         returnArray['sample'] = image?.sample?.id
         returnArray['path'] = image?.path
-        returnArray['mime'] = image?.mime?.extension
+        returnArray['mime'] = image?.mime?.mimeType
         returnArray['width'] = image?.width
         returnArray['height'] = image?.height
         returnArray['depth'] = image?.getZoomLevels()?.max

@@ -48,7 +48,17 @@ abstract class AnnotationSearch extends EngineSearch {
         """
     }
 
-    public String createRequestOnProperty(List<String> words) {
+    public String createRequestOnProperty(List<String> words, String attribute = null) {
+        String propertyRequest
+
+        if(attribute == "key"){
+            propertyRequest = "AND ${formatCriteriaToWhere(words, "property.key")}"
+        } else if(attribute == "value"){
+            propertyRequest = "AND ${formatCriteriaToWhere(words, "property.value")}"
+        } else {
+            propertyRequest = "AND (${formatCriteriaToWhere(words, "property.value")} OR ${formatCriteriaToWhere(words, "property.key")})"
+        }
+
         return """
             SELECT property.domain_ident as id, property.domain_class_name as type ${
             getMatchingValue("property.key || ': ' || property.value")
@@ -62,7 +72,7 @@ abstract class AnnotationSearch extends EngineSearch {
             AND sid.sid = '${currentUser.username}'
             AND ae.acl_object_identity = aoi.id
             AND ae.sid = sid.id
-            AND ${formatCriteriaToWhere(words, "property.value")}
+            $propertyRequest
             AND ii.id = annotation.image_id AND ii.deleted IS NULL
         """
     }

@@ -202,6 +202,21 @@ class AlgoAnnotationTests  {
         assert 400 == result.code
     }
 
+    void testAddAlgoAnnotationOutOfBoundsGeom() {
+        def annotationToAdd = BasicInstanceBuilder.getAlgoAnnotation()
+        UserJob user = annotationToAdd.user
+
+        ImageInstance im = annotationToAdd.image
+
+        def updateAnnotation = JSON.parse((String)annotationToAdd.encodeAsJSON())
+        updateAnnotation.location = "POLYGON((-1 -1,-1 $im.baseImage.height,${im.baseImage.width+5} $im.baseImage.height,$im.baseImage.width 0,-1 -1))"
+
+        def result = AlgoAnnotationAPI.create(updateAnnotation.toString(), user.username, 'PasswordUserJob')
+        assert 200 == result.code
+        assert result.data.location.toString() == "POLYGON ((0 $im.baseImage.height, $im.baseImage.width $im.baseImage.height, $im.baseImage.width 0, 0 0, 0 $im.baseImage.height))"
+
+    }
+
     void testAddAlgoAnnotationBadGeomEmpty() {
         def annotationToAdd = BasicInstanceBuilder.getAlgoAnnotation()
         UserJob user = annotationToAdd.user
@@ -236,7 +251,7 @@ class AlgoAnnotationTests  {
         def aa = BasicInstanceBuilder.getAlgoAnnotation()
         def data = UpdateData.createUpdateSet(
                 aa,
-                [location: [new WKTReader().read("POLYGON ((2107 2160, 2047 2074, 1983 2168, 1983 2168, 2107 2160))"),new WKTReader().read("POLYGON ((1983 2168, 2107 2160, 2047 2074, 1983 2168, 1983 2168))")]]
+                [location: [new WKTReader().read("POLYGON ((2107 2160, 2047 2074, 1983 2168, 1983 2168, 2107 2160))"),new WKTReader().read("POLYGON ((1983 2168, 2107 2160, 2047 2074, 1983 2168))")]]
         )
         UserJob user = aa.user
 

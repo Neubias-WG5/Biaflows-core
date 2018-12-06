@@ -82,10 +82,10 @@ var ProjectSearchPanel = Backbone.View.extend({
     loadPanelAndButton: function (ontologiesChoices, disciplinesChoices) {
         var self = this;
 
-        self.ontologies.each(function (ontology) {
-            var choice = _.template(ontologiesChoices, {id: ontology.id, name: ontology.get("name")});
-            $(self.searchProjectOntolgiesListElem).append(choice);
-        });
+        // self.ontologies.each(function (ontology) {
+        //     var choice = _.template(ontologiesChoices, {id: ontology.id, name: ontology.get("name")});
+        //     $(self.searchProjectOntolgiesListElem).append(choice);
+        // });
 
         self.disciplines.each(function (discipline) {
             var choice = _.template(disciplinesChoices, {id: discipline.id, name: discipline.get("name")});
@@ -141,9 +141,9 @@ var ProjectSearchPanel = Backbone.View.extend({
         maxNumberOfAnnotation = self.changeMaxValueToZero(maxNumberOfAnnotation);
 
         //create slider
-        self.createSliderWithoutAmountPrint(self.sliderNumberOfImagesElem, self.labelNumberOfImagesElem, minNumberOfImage, maxNumberOfImage);
-        self.createSliderWithoutAmountPrint(self.sliderNumberOfSlidesElem, self.labelNumberOfSlidesElem, minNumberOfSlide, maxNumberOfSlide);
-        self.createSliderWithoutAmountPrint(self.sliderNumberOfAnnotationsElem, self.labelNumberOfAnnotationsElem, minNumberOfAnnotation, maxNumberOfAnnotation);
+        // self.createSliderWithoutAmountPrint(self.sliderNumberOfImagesElem, self.labelNumberOfImagesElem, minNumberOfImage, maxNumberOfImage);
+        // self.createSliderWithoutAmountPrint(self.sliderNumberOfSlidesElem, self.labelNumberOfSlidesElem, minNumberOfSlide, maxNumberOfSlide);
+        // self.createSliderWithoutAmountPrint(self.sliderNumberOfAnnotationsElem, self.labelNumberOfAnnotationsElem, minNumberOfAnnotation, maxNumberOfAnnotation);
     },
     changeMaxValueToZero : function(value) {
        if(value==Number.MAX_VALUE) {
@@ -166,8 +166,11 @@ var ProjectSearchPanel = Backbone.View.extend({
         });
 
         $(self.searchProjectTextBoxElem).typeahead(
-            {local:projectNameArray,minLength:0}
+            {local:projectNameArray,minLength:0,hint:false}
         );
+
+        $("#project-typeahead").find(".twitter-typeahead").css("display", "inline");
+        $("#project-typeahead").find(".twitter-typeahead").find(".tt-dropdown-menu").css("top", "unset");
 
         $(self.searchProjectTextBoxElem).bind('propertychange keyup input paste click change',function() {
             self.searchProject();
@@ -242,11 +245,11 @@ var ProjectSearchPanel = Backbone.View.extend({
 
         //reset every element
         $(self.searchProjectTextBoxElem).val("");
-        $("#ontologyChoiceList").val(-1);
+        // $("#ontologyChoiceList").val(-1);
         $("#disciplineChoiceList").val(-1);
-        self.resetSlider(self.sliderNumberOfImagesElem);
-        self.resetSlider(self.sliderNumberOfSlidesElem);
-        self.resetSlider(self.sliderNumberOfAnnotationsElem);
+        // self.resetSlider(self.sliderNumberOfImagesElem);
+        // self.resetSlider(self.sliderNumberOfSlidesElem);
+        // self.resetSlider(self.sliderNumberOfAnnotationsElem);
 
         //start a search
         self.searchProject();
@@ -272,11 +275,11 @@ var ProjectSearchPanel = Backbone.View.extend({
         console.log("searchProject");
         var searchText = $(self.searchProjectTextBoxElem).val();
         console.log("searchText="+searchText);
-        var searchOntologies = [];
-        var selectedOntology = $("#ontologyChoiceList").val();
-        if (selectedOntology != -1) {
-            searchOntologies.push(selectedOntology);
-        }
+        // var searchOntologies = [];
+        // var selectedOntology = $("#ontologyChoiceList").val();
+        // if (selectedOntology != -1) {
+        //     searchOntologies.push(selectedOntology);
+        // }
 
 
         var searchDisciplines = [];
@@ -290,38 +293,36 @@ var ProjectSearchPanel = Backbone.View.extend({
          });*/
 
         //get number of images [min,max]
-        var numberOfImages = [];
-        numberOfImages.push($(self.sliderNumberOfImagesElem).slider("values", 0));
-        numberOfImages.push($(self.sliderNumberOfImagesElem).slider("values", 1));
-
+        // var numberOfImages = [];
+        // numberOfImages.push($(self.sliderNumberOfImagesElem).slider("values", 0));
+        // numberOfImages.push($(self.sliderNumberOfImagesElem).slider("values", 1));
+        //
         //get number of slides [min,max]
-        var numberOfSlides = [];
-        numberOfSlides.push($(self.sliderNumberOfSlidesElem).slider("values", 0));
-        numberOfSlides.push($(self.sliderNumberOfSlidesElem).slider("values", 1));
-
+        // var numberOfSlides = [];
+        // numberOfSlides.push($(self.sliderNumberOfSlidesElem).slider("values", 0));
+        // numberOfSlides.push($(self.sliderNumberOfSlidesElem).slider("values", 1));
+        //
         //get number of annotation [min,max]
-        var numberOfAnnotations = [];
-        numberOfAnnotations.push($(self.sliderNumberOfAnnotationsElem).slider("values", 0));
-        numberOfAnnotations.push($(self.sliderNumberOfAnnotationsElem).slider("values", 1));
+        // var numberOfAnnotations = [];
+        // numberOfAnnotations.push($(self.sliderNumberOfAnnotationsElem).slider("values", 0));
+        // numberOfAnnotations.push($(self.sliderNumberOfAnnotationsElem).slider("values", 1));
 
         self.filterProjects(
             searchText == "" ? undefined : searchText,
-            searchOntologies.length == 0 ? undefined : searchOntologies,
-            searchDisciplines.length == 0 ? undefined : searchDisciplines,
-            numberOfImages,
-            numberOfSlides,
-            numberOfAnnotations);
+            // searchOntologies.length == 0 ? undefined : searchOntologies,
+            searchDisciplines.length == 0 ? undefined : searchDisciplines
+            // ,
+            // numberOfImages,
+            // numberOfSlides,
+            // numberOfAnnotations
+        );
     },
 
-    /**
-     * Show only project that match with params
-     * @param searchText Project Name
-     * @param searchOntologies Ontologies
-     * @param searchNumberOfImages Number of image array [min,max]
-     * @param searchNumberOfSlides Number of sample array [min,max]
-     * @param searchNumberOfAnnotations  Number of annotations array [min,max]
-     */
-    filterProjects: function (searchText, searchOntologies, searchDisciplines, searchNumberOfImages, searchNumberOfSlides, searchNumberOfAnnotations) {
+    filterProjects: function (searchText,
+                              // searchOntologies,
+                              searchDisciplines
+                              // searchNumberOfImages, searchNumberOfSlides, searchNumberOfAnnotations
+    ) {
 
         var self = this;
 
@@ -330,11 +331,11 @@ var ProjectSearchPanel = Backbone.View.extend({
         //each search function takes a search data and a collection and it return a collection without elem that
         //don't match with data search
         projects = self.filterByProjectsByName(searchText, projects);
-        projects = self.filterProjectsByOntology(searchOntologies, projects);
+        // projects = self.filterProjectsByOntology(searchOntologies, projects);
         projects = self.filterProjectsByDiscipline(searchDisciplines, projects);
-        projects = self.filterProjectsByNumberOfImages(searchNumberOfImages, projects);
-        projects = self.filterProjectsByNumberOfSlides(searchNumberOfSlides, projects);
-        projects = self.filterProjectsByNumberOfAnnotations(searchNumberOfAnnotations, projects);
+        // projects = self.filterProjectsByNumberOfImages(searchNumberOfImages, projects);
+        // projects = self.filterProjectsByNumberOfSlides(searchNumberOfSlides, projects);
+        // projects = self.filterProjectsByNumberOfAnnotations(searchNumberOfAnnotations, projects);
         //add here filter function
 
         //show project from "projects" (and hide the other) in project view

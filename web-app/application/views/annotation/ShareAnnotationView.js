@@ -55,7 +55,7 @@ var ShareAnnotationView = Backbone.View.extend({
                     var hours = (date.getHours() < 10) ? "0" + date.getHours() : date.getHours();
                     var minutes = (date.getMinutes() < 10) ? "0" + date.getMinutes() : date.getMinutes();
                     comments.append(_.template(commentTpl, {
-                        sender: model.get("sender"),
+                        senderName: model.get("senderName"),
                         comment: model.get("comment"),
                         hour: hours + "h" + minutes
                     }));

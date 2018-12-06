@@ -112,8 +112,6 @@ var UserCollection = PaginatedCollection.extend({
             return "api/project/" + this.project + "/user.json?online=true";
         } else if (!window.app.isUndefined(this.project)) {
             return "api/project/" + this.project + "/user.json";
-        } else if (!window.app.isUndefined(this.ontology) && this.creator) {
-            return "api/ontology/" + this.ontology + "/creator.json";
         } else if (!window.app.isUndefined(this.ontology)) {
             console.log("ontologyYYY=" + this.ontology);
             return "api/ontology/" + this.ontology + "/user.json";
@@ -240,5 +238,14 @@ var UserJobCollection = PaginatedCollection.extend({
         return user.get("softwareName") + newString;
     }, invertNumber: function (number) {
 
+    }
+});
+
+var UserLockModel = Backbone.Model.extend({
+    initialize: function (options) {
+        this.userId = options.userId;
+    },
+    url: function () {
+        return "/api/user/"+ this.userId +"/lock";
     }
 });

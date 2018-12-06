@@ -75,6 +75,7 @@ class SoftwareProject extends CytomineDomain implements Serializable{
         returnArray['software'] = domain?.software?.id
         returnArray['name'] = domain?.software?.name
         returnArray['softwareVersion'] = domain?.software?.softwareVersion
+        returnArray['fullName'] = domain?.software?.fullName()
         returnArray['project'] = domain?.project?.id
         return returnArray
     }

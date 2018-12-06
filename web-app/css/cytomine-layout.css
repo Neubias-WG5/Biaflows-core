@@ -426,9 +426,11 @@ div.olControlOverviewMapElement img {
 
 .projectInfoPanel {
     padding: 0px;
-    margin: 0 15px 15px 0px;
-    min-width: 300px;
     font-size: 12px;
+}
+
+#projectlist > div {
+    width: 49%;
 }
 .thumb-wrapProject{
     float: left;
@@ -1034,4 +1036,10 @@ div.DTFC_LeftFootWrapper table
 
 .graph-enlarge{
     width:100%;
+}
+
+
+ul.dynatree-container a.btn-danger:hover{
+    background-color: #d2322d;
+    border-color: #ac2925;
 }

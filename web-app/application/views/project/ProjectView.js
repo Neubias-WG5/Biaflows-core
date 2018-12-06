@@ -32,21 +32,19 @@ var ProjectView = Backbone.View.extend({
     render: function () {
         var self = this;
         require([
-            "text!application/templates/project/ProjectList.tpl.html",
-            "text!application/templates/project/NewProjectBox.tpl.html"
+            "text!application/templates/project/ProjectList.tpl.html"
         ],
-            function (tpl, newProjectBoxTpl) {
-                self.doLayout(tpl, newProjectBoxTpl);
+            function (tpl) {
+                self.doLayout(tpl);
             });
 
         return this;
     },
-    doLayout: function (tpl, newProjectBoxTpl) {
+    doLayout: function (tpl) {
         var self = this;
         $(this.el).find("#projectdiv").html(_.template(tpl, {}));
         //clear de list
         $(self.projectListElem).empty();
-        $(self.projectListElem).append(_.template(newProjectBoxTpl, {}));
         $("#projectaddbutton").on("click", function () {
             self.showAddProjectPanel();
         });
@@ -122,7 +120,7 @@ var ProjectView = Backbone.View.extend({
             model: self.model,
             ontologies: self.ontologies,
             disciplines: self.disciplines,
-            el: $("#projectViewNorth"),
+            el: $("#project-list-filters"),
             container: self,
             projectsPanel: self
         }).render();
@@ -187,6 +185,28 @@ var ProjectView = Backbone.View.extend({
                 $(".infoProject").remove();
                 $(".addSlide").remove();
             }
+            else {
+                var projectsWhereAdmin;
+                $.get("api/user/"+window.app.status.user.id+"/project/light.json?admin=true", function(data) {
+                    projectsWhereAdmin = $.map(data.collection, function (a) {
+                        return a.id.toString();
+                    });
+
+                    $(".editProject").each(function(i, x){
+                        x.id = x.id.replace("editProjectButton","");
+                        if($.inArray(x.id, projectsWhereAdmin) < 0){
+                            x.remove();
+                        }
+                    });
+
+                    $(".deleteProject").each(function(i, x){
+                        x.id = x.id.replace("deleteProjectButton","");
+                        if($.inArray(x.id, projectsWhereAdmin) < 0){
+                            x.remove();
+                        }
+                    });
+                });
+            }
         }
     },
     /**
@@ -198,10 +218,10 @@ var ProjectView = Backbone.View.extend({
         self.model.each(function (project) {
             //if project is in project result list, show it
             if (projectsShow.get(project.id) != null) {
-                $(self.el).find(self.projectListElem + project.id).show();
+                $(self.el).find(self.projectListElem + project.id).parent().show();
             }
             else {
-                $(self.el).find(self.projectListElem + project.id).hide();
+                $(self.el).find(self.projectListElem + project.id).parent().hide();
             }
         });
     }

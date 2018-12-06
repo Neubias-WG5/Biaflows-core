@@ -27,6 +27,114 @@ import grails.converters.JSON
 
 class PropertySecurityTests extends SecurityTestsAbstract {
 
+    void testProjectPropertySecurityForCytomineAdmin() {
+        //Get user1
+        User user1 = BasicInstanceBuilder.getUser(USERNAME1,PASSWORD1)
+
+        //Get admin user
+        User admin = BasicInstanceBuilder.getSuperAdmin(USERNAMEADMIN,PASSWORDADMIN)
+
+        //Create project with user 1
+        ImageInstance image = ImageInstanceAPI.buildBasicImage(SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        Project project = image.project
+
+        Property projectPropertyToAdd = BasicInstanceBuilder.getProjectPropertyNotExist(project)
+        def result = PropertyAPI.create(projectPropertyToAdd.domainIdent, "project" ,projectPropertyToAdd.encodeAsJSON(),USERNAME1,PASSWORD1)
+        assert 200 == result.code
+
+        Property projectProperty = result.data
+
+        //check if admin user can access/update/delete
+        assert (200 == PropertyAPI.show(projectProperty.id, projectProperty.domainIdent, "project" , USERNAMEADMIN, PASSWORDADMIN).code)
+        assert (true == PropertyAPI.containsInJSONList(projectProperty.id, JSON.parse(PropertyAPI.listByDomain(projectProperty.domainIdent, "project", USERNAMEADMIN, PASSWORDADMIN).data)))
+        assert (200 == PropertyAPI.update(projectProperty.id, projectProperty.domainIdent, "project", projectProperty.encodeAsJSON(), USERNAMEADMIN, PASSWORDADMIN).code)
+        assert (200 == PropertyAPI.delete(projectProperty.id, projectProperty.domainIdent, "project", USERNAMEADMIN, PASSWORDADMIN).code)
+    }
+
+    void testProjectPropertySecurityForProjectManager() {
+        //Get user1
+        User user1 = BasicInstanceBuilder.getUser(USERNAME1,PASSWORD1)
+
+        Project project = BasicInstanceBuilder.getProjectNotExist(true)
+        ProjectAPI.addAdminProject(project.id,user1.id,Infos.SUPERADMINLOGIN,Infos.SUPERADMINPASSWORD)
+
+        def projectPropertyToAdd = BasicInstanceBuilder.getProjectPropertyNotExist()
+        projectPropertyToAdd.domain = project
+
+        def result = PropertyAPI.create(projectPropertyToAdd.domainIdent, "project" ,projectPropertyToAdd.encodeAsJSON(),USERNAME1, PASSWORD1)
+        assert 200 == result.code
+        Property projectProperty = result.data
+
+        assert (200 == PropertyAPI.show(projectProperty.id, projectProperty.domainIdent, "project" , USERNAME1, PASSWORD1).code)
+        assert (true == PropertyAPI.containsInJSONList(projectProperty.id, JSON.parse(PropertyAPI.listByDomain(projectProperty.domainIdent, "project" , USERNAME1, PASSWORD1).data)))
+        assert (200 == PropertyAPI.update(projectProperty.id, projectProperty.domainIdent, "project" ,projectProperty.encodeAsJSON(), USERNAME1, PASSWORD1).code)
+        assert (200 == PropertyAPI.delete(projectProperty.id, projectProperty.domainIdent, "project", USERNAME1, PASSWORD1).code)
+    }
+
+    void testProjectPropertySecurityForProjectUser() {
+        //Get user1
+        User user1 = BasicInstanceBuilder.getUser(USERNAME1,PASSWORD1)
+
+        Project project = BasicInstanceBuilder.getProjectNotExist(true)
+        ProjectAPI.addUserProject(project.id,user1.id,Infos.SUPERADMINLOGIN,Infos.SUPERADMINPASSWORD)
+
+        def projectPropertyToAdd = BasicInstanceBuilder.getProjectPropertyNotExist()
+        projectPropertyToAdd.domain = project
+
+        def result = PropertyAPI.create(projectPropertyToAdd.domainIdent, "project" ,projectPropertyToAdd.encodeAsJSON(),USERNAME1, PASSWORD1)
+        assert 403 == result.code
+        result = PropertyAPI.create(projectPropertyToAdd.domainIdent, "project" ,projectPropertyToAdd.encodeAsJSON(),Infos.SUPERADMINLOGIN,Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        Property projectProperty = result.data
+
+        assert (200 == PropertyAPI.show(projectProperty.id, projectProperty.domainIdent, "project" , USERNAME1, PASSWORD1).code)
+        assert (true == PropertyAPI.containsInJSONList(projectProperty.id, JSON.parse(PropertyAPI.listByDomain(projectProperty.domainIdent, "project" , USERNAME1, PASSWORD1).data)))
+        assert (403 == PropertyAPI.update(projectProperty.id, projectProperty.domainIdent, "project" ,projectProperty.encodeAsJSON(), USERNAME1, PASSWORD1).code)
+        assert (403 == PropertyAPI.delete(projectProperty.id, projectProperty.domainIdent, "project", USERNAME1, PASSWORD1).code)
+    }
+
+    void testProjectPropertySecurityForNotContributor() {
+        //Get user1
+        User user1 = BasicInstanceBuilder.getUser(USERNAME1,PASSWORD1)
+
+        Project project = BasicInstanceBuilder.getProjectNotExist(true)
+
+        def projectPropertyToAdd = BasicInstanceBuilder.getProjectPropertyNotExist()
+        projectPropertyToAdd.domain = project
+
+        def result = PropertyAPI.create(projectPropertyToAdd.domainIdent, "project" ,projectPropertyToAdd.encodeAsJSON(),USERNAME1, PASSWORD1)
+        assert 403 == result.code
+        result = PropertyAPI.create(projectPropertyToAdd.domainIdent, "project" ,projectPropertyToAdd.encodeAsJSON(),Infos.SUPERADMINLOGIN,Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        Property projectProperty = result.data
+
+        assert (403 == PropertyAPI.show(projectProperty.id, projectProperty.domainIdent, "project" , USERNAME1, PASSWORD1).code)
+        assert (false == PropertyAPI.containsInJSONList(projectProperty.id, JSON.parse(PropertyAPI.listByDomain(projectProperty.domainIdent, "project" , USERNAME1, PASSWORD1).data)))
+        assert (403 == PropertyAPI.update(projectProperty.id, projectProperty.domainIdent, "project" ,projectProperty.encodeAsJSON(), USERNAME1, PASSWORD1).code)
+        assert (403 == PropertyAPI.delete(projectProperty.id, projectProperty.domainIdent, "project", USERNAME1, PASSWORD1).code)
+    }
+
+    void testProjectPropertySecurityForAnonymous() {
+        //Get user1
+        User user1 = BasicInstanceBuilder.getUser(USERNAME1,PASSWORD1)
+
+        Project project = BasicInstanceBuilder.getProjectNotExist(true)
+
+        def projectPropertyToAdd = BasicInstanceBuilder.getProjectPropertyNotExist()
+        projectPropertyToAdd.domain = project
+
+        def result = PropertyAPI.create(projectPropertyToAdd.domainIdent, "project" ,projectPropertyToAdd.encodeAsJSON(),USERNAMEBAD, PASSWORDBAD)
+        assert 401 == result.code
+        result = PropertyAPI.create(projectPropertyToAdd.domainIdent, "project" ,projectPropertyToAdd.encodeAsJSON(),Infos.SUPERADMINLOGIN,Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        Property projectProperty = result.data
+
+        assert (401 == PropertyAPI.show(projectProperty.id, projectProperty.domainIdent, "project" , USERNAMEBAD, PASSWORDBAD).code)
+        assert (false == PropertyAPI.containsInJSONList(projectProperty.id, JSON.parse(PropertyAPI.listByDomain(projectProperty.domainIdent, "project" , USERNAMEBAD, PASSWORDBAD).data)))
+        assert (401 == PropertyAPI.update(projectProperty.id, projectProperty.domainIdent, "project" ,projectProperty.encodeAsJSON(), USERNAMEBAD, PASSWORDBAD).code)
+        assert (401 == PropertyAPI.delete(projectProperty.id, projectProperty.domainIdent, "project", USERNAMEBAD, PASSWORDBAD).code)
+    }
+
     void testAnnotationPropertySecurityForCytomineAdmin() {
         //Get user1
         User user1 = BasicInstanceBuilder.getUser(USERNAME1,PASSWORD1)
@@ -50,12 +158,9 @@ class PropertySecurityTests extends SecurityTestsAbstract {
         assert 200 == result.code
 
         Property annotationProperty = result.data
-        println "annotationProperty="+annotationProperty
-        println "annotationProperty.id="+annotationProperty.id
 
         //check if admin user can access/update/delete
         assert (200 == PropertyAPI.show(annotationProperty.id, annotationProperty.domainIdent, "annotation" , USERNAMEADMIN, PASSWORDADMIN).code)
-        println JSON.parse(PropertyAPI.listByDomain(annotationProperty.domainIdent, "annotation", USERNAMEADMIN, PASSWORDADMIN).data)
         assert (true == PropertyAPI.containsInJSONList(annotationProperty.id, JSON.parse(PropertyAPI.listByDomain(annotationProperty.domainIdent, "annotation", USERNAMEADMIN, PASSWORDADMIN).data)))
         assert (200 == PropertyAPI.update(annotationProperty.id, annotationProperty.domainIdent, "annotation", annotationProperty.encodeAsJSON(), USERNAMEADMIN, PASSWORDADMIN).code)
         assert (200 == PropertyAPI.delete(annotationProperty.id, annotationProperty.domainIdent, "annotation", USERNAMEADMIN, PASSWORDADMIN).code)

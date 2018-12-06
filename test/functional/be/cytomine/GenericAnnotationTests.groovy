@@ -240,7 +240,7 @@ class GenericAnnotationTests  {
 
         def data = UpdateData.createUpdateSet(
                 BasicInstanceBuilder.getAlgoAnnotation(),
-                [location: [new WKTReader().read("POLYGON ((2107 2160, 2047 2074, 1983 2168, 1983 2168, 2107 2160))"),new WKTReader().read("POLYGON ((1983 2168, 2107 2160, 2047 2074, 1983 2168, 1983 2168))")]]
+                [location: [new WKTReader().read("POLYGON ((2107 2160, 2047 2074, 1983 2168, 1983 2168, 2107 2160))"),new WKTReader().read("POLYGON ((1983 2168, 2107 2160, 2047 2074, 1983 2168))")]]
         )
         def result = AnnotationDomainAPI.update(annotationToAdd.id,data.postData,user.username, Infos.GOODPASSWORDUSERJOB)
         assert 200 == result.code
@@ -267,7 +267,7 @@ class GenericAnnotationTests  {
         UserAnnotation annotationToAdd = BasicInstanceBuilder.getUserAnnotation()
         def data = UpdateData.createUpdateSet(
                 BasicInstanceBuilder.getUserAnnotation(),
-                [location: [new WKTReader().read("POLYGON ((2107 2160, 2047 2074, 1983 2168, 1983 2168, 2107 2160))"),new WKTReader().read("POLYGON ((1983 2168, 2107 2160, 2047 2074, 1983 2168, 1983 2168))")]]
+                [location: [new WKTReader().read("POLYGON ((2107 2160, 2047 2074, 1983 2168, 1983 2168, 2107 2160))"),new WKTReader().read("POLYGON ((1983 2168, 2107 2160, 2047 2074, 1983 2168))")]]
         )
         def result = AnnotationDomainAPI.update(annotationToAdd.id,data.postData,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
@@ -294,7 +294,7 @@ class GenericAnnotationTests  {
         RoiAnnotation annotationToAdd = BasicInstanceBuilder.getRoiAnnotation()
         def data = UpdateData.createUpdateSet(
                 BasicInstanceBuilder.getRoiAnnotation(),
-                [location: [new WKTReader().read("POLYGON ((2107 2160, 2047 2074, 1983 2168, 1983 2168, 2107 2160))"),new WKTReader().read("POLYGON ((1983 2168, 2107 2160, 2047 2074, 1983 2168, 1983 2168))")]]
+                [location: [new WKTReader().read("POLYGON ((2107 2160, 2047 2074, 1983 2168, 1983 2168, 2107 2160))"),new WKTReader().read("POLYGON ((1983 2168, 2107 2160, 2047 2074, 1983 2168))")]]
         )
         def result = AnnotationDomainAPI.update(annotationToAdd.id,data.postData,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
@@ -875,7 +875,7 @@ class GenericAnnotationTests  {
         println "BBB NUMBER OF POINT: " + annotation.location.numPoints
 
     }
-
+/*
     def testSimplifyServiceWithHole() {
         Project project = BasicInstanceBuilder.getProjectNotExist(true)
         UserAnnotation annotation = BasicInstanceBuilder.getUserAnnotationNotExist(project,false)
@@ -888,5 +888,5 @@ class GenericAnnotationTests  {
         println "END NUMBER OF POINT:" + annotation.location.numPoints
 
     }
-
+*/
 }

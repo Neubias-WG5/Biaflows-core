@@ -44,12 +44,10 @@ class AmqpQueueService extends ModelService {
     def amqpQueueConfigService
     def messageBrokerServerService
 
-    protected def rabbitConnectionService
-
-    def initialize() {
-        this.rabbitConnectionService = grailsApplication.mainContext.rabbitConnectionService
+    // Avoid loading loop because rabbitConnectionService -> amqpService -> rabbitConnectionService
+    private getRabbitConnectionService() {
+        grailsApplication.mainContext.rabbitConnectionService
     }
-
 
     def currentDomain() {
         return AmqpQueue

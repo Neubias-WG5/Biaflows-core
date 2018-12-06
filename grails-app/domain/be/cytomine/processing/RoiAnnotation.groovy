@@ -160,9 +160,9 @@ class RoiAnnotation extends AnnotationDomain implements Serializable {
     static def getDataFromDomain(def domain) {
         def returnArray = AnnotationDomain.getDataFromDomain(domain)
         ImageInstance imageinstance = domain?.image
-        returnArray['cropURL'] = UrlApi.getUserAnnotationCropWithAnnotationId(domain?.id)
-        returnArray['smallCropURL'] = UrlApi.getUserAnnotationCropWithAnnotationIdWithMaxWithOrHeight(domain?.id, 256)
-        returnArray['url'] = UrlApi.getUserAnnotationCropWithAnnotationId(domain?.id)
+        returnArray['cropURL'] = UrlApi.getROIAnnotationCropWithAnnotationId(domain?.id)
+        returnArray['smallCropURL'] = UrlApi.getROIAnnotationCropWithAnnotationIdWithMaxWithOrHeight(domain?.id, 256)
+        returnArray['url'] = UrlApi.getROIAnnotationCropWithAnnotationId(domain?.id)
         returnArray['imageURL'] = UrlApi.getAnnotationURL(imageinstance?.project?.id, imageinstance?.id, domain?.id)
         returnArray['reviewed'] = domain?.hasReviewedAnnotation()
         return returnArray

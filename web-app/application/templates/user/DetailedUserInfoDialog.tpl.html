@@ -32,14 +32,14 @@
                                 <label class="control-label">E-mail: </label> <%= email %>
                             </div>
                             <div class="col-md-6">
-                                <label class="control-label">Created: </label> <%= window.app.convertLongToPrettyDate(created) %>
+                                <label class="control-label">Created: </label> <%= window.app.convertLongToDate(created) %>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <label class="control-label">Updated: </label>
                                 <%if(updated) {%>
-                                <%= window.app.convertLongToPrettyDate(updated) %>
+                                <%= window.app.convertLongToDate(updated) %>
                                 <%}else{%>
                                 No record
                                 <%}%>

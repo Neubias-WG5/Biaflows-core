@@ -17,7 +17,7 @@ package be.cytomine.utils
 */
 
 import be.cytomine.Exception.ForbiddenException
-
+import be.cytomine.Exception.ObjectNotFoundException
 import be.cytomine.command.*
 import be.cytomine.security.SecUser
 import grails.transaction.Transactional
@@ -41,20 +41,18 @@ class ConfigurationService extends ModelService {
         securityACLService.checkGuest(cytomineService.currentUser)
         if(currentRoleServiceProxy.isAdminByNow(cytomineService.currentUser)) {
             return Configuration.list()
+        } else if(currentRoleServiceProxy.isUser(cytomineService.currentUser)) {
+            return Configuration.findAllByReadingRoleOrReadingRole(Configuration.Role.ALL, Configuration.Role.USER)
         } else {
-            return Configuration.findAllByReadingRoleNotEqual(secRoleService.findByAuthority("ROLE_ADMIN"))
+            return Configuration.findAllByReadingRole(Configuration.Role.ALL)
         }
     }
 
     def readByKey(String key) {
         securityACLService.checkGuest(cytomineService.currentUser)
         Configuration config = Configuration.findByKey(key)
-
-        if(config && config.readingRole.authority.equals("ROLE_ADMIN")){
-            if(!currentRoleServiceProxy.isAdminByNow(cytomineService.currentUser)) {
-                throw new ForbiddenException("You don't have the right to read this resource! You must be admin!")
-            }
-        }
+        if(!config) throw new ObjectNotFoundException("Configuration with key $key not found")
+        checkPermission(config)
         return config
     }
 
@@ -91,6 +89,14 @@ class ConfigurationService extends ModelService {
         SecUser currentUser = cytomineService.getCurrentUser()
         Command c = new DeleteCommand(user: currentUser,transaction:transaction)
         return executeCommand(c,domain,null)
+    }
+
+    private void checkPermission(Configuration config){
+        if(config.readingRole.equals(Configuration.Role.ALL)) return;
+        if(currentRoleServiceProxy.isAdminByNow(cytomineService.currentUser)) return;
+        if(currentRoleServiceProxy.isUser(cytomineService.currentUser)
+                && config.readingRole.equals(Configuration.Role.USER)) return;
+        else throw new ForbiddenException("You don't have the right to read this resource!")
     }
 
     def getStringParamsI18n(def domain) {

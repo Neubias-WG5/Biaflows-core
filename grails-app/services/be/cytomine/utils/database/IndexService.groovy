@@ -69,6 +69,7 @@ class IndexService {
 
 
             createIndex("uploaded_file", "image_id");
+            createIndex("uploaded_file","l_tree","gist")
 
             /**
              * ReviewedAnnotation

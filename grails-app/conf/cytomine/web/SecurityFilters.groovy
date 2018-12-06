@@ -25,6 +25,7 @@ class SecurityFilters {
 
         api(uri:'/api/**') {
             before = {
+                if(controllerName.equals("errors")) return
 
                 if(!springSecurityService.isLoggedIn()) {
                     redirect(uri:'/')

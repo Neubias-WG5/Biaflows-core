@@ -20,6 +20,7 @@ import be.cytomine.CytomineDomain
 import be.cytomine.Exception.CytomineException
 import be.cytomine.api.UrlApi
 import be.cytomine.image.server.StorageAbstractImage
+import be.cytomine.postgresql.LTreeType
 import be.cytomine.security.SecUser
 import be.cytomine.security.UserJob
 import be.cytomine.utils.JSONUtils
@@ -39,9 +40,11 @@ class UploadedFile extends CytomineDomain implements Serializable{
     public static int CONVERTED = 1
     public static int DEPLOYED = 2
     public static int ERROR_FORMAT = 3
-    public static int ERROR_CONVERT = 4
+    public static int ERROR_CONVERSION = 4
     public static int UNCOMPRESSED = 5
     public static int TO_DEPLOY = 6
+    public static int TO_CONVERT = 7
+    public static int ERROR_DEPLOYMENT = 8
 
     @RestApiObjectField(description = "The user that upload the file")
     SecUser user
@@ -84,6 +87,9 @@ class UploadedFile extends CytomineDomain implements Serializable{
     @RestApiObjectField(description = "Indicates wether or not a conversion was done", mandatory = false)
     Boolean converted = false
 
+    @RestApiObjectField(description = "ltree used for uploaded files hierarchy", mandatory = false)
+    String lTree
+
     @RestApiObjectFields(params=[
         @RestApiObjectField(apiFieldName = "uploaded", description = "Indicates if the file is uploaded",allowedType = "boolean",useForCreation = false),
         @RestApiObjectField(apiFieldName = "converted", description = "Indicates if the file is converted",allowedType = "boolean",useForCreation = false),
@@ -94,6 +100,9 @@ class UploadedFile extends CytomineDomain implements Serializable{
     ])
     static transients = ["zoomLevels", "thumbURL"]
 
+    static mapping = {
+        lTree type: LTreeType, sqlType: 'ltree'
+    }
 
 
     static constraints = {
@@ -101,6 +110,7 @@ class UploadedFile extends CytomineDomain implements Serializable{
         storages nullable: false
         parent(nullable : true)
         image(nullable : true)
+        lTree nullable : true
     }
 
     static def getDataFromDomain(def uploaded) {
@@ -115,13 +125,16 @@ class UploadedFile extends CytomineDomain implements Serializable{
         returnArray['size'] = uploaded?.size
         returnArray['path'] = uploaded?.path
         returnArray['status'] = uploaded?.status
+
         returnArray['uploaded'] = (uploaded?.status == UploadedFile.UPLOADED)
         returnArray['converted'] = (uploaded?.status == UploadedFile.CONVERTED)
         returnArray['deployed'] = (uploaded?.status == UploadedFile.DEPLOYED)
         returnArray['error_format'] = (uploaded?.status == UploadedFile.ERROR_FORMAT)
-        returnArray['error_convert'] = (uploaded?.status == UploadedFile.ERROR_CONVERT)
+        returnArray['error_convert'] = (uploaded?.status == UploadedFile.ERROR_CONVERSION)
         returnArray['uncompressed'] = (uploaded?.status == UploadedFile.UNCOMPRESSED)
         returnArray['to_deploy'] = (uploaded?.status == UploadedFile.TO_DEPLOY)
+
+
         returnArray['image'] = uploaded?.getAbstractImage()?.id
         returnArray['parent'] = uploaded?.parent?.id
         returnArray['thumbURL'] = uploaded?.status == UploadedFile.DEPLOYED && uploaded?.image ? UrlApi.getAssociatedImage(uploaded?.image?.id, "macro") : null
@@ -187,5 +200,17 @@ class UploadedFile extends CytomineDomain implements Serializable{
         } catch(Exception e) {
             return null
         }
+    }
+
+    def beforeInsert() {
+        super.beforeInsert()
+        lTree = parent ? parent.lTree+"." : ""
+        lTree += id
+    }
+
+    def beforeUpdate() {
+        super.beforeUpdate()
+        lTree = parent ? parent.lTree+"." : ""
+        lTree += id
     }
 }

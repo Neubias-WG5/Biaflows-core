@@ -92,7 +92,7 @@ class RestUserAnnotationController extends RestController {
     @RestApiParam(name="format", type="string", paramType = RestApiParamType.QUERY,description = "The report format (pdf, xls,...)")
     ])
     def downloadDocumentByProject() {
-        reportService.createAnnotationDocuments(params.long('id'),params.terms,params.users,params.images,params.format,response,"USERANNOTATION")
+        reportService.createAnnotationDocuments(params.long('id'),params.terms,params.noTerm,params.multipleTerms,params.users,params.images,params.format,response,"USERANNOTATION")
     }
 
     def bootstrapUtilsService
@@ -103,11 +103,15 @@ class RestUserAnnotationController extends RestController {
     @RestApiMethod(description="Add comment on an annotation to other user and send a mail to users")
     @RestApiResponseObject(objectIdentifier = "empty")
     @RestApiParams(params=[
-    @RestApiParam(name="annotation", type="long", paramType = RestApiParamType.PATH,description = "The annotation id"),
-    @RestApiParam(name="POST JSON: subject", type="string", paramType = RestApiParamType.PATH,description = "The subject"),
-    @RestApiParam(name="POST JSON: message", type="string", paramType = RestApiParamType.PATH,description = "TODO:APIDOC, DIFF WITH COMMENT?"),
-    @RestApiParam(name="POST JSON: users", type="list", paramType = RestApiParamType.PATH,description = "The list of user (id) to send the mail"),
-    @RestApiParam(name="POST JSON: comment", type="string", paramType = RestApiParamType.PATH,description = "TODO:APIDOC, DIFF WITH MESSAGE?"),
+            @RestApiParam(name="annotation", type="long", paramType = RestApiParamType.PATH,description = "The annotation id"),
+            @RestApiParam(name="POST JSON: comment", type="string", paramType = RestApiParamType.QUERY,description = "The comment"),
+            @RestApiParam(name="POST JSON: sender", type="long", paramType = RestApiParamType.QUERY,description = "The user id who share the annotation"),
+            @RestApiParam(name="POST JSON: subject", type="string", paramType = RestApiParamType.QUERY,description = "The subject of the mail that will be send"),
+            @RestApiParam(name="POST JSON: from", type="string", paramType = RestApiParamType.QUERY,description = "The username of the user who send the mail"),
+            @RestApiParam(name="POST JSON: receivers", type="list", paramType = RestApiParamType.QUERY,description = "The list of user (id) to send the mail"),
+            @RestApiParam(name="POST JSON: emails", type="list", paramType = RestApiParamType.QUERY,required = false, description = "The list of emails to send the mail. Used if receivers is null"),
+            @RestApiParam(name="POST JSON: annotationURL ", type="string", paramType = RestApiParamType.QUERY,description = "The URL of the annotation in the image viewer"),
+            @RestApiParam(name="POST JSON: shareAnnotationURL", type="string", paramType = RestApiParamType.QUERY,description = "The URL of the comment"),
     ])
     def addComment() {
 
@@ -176,6 +180,14 @@ class RestUserAnnotationController extends RestController {
      * Add annotation created by user
      */
     @RestApiMethod(description="Add an annotation created by user")
+    @RestApiParams(params=[
+            @RestApiParam(name="POST JSON: project", type="long", paramType = RestApiParamType.PATH, description = "The project id where this annotation belongs"),
+            @RestApiParam(name="POST JSON: image", type="long", paramType = RestApiParamType.QUERY, description = "The image instance id where this annotation belongs"),
+            @RestApiParam(name="POST JSON: location", type="string", paramType = RestApiParamType.QUERY, description = "The WKT geometrical description of the annotation"),
+            @RestApiParam(name="POST JSON: term", type="long", paramType = RestApiParamType.QUERY, required = false, description = "Term id to associate with this annotation"),
+            @RestApiParam(name="POST JSON: minPoint", type="int", paramType = RestApiParamType.QUERY, required = false, description = "Minimum number of point that constitute the annotation"),
+            @RestApiParam(name="POST JSON: maxPoint", type="int", paramType = RestApiParamType.QUERY, required = false, description = "Maximum number of point that constitute the annotation")
+    ])
     def add(){
         def json = request.JSON
         if (json instanceof JSONArray) {
@@ -272,6 +284,16 @@ class RestUserAnnotationController extends RestController {
 
 
     public Object addOne(def service, def json) {
+        if (!json.project || json.isNull('project')) {
+            ImageInstance image = ImageInstance.read(json.image)
+            if (image) json.project = image.project.id
+        }
+        if (json.isNull('project')) {
+            throw new WrongArgumentException("Annotation must have a valid project:" + json.project)
+        }
+        if (json.isNull('location')) {
+            throw new WrongArgumentException("Annotation must have a valid geometry:" + json.location)
+        }
         def minPoint = params.getLong('minPoint')
         def maxPoint = params.getLong('maxPoint')
 

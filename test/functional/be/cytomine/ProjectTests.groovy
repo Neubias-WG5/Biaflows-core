@@ -63,6 +63,22 @@ class ProjectTests  {
         assert json.collection.length() == length+1
     }
 
+    void testListProjectWithExtendedDataWithCredential() {
+        def projectToAdd = BasicInstanceBuilder.getProjectNotExist()
+        def result = ProjectAPI.create(projectToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        Long id = result.data.id
+
+        result = ProjectAPI.list(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, true, true)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+
+        def proj = json.collection.find{it.id == id}
+        assert proj.lastActivity > proj.created
+        assert proj.membersCount == 1
+    }
+
     void testListProjectWithoutCredential() {
         def result = ProjectAPI.list(Infos.BADLOGIN, Infos.BADPASSWORD)
         assert 401 == result.code

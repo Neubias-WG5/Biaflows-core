@@ -116,7 +116,7 @@ class AnnotationListingService extends ModelService {
                 }
 
                 if(al.columnToPrint.contains('gis')) {
-                    item['perimeterUnit'] = (it.perimeterUnit ? GisUtils.retrieveUnit(it.perimeterUnit) : null)
+                    item['perimeterUnit'] = (it.perimeterUnit != null? GisUtils.retrieveUnit(it.perimeterUnit) : null)
                     item['areaUnit'] = (it.areaUnit ? GisUtils.retrieveUnit(it.areaUnit) : null)
                 }
 

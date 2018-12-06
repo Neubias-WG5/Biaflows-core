@@ -75,6 +75,17 @@ class UrlApi {
     }
 
     /**
+     * Return cytomine url to get a user crop annotation
+     * @param url Cytomine base url
+     * @param idAnnotation Annotation id
+     * @param maxWidthOrHeight Max size for the downloaded picture
+     * @return full cytomine url
+     */
+    static def getUserAnnotationCropWithAnnotationIdWithMaxWithOrHeight(Long idAnnotation, int maxWidthOrHeight, def format="png") {
+        return "${serverUrl()}/api/userannotation/$idAnnotation/crop.$format?maxSize=$maxWidthOrHeight"
+    }
+
+    /**
      * Return cytomine url to get a roi crop annotation
      * @param url Cytomine base url
      * @param idAnnotation Annotation id
@@ -85,14 +96,14 @@ class UrlApi {
     }
 
     /**
-     * Return cytomine url to get a user crop annotation
+     * Return cytomine url to get a roi crop annotation
      * @param url Cytomine base url
      * @param idAnnotation Annotation id
      * @param maxWidthOrHeight Max size for the downloaded picture
      * @return full cytomine url
      */
-    static def getUserAnnotationCropWithAnnotationIdWithMaxWithOrHeight(Long idAnnotation, int maxWidthOrHeight, def format="png") {
-        return "${serverUrl()}/api/userannotation/$idAnnotation/crop.$format?maxSize=$maxWidthOrHeight"
+    static def getROIAnnotationCropWithAnnotationIdWithMaxWithOrHeight(Long idAnnotation, int maxWidthOrHeight, def format="png") {
+        return "${serverUrl()}/api/roiannotation/$idAnnotation/crop.$format?maxSize=$maxWidthOrHeight"
     }
 
     /**

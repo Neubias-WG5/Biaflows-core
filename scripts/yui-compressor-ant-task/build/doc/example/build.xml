@@ -92,6 +92,7 @@
 <fileset dir="${src.dir}" includes="application/models/ImageFilter.js"/>
 <fileset dir="${src.dir}" includes="application/models/OntologyModel.js"/>
 <fileset dir="${src.dir}" includes="application/models/UserModel.js"/>
+<fileset dir="${src.dir}" includes="application/models/UserActivityModel.js"/>
 <fileset dir="${src.dir}" includes="application/models/GroupModel.js"/>
 <fileset dir="${src.dir}" includes="application/models/ProjectModel.js"/>
 <fileset dir="${src.dir}" includes="application/models/AnnotationModel.js"/>
@@ -112,6 +113,7 @@
 <fileset dir="${src.dir}" includes="application/models/ImageInstancePropertyModel.js"/>
 <fileset dir="${src.dir}" includes="application/models/ProjectPropertyModel.js"/>
 <fileset dir="${src.dir}" includes="application/models/ImageGroupModel.js"/>
+<fileset dir="${src.dir}" includes="application/models/ImageGroupHDF5Model.js"/>
 <fileset dir="${src.dir}" includes="application/models/ImageSequenceModel.js"/>
 <fileset dir="${src.dir}" includes="application/views/admin/AdminView.js"/>
 <fileset dir="${src.dir}" includes="application/views/admin/AdminDashboard.js"/>
@@ -135,6 +137,8 @@
 <fileset dir="${src.dir}" includes="application/views/auth/LogoutDialogView.js"/>
 <fileset dir="${src.dir}" includes="application/views/utils/MultiSelectView.js"/>
 <fileset dir="${src.dir}" includes="application/views/dashboard/AddImageToProjectDialog.js"/>
+<fileset dir="${src.dir}" includes="application/views/dashboard/AddImageGroupToProjectDialog.js"/>
+<fileset dir="${src.dir}" includes="application/views/dashboard/AddImageSequenceDialog.js"/>
 <fileset dir="${src.dir}" includes="application/views/dashboard/AnnotationThumbView.js"/>
 <fileset dir="${src.dir}" includes="application/views/dashboard/AnnotationView.js"/>
 <fileset dir="${src.dir}" includes="application/views/dashboard/ProjectDashboardView.js"/>
@@ -145,6 +149,7 @@
 <fileset dir="${src.dir}" includes="application/views/dashboard/ProjectDashboardConfig.js"/>
 <fileset dir="${src.dir}" includes="application/views/dashboard/ProjectDashboardUsersConfig.js"/>
 <fileset dir="${src.dir}" includes="application/views/dashboard/ProjectDashboardProperties.js"/>
+<fileset dir="${src.dir}" includes="application/views/dashboard/ProjectDashboardGroup.js"/>
 <fileset dir="${src.dir}" includes="application/views/graph/GraphView.js"/>
 <fileset dir="${src.dir}" includes="application/views/graph/ProjectUsersTotalActivitiesView.js"/>
 <fileset dir="${src.dir}" includes="application/views/graph/ProjectUsersTotalActivitiesGraph.js"/>
@@ -162,7 +167,6 @@
 <fileset dir="${src.dir}" includes="application/views/processing/JobTableView.js"/>
 <fileset dir="${src.dir}" includes="application/views/processing/JobSearchEngineView.js"/>
 <fileset dir="${src.dir}" includes="application/views/processing/JobDeleteAllDataView.js"/>
-<fileset dir="${src.dir}" includes="application/views/ImageGroupTmpView.js"/>
 <fileset dir="${src.dir}" includes="application/views/processing/result/RetrievalAlgoResult.js"/>
 <fileset dir="${src.dir}" includes="application/views/processing/result/EvolutionAlgoResult.js"/>
 <fileset dir="${src.dir}" includes="application/views/processing/result/DefaultResult.js"/>
@@ -174,6 +178,7 @@
 <fileset dir="${src.dir}" includes="application/views/explorer/LeafletView.js"/>
 <fileset dir="${src.dir}" includes="application/views/explorer/ExplorerTabs.js"/>
 <fileset dir="${src.dir}" includes="application/views/explorer/AnnotationsPanel.js"/>
+<fileset dir="${src.dir}" includes="application/views/explorer/SpectraPanel.js"/>
 <fileset dir="${src.dir}" includes="application/views/explorer/LayerSwitcherPanel.js"/>
 <fileset dir="${src.dir}" includes="application/views/explorer/ImageFiltersPanel.js"/>
 <fileset dir="${src.dir}" includes="application/views/explorer/OverviewMapPanel.js"/>
@@ -184,12 +189,14 @@
 <fileset dir="${src.dir}" includes="application/views/explorer/JobTemplatePanel.js"/>
 <fileset dir="${src.dir}" includes="application/views/explorer/AnnotationPropertyPanel.js"/>
 <fileset dir="${src.dir}" includes="application/views/explorer/AnnotationPopupPanel.js"/>
+<fileset dir="${src.dir}" includes="application/views/explorer/ProjectUserActivityView.js"/>
 <fileset dir="${src.dir}" includes="application/views/upload/UploadFormView.js"/>
 <fileset dir="${src.dir}" includes="application/views/image/ImageReviewAction.js"/>
 <fileset dir="${src.dir}" includes="application/views/image/ImageThumbView.js"/>
 <fileset dir="${src.dir}" includes="application/views/image/ImageSelectView.js"/>
 <fileset dir="${src.dir}" includes="application/views/image/ImageView.js"/>
 <fileset dir="${src.dir}" includes="application/views/image/ImageTabsView.js"/>
+<fileset dir="${src.dir}" includes="application/views/image/ImageGroupTabsView.js"/>
 <fileset dir="${src.dir}" includes="application/views/image/ImagePropertiesView.js"/>
 <fileset dir="${src.dir}" includes="application/views/ontology/OntologyUsersDialog.js"/>
 <fileset dir="${src.dir}" includes="application/views/ontology/OntologyPanelView.js"/>

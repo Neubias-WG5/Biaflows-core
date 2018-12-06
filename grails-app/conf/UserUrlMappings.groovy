@@ -80,9 +80,6 @@ class UserUrlMappings {
         "/api/ontology/$id/user.$format"(controller: "restUser"){
             action = [GET:"showUserByOntology"]
         }
-        "/api/ontology/$id/creator.$format"(controller: "restUser"){
-            action = [GET:"showCreatorByOntology"]
-        }
         "/api/project/$id/userlayer.$format"(controller: "restUser"){
             action = [GET:"showLayerByProject"]
         }
@@ -111,6 +108,10 @@ class UserUrlMappings {
         }
         "/api/acl/domain.$format"(controller:"restACL"){
             action = [GET:"listDomain"]
+        }
+
+        "/api/user/$id/lock"(controller:"restUser"){
+            action = [POST:"lock", DELETE:"unlock"]
         }
 
         "/api/user/$id/password.$format"(controller:"restUser"){

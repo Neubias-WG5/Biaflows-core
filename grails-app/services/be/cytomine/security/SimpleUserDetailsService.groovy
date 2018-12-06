@@ -28,7 +28,7 @@ class SimpleUserDetailsService extends GormUserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username, boolean loadRoles) throws UsernameNotFoundException, DataAccessException {
 
-        SecUser user = SecUser.findByUsername(username)
+        SecUser user = SecUser.findByUsernameIlike(username)
 
         def authorities = []
 

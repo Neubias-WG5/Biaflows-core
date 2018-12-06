@@ -33,8 +33,13 @@ class ProjectAPI extends DomainAPI {
         return doGET(URL, username, password)
     }
 
-    static def list(String username, String password) {
+    static def list(String username, String password, Boolean withMembersCount = null, Boolean withLastActivity = null) {
         String URL = Infos.CYTOMINEURL + "api/project.json"
+        if(withMembersCount || withLastActivity) {
+            URL += "?"
+            URL += "withMembersCount="+withMembersCount
+            URL += "&withLastActivity="+withLastActivity
+        }
         return doGET(URL, username, password)
     }
 

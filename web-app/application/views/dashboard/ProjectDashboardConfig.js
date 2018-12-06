@@ -63,16 +63,6 @@ var ProjectDashboardConfig = Backbone.View.extend({
         configList.append(this.defaultLayersPanel.el);
 
 
-        // CustomUI
-        idPanel = "customUi";
-        titlePanel = "Custom UI Configuration";
-        configs.push({id: idPanel, title : titlePanel});
-        var uiPanel = new CutomUIPanel({
-            el: _.template(customUIConfigTemplate, {titre : titlePanel, id : idPanel})
-        }).render();
-        configList.append(uiPanel.el);
-
-
         // Image Filters
         idPanel = "imageFilters";
         titlePanel = "Image filters";
@@ -93,6 +83,17 @@ var ProjectDashboardConfig = Backbone.View.extend({
             model: this.model
         }).render();
         configList.append(softwares.el);
+
+
+        // CustomUI
+        idPanel = "customUi";
+        titlePanel = "Custom UI Configuration";
+        configs.push({id: idPanel, title : titlePanel});
+        var uiPanel = new CutomUIPanel({
+            el: _.template(customUIConfigTemplate, {titre : titlePanel, id : idPanel})
+        }).render();
+        configList.append(uiPanel.el);
+
 
         // Annotation tools Config
         idPanel = "annotTools";
@@ -174,6 +175,16 @@ var GeneralConfigPanel = Backbone.View.extend({
             $(self.el).find("input#EditingModeFull-radio-config").attr('checked', 'checked');
         }
 
+        new DisciplineCollection().fetch({
+            success: function(collection) {
+                collection.each(function (discipline) {
+                    var selected = (discipline.get('id') == self.model.get('discipline')) ? 'selected' : '';
+                    var option = _.template("<option value='<%= id %>'" + selected + "><%= name %> (<%= shortName %>)</option>", discipline.toJSON());
+                    $(self.el).find("#project-edit-discipline").append(option);
+                });
+            }
+        });
+
 
         new ProjectCollection().fetch({
             success: function (collection) {
@@ -220,7 +231,7 @@ var GeneralConfigPanel = Backbone.View.extend({
             }
         });
 
-        $(self.el).find("input#EditingModeFull-radio-config,input#EditingModeRestricted-radio-config,input#EditingModeReadOnly-radio-config").change(function () {
+        $(self.el).find("input#EditingModeFull-radio-config,input#EditingModeRestricted-radio-config,input#EditingModeReadOnly-radio-config,#project-edit-discipline").change(function () {
             self.update();
         });
 
@@ -280,6 +291,8 @@ var GeneralConfigPanel = Backbone.View.extend({
 
         var project = self.model;
 
+        var discipline = $(self.el).find("#project-edit-discipline").val();
+
         var blindMode = $(self.el).find("input#blindMode-checkbox-config").is(':checked');
         var hideUsersLayers = $(self.el).find("input#hideUsersLayers-checkbox-config").is(':checked');
         var hideAdminsLayers = $(self.el).find("input#hideAdminsLayers-checkbox-config").is(':checked');
@@ -298,10 +311,29 @@ var GeneralConfigPanel = Backbone.View.extend({
         // name is important, to change name, it MUST have the boolean at true. We don't update name "by accident"
         name = changeName ? $(self.el).find("#project-edit-name").val() : self.model.get('name');
 
-        project.set({name: name, retrievalDisable: retrievalDisable, retrievalAllOntology: retrievalProjectAll, retrievalProjects: self.projectRetrieval,
-            blindMode:blindMode,isReadOnly:isReadOnly,isRestricted:isRestricted,hideUsersLayers:hideUsersLayers,hideAdminsLayers:hideAdminsLayers});
-        project.save({name: name, retrievalDisable: retrievalDisable, retrievalAllOntology: retrievalProjectAll, retrievalProjects: self.projectRetrieval,
-            blindMode:blindMode,isReadOnly:isReadOnly,isRestricted:isRestricted,hideUsersLayers:hideUsersLayers,hideAdminsLayers:hideAdminsLayers}, {
+        project.set({
+            name: name,
+            retrievalDisable: retrievalDisable,
+            retrievalAllOntology: retrievalProjectAll,
+            retrievalProjects: self.projectRetrieval,
+            blindMode:blindMode,
+            isReadOnly:isReadOnly,
+            isRestricted:isRestricted,
+            hideUsersLayers:hideUsersLayers,
+            hideAdminsLayers:hideAdminsLayers,
+            discipline: discipline
+        });
+        project.save({name: name,
+            retrievalDisable: retrievalDisable,
+            retrievalAllOntology: retrievalProjectAll,
+            retrievalProjects: self.projectRetrieval,
+            blindMode:blindMode,
+            isReadOnly:isReadOnly,
+            isRestricted:isRestricted,
+            hideUsersLayers:hideUsersLayers,
+            hideAdminsLayers:hideAdminsLayers,
+            discipline: discipline
+        }, {
             success: function (model, response) {
                 console.log("1. Project edited!");
                 window.app.view.message("Project", response.message, "success");
@@ -438,7 +470,7 @@ var SoftwareProjectPanel = Backbone.View.extend({
 
         softwares.append(
                 '<div id="software'+newSoft.id+'" class="row">' +
-                    '<div class="col-md-5 col-md-offset-4"><p>' + newSoft.name + ' (' + newSoft.softwareVersion + ')</p></div>' +
+                    '<div class="col-md-5 col-md-offset-4"><p>' + newSoft.fullName +'</p></div>' +
                     '<div class="col-md-2"><a class="removesoftwarebutton btn btn-danger" href="javascript:void(0);" data-id='+newSoft.id+'>Remove</a></div>'+
                 '</div>');
     },
@@ -448,7 +480,7 @@ var SoftwareProjectPanel = Backbone.View.extend({
         new SoftwareCollection().fetch({
             success: function (softwareCollection, response) {
                 softwareCollection.each(function (software) {
-                    var option = _.template("<option value='<%= id %>'><%= name %> (<%= softwareVersion %>)</option>", software.toJSON());
+                    var option = _.template("<option value='<%= id %>'><%= fullName %></option>", software.toJSON());
                     $(self.el).find("#addSoftware").append(option);
                 });
                 $(self.el).find("#addSoftwareButton").click(function (event) {
@@ -732,7 +764,7 @@ var CutomUIPanel = Backbone.View.extend({
         var customUI = _.template(template,component);
         $(mainElement).append(customUI);
         var tr = $(mainElement).find("#customUI-"+component.componentId+"-roles");
-        tr.append("<td>"+component.componentName+"</td>");
+        tr.append("<td style='width: 40%'>"+component.componentName+"</td>");
         if(!self.obj[component.componentId]) {
             //component is not define in the project config, active by default
             self.obj[component.componentId] = {};
@@ -782,7 +814,7 @@ var CutomUIPanel = Backbone.View.extend({
     },
     createButton : function(role,component, active) {
         var classBtn = active? "btn-success" : "btn-danger";
-        return '<td><button type="radio" data-component="'+component.componentId+'" data-role="'+role.authority+'" id="btn-' + component.componentId +'-'+role.authority+'" class="btn  btn-large btn-block '+classBtn+'">'+role.name+'</button></td>';
+        return '<td style="width: 30%"><button type="radio" data-component="'+component.componentId+'" data-role="'+role.authority+'" id="btn-' + component.componentId +'-'+role.authority+'" class="btn  btn-large btn-block '+classBtn+'">'+role.name+'</button></td>';
     }
 
 });

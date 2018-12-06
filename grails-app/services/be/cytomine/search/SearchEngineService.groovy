@@ -182,7 +182,13 @@ class SearchEngineService extends ModelService {
             if (attributes.contains("domain")) {
                 requestParts << engine.createRequestOnAttributes(words)
             }
-            if (attributes.contains("property")) {
+            if (attributes.contains("property.key")) {
+                requestParts << engine.createRequestOnProperty(words, "key")
+            }
+            else if (attributes.contains("property.value")) {
+                requestParts << engine.createRequestOnProperty(words, "value")
+            }
+            else if (attributes.contains("property")) {
                 requestParts << engine.createRequestOnProperty(words)
             }
             if (attributes.contains("description")) {

@@ -116,7 +116,7 @@ var ProjectDashboardAlgos = Backbone.View.extend({
             var executable = (!software.get('executable')) ? '<span class="label label-default">Not executable</span>' : '';
             var del = (software.get('deprecated')) ? '<del>' : '';
             $("#projectSoftwareListUl").append('<a class="list-group-item" id="consultSoftware-' + software.id +'" href="#tabs-algos-' + self.model.id + '-' + software.id + '-">'
-              + del + software.get('name') + " (" + software.get('softwareVersion') + ") " + executable + del +'</a>');
+              + del + software.get('fullName') + " " + executable + del +'</a>');
             $("#projectSoftwareListUl").children().removeClass("active");
             if (software.id == self.idSoftware) {
                 $("#consultSoftware-" + software.id).addClass("active");

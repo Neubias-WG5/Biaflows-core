@@ -27,6 +27,7 @@ import be.cytomine.project.Project
 import be.cytomine.security.Group
 import be.cytomine.security.SecUser
 import be.cytomine.security.UserGroup
+import be.cytomine.security.UserJob
 import org.springframework.security.acls.model.Permission
 
 import static org.springframework.security.acls.domain.BasePermission.ADMINISTRATION
@@ -199,15 +200,16 @@ class SecurityACLService {
 
     public List<Storage> getStorageList(SecUser user) {
         //faster method
-        if (currentRoleServiceProxy.isAdminByNow(user)) return Storage.list()
-        else {
-            return Storage.executeQuery(
-                    "select distinct storage "+
-                            "from AclObjectIdentity as aclObjectId, AclEntry as aclEntry, AclSid as aclSid,  Storage as storage "+
-                            "where aclObjectId.objectId = storage.id " +
-                            "and aclEntry.aclObjectIdentity = aclObjectId.id "+
-                            "and aclEntry.sid = aclSid.id and aclSid.sid like '"+user.username+"'")
+        if (currentRoleServiceProxy.isAdminByNow(user)) return Storage.list();
+        while (user instanceof UserJob) {
+            user = ((UserJob) user).user
         }
+        return Storage.executeQuery(
+                "select distinct storage "+
+                        "from AclObjectIdentity as aclObjectId, AclEntry as aclEntry, AclSid as aclSid,  Storage as storage "+
+                        "where aclObjectId.objectId = storage.id " +
+                        "and aclEntry.aclObjectIdentity = aclObjectId.id "+
+                        "and aclEntry.sid = aclSid.id and aclSid.sid like '"+user.username+"'")
     }
 
     public List<Ontology> getOntologyList(SecUser user) {
@@ -293,7 +295,10 @@ class SecurityACLService {
     }
 
     public def checkIsSameUser(SecUser user,SecUser currentUser) {
-        if (!currentRoleServiceProxy.isAdminByNow(currentUser) && (user.id!=currentUser.id)) {
+        boolean sameUser = (user.id == currentUser.id)
+        sameUser |= currentRoleServiceProxy.isAdminByNow(currentUser)
+        sameUser |= (currentUser instanceof UserJob && user.id==((UserJob)currentUser).user.id)
+        if (!sameUser) {
             throw new ForbiddenException("You don't have the right to read this resource! You must be the same user!")
         }
     }

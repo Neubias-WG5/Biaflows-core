@@ -63,24 +63,12 @@ var UserDashboardView = Backbone.View.extend({
     initWelcomeMessage : function() {
         var self = this;
         $.get("/api/configuration/key/WELCOME.json", function(data) {
-            new UserSecRole({user:window.app.status.user.model.id}).fetch({
-                success: function (collection, response) {
-                    var roles = collection.get('collection');
-                    for(var i = 0;i<roles.length;i++) {
-                        if (roles[i].role == data.readingRole) {
-                            self.el.find("#welcomeMessage").html(data.value);
-
-                            if(self.el.find("#welcomeMessage").text() == ""
-                                || window.app.isUndefined(self.el.find("#welcomeMessage").text())) {
-                                $("#communicationRow").hide();
-                            } else {
-                                $("#communicationRow").show();
-                            }
-                            break;
-                        }
-                    }
-                }
-            });
+            self.el.find("#welcomeMessage").html(data.value);
+            if(self.el.find("#welcomeMessage").text() == "" || window.app.isUndefined(self.el.find("#welcomeMessage").text())) {
+                $("#communicationRow").hide();
+            } else {
+                $("#communicationRow").show();
+            }
         })
     },
     initLastOpenProject : function(tplProj) {

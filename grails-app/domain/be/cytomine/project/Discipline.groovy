@@ -31,8 +31,12 @@ class Discipline extends CytomineDomain implements Serializable{
     @RestApiObjectField(description = "The name of the discipline")
     String name
 
+    @RestApiObjectField(description = "The short name of the discipline")
+    String shortName
+
     static constraints = {
         name(blank: false, unique: true)
+        shortName(nullable: true)
     }
     static mapping = {
         id(generator: 'assigned', unique: true)
@@ -63,6 +67,7 @@ class Discipline extends CytomineDomain implements Serializable{
     static Discipline insertDataIntoDomain(def json, def domain = new Discipline()) {
         domain.id = JSONUtils.getJSONAttrLong(json,'id',null)
         domain.name = JSONUtils.getJSONAttrStr(json, 'name')
+        domain.shortName = JSONUtils.getJSONAttrStr(json, 'shortName')
         return domain;
     }
 
@@ -74,6 +79,7 @@ class Discipline extends CytomineDomain implements Serializable{
     static def getDataFromDomain(def domain) {
         def returnArray = CytomineDomain.getDataFromDomain(domain)
         returnArray['name'] = domain?.name
+        returnArray['shortName'] = domain?.shortName
         return returnArray
     }
 

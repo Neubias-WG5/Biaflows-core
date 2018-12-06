@@ -68,7 +68,6 @@ class UserTests  {
 
         result = UserAPI.listFriends(user.id,true,project.id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
-
         result = UserAPI.listFriends(user.id,false,null,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
 
@@ -178,28 +177,6 @@ class UserTests  {
         assert 404 == result.code
     }
 
-    void testListOntologyUser() {
-        def project = BasicInstanceBuilder.getProject()
-        def result = UserAPI.list(project.ontology.id,"ontology","user",Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
-        assert 200 == result.code
-        def json = JSON.parse(result.data)
-        assert json.collection instanceof JSONArray
-
-        result = UserAPI.list(-99,"ontology","user",Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
-        assert 404 == result.code
-    }
-
-    void testListOntologyCreator() {
-        def project = BasicInstanceBuilder.getProject()
-        def result = UserAPI.list(project.ontology.id,"ontology","creator",Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
-        assert 200 == result.code
-        def json = JSON.parse(result.data)
-        assert json.collection instanceof JSONArray
-
-        result = UserAPI.list(-99,"ontology","creator",Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
-        assert 404 == result.code
-    }
-
     void testListProjectLayer() {
         def project = BasicInstanceBuilder.getProject()
         def result = UserAPI.list(project.id,"project","userlayer",Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
@@ -224,7 +201,8 @@ class UserTests  {
     }
   
     void testAddUserAlreadyExist() {
-        def userToAdd = BasicInstanceBuilder.getUser()
+        def userToAdd = BasicInstanceBuilder.getUserNotExist()
+        userToAdd.username = BasicInstanceBuilder.getUser().username
         def result = UserAPI.create(userToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 409 == result.code
     }
@@ -235,6 +213,21 @@ class UserTests  {
         userToAdd.username = user.username
         def result = UserAPI.create(userToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 409 == result.code
+
+        userToAdd.username = ""
+        int i = Math.abs(((new Random()).nextInt())%(user.username.size()))
+
+        userToAdd.username += user.username.substring(0,i)
+        if(user.username.charAt(i).toUpperCase() == user.username.charAt(i)) {
+            userToAdd.username += user.username.charAt(i).toLowerCase()
+        } else {
+            userToAdd.username += user.username.charAt(i).toUpperCase()
+        }
+        userToAdd.username += user.username.substring(i+1)
+
+        result = UserAPI.create(userToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 409 == result.code
+
     }
 
 
@@ -361,13 +354,31 @@ class UserTests  {
 
 
 
-    void testAddUserChildCorrect() {
+    void testAddUserJobCorrect() {
         log.info("create user")
         def parent = User.findByUsername(Infos.SUPERADMINLOGIN);
         def json = "{parent:"+ parent.id +", username:"+ Math.random()+", software: ${BasicInstanceBuilder.getSoftware().id}, project: ${BasicInstanceBuilder.getProject().id}}";
 
         log.info("post user child")
         def response = JobAPI.createUserJob(json.toString(), Infos.SUPERADMINLOGIN,Infos.SUPERADMINPASSWORD)
+
+        log.info("check response")
+        assert 200==response.code
+    }
+
+    void testAddTwoUserJobAtTheSameTime() {
+        log.info("create user")
+        def parent = User.findByUsername(Infos.SUPERADMINLOGIN);
+        def json = "{parent:"+ parent.id +", username:"+ Math.random()+", software: ${BasicInstanceBuilder.getSoftware().id}, project: ${BasicInstanceBuilder.getProject().id}}";
+
+        log.info("post user child")
+        def response = JobAPI.createUserJob(json.toString(), Infos.SUPERADMINLOGIN,Infos.SUPERADMINPASSWORD)
+
+        log.info("check response")
+        assert 200==response.code
+
+        log.info("post user child")
+        response = JobAPI.createUserJob(json.toString(), Infos.SUPERADMINLOGIN,Infos.SUPERADMINPASSWORD)
 
         log.info("check response")
         assert 200==response.code
@@ -580,6 +591,38 @@ class UserTests  {
         def json = JSON.parse(result.data)
         assert 200 == result.code
         assert json.collection instanceof JSONArray
+    }
+
+    void testLockUser() {
+        User user = BasicInstanceBuilder.getUserNotExist(true);
+        def result = UserAPI.lock(user.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+        result = UserAPI.show(user.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+        assert json.enabled == false
+
+        result = UserAPI.lock(user.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 400 == result.code
+
+
+        result = UserAPI.unlock(user.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+
+        result = UserAPI.show(user.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+        assert json.enabled == true
+
+        result = UserAPI.unlock(user.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 400 == result.code
+        json = JSON.parse(result.data)
+        assert json instanceof JSONObject
     }
 
 }

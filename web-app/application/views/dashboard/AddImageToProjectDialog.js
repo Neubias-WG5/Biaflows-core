@@ -47,7 +47,7 @@ var AddImageToProjectDialog = Backbone.View.extend({
                     {
                         project : self.model.id,
                         id : row["id"],
-                        thumb : row["macroURL"]
+                        thumb : row["thumb"]
                     });
             }, targets: [1]},
             { data: "originalFilename", defaultContent: "", searchable: true, targets: [2]},

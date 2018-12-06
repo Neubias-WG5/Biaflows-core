@@ -123,6 +123,7 @@ class APIAuthentificationFilters implements javax.servlet.Filter {
     def filters = {
         all(uri:'/api/**') {
             before = {
+                if(controllerName.equals("errors")) return
             }
             after = {
 

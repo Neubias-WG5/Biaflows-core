@@ -1,52 +1,31 @@
-<div id='projectlist<%= id %>' data-id='<%= id %>' class="panel panel-default col-md-2 projectInfoPanel">
+<div id='projectlist<%= id %>' data-id='<%= id %>' class="panel panel-default projectInfoPanel">
     <div class="panel-heading">
-        <h4 class="panel-title"><a href="#tabs-dashboard-<%= id %>"><%= title %></a></h4>
+        <h3 class="panel-title">
+            <a href="#tabs-dashboard-<%= id %>"><%= title %></a>
+        </h3>
     </div>
     <div class="panel-body" style="min-height : 200px;">
-        <% if (dateConnection!=null) { %>
-        <div style="text-align: center">
-            <% if (lastConnection) { %>
-            <span class="label label-info">Last open</span>
-            <br/>
-            <span class="label label-info"><%= dateConnection %></span>
-
-            <% } else { %>
-            <span class="label label-default" style="color:#000000;margin:auto;">Created</span>
-            <br/>
-            <span class="label label-default" style="color:#000000;margin:auto;"><%= dateConnection %></span>
-            <% } %>
-        </div>
-        <% } %>
-
         <ul style="margin-left : 0px;padding-left: 0px;">
             <li>Name : <a href="#tabs-dashboard-<%= id %>"><%= name %></a></li>
-            <li>Ontology : <a href="#ontology/<%= ontology %>"><%= ontologyName %></a></li>
-            <!--<li><i class="icon-user"></i> <a href="#project-users-<%= id %>">See users list</a><li>-->
+            <li>Discipline : <%= disciplineName %></li>
         </ul>
-
-        <% for (var i =0; i<groups.length;i++) { %>
-        <a href="#tabs-imagegroup-<%=id%>-<%=groups[i].id%>"><img src="<%= groups[i].thumb %>"></a>
-        <% } %>
-        <% if(groups.length == 0) {
-            for (var i =0; i<images.length;i++) { %>
-                <a href="#tabs-imagetab-<%=id%>-<%=images[i].id%>"><img src="<%= images[i].thumb %>"></a>
-            <% } %>
-        <% } %>
+        <div class="project-description">
+            <%= description %>
+        </div>
 
     </div>
     <div class="panel-footer">
-        <% if (dateConnection==null) { %>
-        <button class="infoProject btn btn-default btn-xs" id="infoProjectButton<%= id %>" style="display : inline-block;">Info </button>
-        <% if (admin == true) { %>
-        <button class="deleteProject btn btn-danger btn-xs" id="deleteProjectButton<%= id %>" style="display : inline-block;">Delete</button>
-        <% } %>
-        <a href="#tabs-dashboard-<%= id %>" class="btn btn-info btn-xs" id='radioprojectchange<%= id %>'>Open</a>
-
-        <% } else { %>
-        <div style="text-align: center"><a href="#tabs-dashboard-<%= id %>" class="btn btn-info btn-xs">Open</a></div>
-        <% } %>
-
-
+        <div class="pull-right">
+            <button class="deleteProject btn btn-danger" id="deleteProjectButton<%= id %>" style="display : inline-block;">
+                <i class="far fa-trash-alt"></i>
+            </button>
+        </div>
+        <a href="#tabs-dashboard-<%= id %>" class="btn btn-primary" id='radioprojectchange<%= id %>'>
+            <i class="fas fa-eye"></i> Open
+        </a>
+        <!--<button class="infoProject btn btn-default btn-xs" id="infoProjectButton<%= id %>" style="display : inline-block;">-->
+            <!--<i class="fas fa-info-circle"></i>-->
+            <!--Info-->
+        <!--</button>-->
     </div>
-
 </div>

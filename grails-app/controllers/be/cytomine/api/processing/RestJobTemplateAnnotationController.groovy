@@ -27,10 +27,6 @@ import org.restapidoc.annotation.RestApiParam
 import org.restapidoc.annotation.RestApiParams
 import org.restapidoc.pojo.RestApiParamType
 
-/**
- * Controller for software project link
- * A software may be used by some project
- */
 @RestApi(name = "Processing | job template annotation services", description = "Methods for managing a link between a job template and an annotation (roi or other type)")
 class RestJobTemplateAnnotationController extends RestController{
 
@@ -41,9 +37,7 @@ class RestJobTemplateAnnotationController extends RestController{
     def jobService
     def cytomineService
 
-    /**
-     * List all software by project
-     */
+
     @RestApiMethod(description="List all link beetween a job template and an annotation", listing = true)
     @RestApiParams(params=[
         @RestApiParam(name="jobtemplate", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) The job template id"),
@@ -59,9 +53,6 @@ class RestJobTemplateAnnotationController extends RestController{
 
     }
 
-    /**
-     * Get a software project link
-     */
     @RestApiMethod(description="Get a link between a job and an annotation")
     @RestApiParams(params=[
         @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The link id")
@@ -72,9 +63,6 @@ class RestJobTemplateAnnotationController extends RestController{
         else responseNotFound("JobTemplateAnnotation", params.id)
     }
 
-    /**
-     * Add an existing software to a project
-     */
     @RestApiMethod(description="Add a link between a job and an annotation")
     def add () {
         try {
@@ -111,9 +99,6 @@ class RestJobTemplateAnnotationController extends RestController{
 
     }
 
-    /**
-     * Delete the software for the project
-     */
     @RestApiMethod(description="Remove the link beween the job and the annotation")
     @RestApiParams(params=[
         @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The link id")

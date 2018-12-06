@@ -35,6 +35,10 @@ class UploadedFileUrlMappings {
             action = [GET:"getByAbstractImage"]
         }
 
+        "/api/uploadedfile/$id/download"(controller:"restUploadedFile"){
+            action = [GET:"downloadUploadedFile"]
+        }
+
 //        "/uploadedfile" (controller:"restUploadedFile"){
 //            action = [POST : "add"]
 //        }

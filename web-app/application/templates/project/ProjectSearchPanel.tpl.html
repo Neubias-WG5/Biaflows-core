@@ -1,59 +1,58 @@
 <div class="panel panel-default">
     <div class="panel-heading">
-        <h4>Filters</h4>
+        <h3 class="panel-title">Filters</h3>
     </div>
     <div class="panel-body">
         <form class="form-horizontal" role="form">
             <div class="form-group">
-                <label for="projectsearchtextbox" class="col-md-6 control-label">Name</label>
-                <div class="col-md-6">
-                    <input id="projectsearchtextbox" type="text"  class="input-sm form-control typeahead" />
+                <label for="projectsearchtextbox" class="col-sm-2 control-label">Name</label>
+                <div class="col-sm-10" id="project-typeahead">
+                    <input id="projectsearchtextbox" type="text" class="form-control typeahead" />
                 </div>
             </div>
+            <!--<div class="form-group">-->
+                <!--<label for="amountNumberOfImages" class="col-md-6 control-label">Images</label>-->
+                <!--<div class="col-md-6">-->
+                    <!--<input type="text" id="amountNumberOfImages" class="input-sm  form-control"  disabled/>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="form-group">-->
+                <!--<div class="col-md-6">&nbsp;</div>-->
+                <!--<div class="col-md-6">-->
+                    <!--<div id="numberofimageSlider" ></div>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="form-group">-->
+                <!--<label for="amountNumberOfAnnotations" class="col-md-6 control-label">Annotations</label>-->
+                <!--<div class="col-md-6">-->
+                    <!--<input type="text" class="form-control input-sm" id="amountNumberOfAnnotations"  disabled/>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="form-group">-->
+                <!--<div class="col-md-6">&nbsp;</div>-->
+                <!--<div class="col-md-6">-->
+                    <!--<div id="numberofannotationSlider"></div>-->
+                <!--</div>-->
+            <!--</div>-->
             <div class="form-group">
-                <label for="amountNumberOfImages" class="col-md-6 control-label">Images</label>
-                <div class="col-md-6">
-                    <input type="text" id="amountNumberOfImages" class="input-sm  form-control"  disabled/>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="col-md-6">&nbsp;</div>
-                <div class="col-md-6">
-                    <div id="numberofimageSlider" ></div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="amountNumberOfAnnotations" class="col-md-6 control-label">Annotations</label>
-                <div class="col-md-6">
-                    <input type="text" class="form-control input-sm" id="amountNumberOfAnnotations"  disabled/>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="col-md-6">&nbsp;</div>
-                <div class="col-md-6">
-                    <div id="numberofannotationSlider"></div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="disciplineChoiceList" class="col-md-6 control-label">Discipline </label>
-                <div class="col-md-6">
-                    <select id="disciplineChoiceList"  class="form-control input-sm searchProjectCriteria">
+                <label for="disciplineChoiceList" class="col-sm-2 control-label">Discipline </label>
+                <div class="col-sm-10">
+                    <select id="disciplineChoiceList"  class="form-control searchProjectCriteria">
                         <option value="-1">All</option>
                     </select>
                 </div>
             </div>
+            <!--<div class="form-group">-->
+                <!--<label for="ontologyChoiceList" class="col-md-6 control-label">Ontology</label>-->
+                <!--<div class="col-md-6">-->
+                    <!--<select id="ontologyChoiceList" class="form-control input-sm  searchProjectCriteria">-->
+                        <!--<option value="-1">All</option>-->
+                    <!--</select>-->
+                <!--</div>-->
+            <!--</div>-->
             <div class="form-group">
-                <label for="ontologyChoiceList" class="col-md-6 control-label">Ontology</label>
-                <div class="col-md-6">
-                    <select id="ontologyChoiceList" class="form-control input-sm  searchProjectCriteria">
-                        <option value="-1">All</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="col-md-6">&nbsp;</div>
-                <div class="col-md-6">
-                    <button type="button" class="btn btn-info btn-sm showAllProject">Reset filters</button>
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="button" class="btn btn-default showAllProject">Reset filters</button>
                 </div>
             </div>
 

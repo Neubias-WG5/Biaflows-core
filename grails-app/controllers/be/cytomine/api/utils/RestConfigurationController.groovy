@@ -1,5 +1,7 @@
 package be.cytomine.api.utils
 
+import be.cytomine.Exception.ObjectNotFoundException
+
 /*
 * Copyright (c) 2009-2017. Authors: see NOTICE file.
 *
@@ -57,13 +59,13 @@ class RestConfigurationController extends RestController {
 
     @RestApiMethod(description="Edit a config")
     def update() {
-        Configuration config = configurationService.readByKey(params.key)
 
-        if (config) {
+        Configuration config
+        try {
+            config = configurationService.readByKey(params.key)
             request.JSON.id = config.id
-            configurationService.update(config, request.JSON)
             update(configurationService, request.JSON)
-        } else {
+        } catch (ObjectNotFoundException e) {
             add(configurationService, request.JSON)
         }
     }

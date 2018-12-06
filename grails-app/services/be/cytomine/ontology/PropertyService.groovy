@@ -29,6 +29,7 @@ import com.vividsolutions.jts.geom.Geometry
 import groovy.sql.Sql
 
 import static org.springframework.security.acls.domain.BasePermission.READ
+import static org.springframework.security.acls.domain.BasePermission.WRITE
 
 class PropertyService extends ModelService {
 
@@ -235,6 +236,8 @@ class PropertyService extends ModelService {
             securityACLService.check(domain.container(),READ)
             if (domain.retrieveCytomineDomain().hasProperty('user') && domain.retrieveCytomineDomain().user) {
                 securityACLService.checkFullOrRestrictedForOwner(domain, domain.retrieveCytomineDomain().user)
+            } else if (domain.domainClassName.contains("Project")){
+                securityACLService.check(domain.domainIdent,domain.domainClassName, WRITE)
             } else {
                 securityACLService.checkisNotReadOnly(domain)
             }

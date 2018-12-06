@@ -24,7 +24,6 @@ import be.cytomine.command.AddCommand
 import be.cytomine.command.Command
 import be.cytomine.command.EditCommand
 import be.cytomine.command.Transaction
-import be.cytomine.image.server.ImageProperty
 import be.cytomine.image.server.Storage
 import be.cytomine.image.server.StorageAbstractImage
 import be.cytomine.project.Project
@@ -112,13 +111,13 @@ class AbstractImageService extends ModelService {
         }
     }
 
-    def list(User user) {
+    def list(SecUser user) {
         if(currentRoleServiceProxy.isAdminByNow(user)) {
             return AbstractImage.list()
         } else {
             List<Storage> storages = securityACLService.getStorageList(cytomineService.currentUser)
             List<AbstractImage> images = StorageAbstractImage.findAllByStorageInList(storages).collect{it.abstractImage}
-            return images
+            return images.findAll{!it.deleted}
         }
     }
 
@@ -193,9 +192,8 @@ class AbstractImageService extends ModelService {
         AbstractImage domain = AbstractImage.read(id);
         boolean usedByImageInstance = ImageInstance.findAllByBaseImageAndDeletedIsNull(domain).size() != 0
         boolean usedByNestedFile = NestedFile.findAllByAbstractImage(domain).size() != 0
-        boolean usedByImageProperty = ImageProperty.findAllByImage(domain).size() != 0
 
-        return usedByImageInstance || usedByNestedFile ||  usedByImageProperty
+        return usedByImageInstance || usedByNestedFile
     }
 
     /**
@@ -231,7 +229,9 @@ class AbstractImageService extends ModelService {
             c.delete = true
             return executeCommand(c,domain,jsonNewData)
         } else{
-            throw new ForbiddenException("Abstract Image has instances in active projects");
+            def instances = ImageInstance.findAllByBaseImageAndDeletedIsNull(domain)
+            throw new ForbiddenException("Abstract Image has instances in active projects : "+instances.collect{it.project.name}.join(",")
+                    +" with the following names : "+instances.collect{it.instanceFilename}.unique().join(","));
         }
     }
 
@@ -242,7 +242,7 @@ class AbstractImageService extends ModelService {
         String imageServerURL = abstractImage.getRandomImageServerURL()
         String fif = URLEncoder.encode(abstractImage.absolutePath, "UTF-8")
         String mimeType = abstractImage.mimeType
-        return "$imageServerURL/image/crop.$params.format?fif=$fif&mimeType=$mimeType&$queryString&resolution=${abstractImage.resolution}" //&scale=$scale
+        return "$imageServerURL/image/crop.${params.format}?fif=$fif&mimeType=$mimeType&$queryString&resolution=${abstractImage.resolution}" //&scale=$scale
     }
 
     def getCropIMSUrl(params) {
@@ -251,7 +251,7 @@ class AbstractImageService extends ModelService {
         String imageServerURL = abstractImage.getRandomImageServerURL()
         String fif = URLEncoder.encode(abstractImage.absolutePath, "UTF-8")
         String mimeType = abstractImage.mimeType
-        String url = "$imageServerURL/image/crop.$params.format?fif=$fif&mimeType=$mimeType"
+        String url = "$imageServerURL/image/crop.${params.format}?fif=$fif&mimeType=$mimeType"
 
         String query = params.collect { key, value ->
             if (value instanceof String)
@@ -272,7 +272,7 @@ class AbstractImageService extends ModelService {
         int h = params.int('h')
         def parameters = [:]
         parameters.topLeftX = Math.max(x,0)
-        parameters.topLeftY = Math.max(abstractImage.getHeight() - y,0)
+        parameters.topLeftY = Math.max(y,0)
         parameters.width = w
         parameters.height = h
         parameters.imageWidth = abstractImage.getWidth()
@@ -282,10 +282,11 @@ class AbstractImageService extends ModelService {
             //for camera, don't take the part outsite the real image
             parameters.width = width - parameters.topLeftX
         }
-//        if(height && (parameters.height+parameters.topLeftY)>height) {
-//            //for camera, don't take the part outsite the real image
-//            parameters.height = height - parameters.topLeftY
-//        }
+        if(height && (parameters.height+parameters.topLeftY)>height) {
+            //for camera, don't take the part outsite the real image
+            parameters.height = height - parameters.topLeftY
+        }
+        parameters.topLeftY = Math.max(abstractImage.getHeight() - parameters.topLeftY,0)
 
         if (params.zoom) parameters.zoom = params.zoom
         if (params.maxSize) parameters.maxSize = params.maxSize
@@ -296,27 +297,10 @@ class AbstractImageService extends ModelService {
             {"location": "${params.location}"}
         """
 
-        return [url:UrlApi.getCropURL(id, parameters), post: post]
+        return [url:UrlApi.getCropURL(id, parameters, params.format), post: post]
     }
 
 
-
-//    /**
-//     * Extract image properties from file for a specific image
-//     */
-//    def imageProperties(AbstractImage abstractImage) {
-//        if (!ImageProperty.findByImage(abstractImage)) {
-//            imagePropertiesService.populate(abstractImage)
-//        }
-//        return ImageProperty.findAllByImage(abstractImage)
-//    }
-//
-//    /**
-//     * Get a single property thx to its id
-//     */
-//    def imageProperty(long imageProperty) {
-//        return ImageProperty.findById(imageProperty)
-//    }
 
     /**
      * Get all image servers for an image id
@@ -335,7 +319,7 @@ class AbstractImageService extends ModelService {
     /**
      * Get thumb image URL
      */
-    def thumb(long id, int maxSize, def params=null) {
+    def thumb(long id, int maxSize, def params=null, boolean refresh = false) {
         AbstractImage abstractImage = AbstractImage.read(id)
 
         def parameters= [:]
@@ -360,15 +344,15 @@ class AbstractImageService extends ModelService {
         String url = "/image/thumb.$format?" + parameters.collect {k, v -> "$k=$v"}.join("&")
 
         AttachedFile attachedFile = AttachedFile.findByDomainIdentAndFilename(id, url)
-        if (attachedFile) {
-            return ImageIO.read(new ByteArrayInputStream(attachedFile.getData()))
-        } else {
+        if (!attachedFile || refresh) {
             String imageServerURL = abstractImage.getRandomImageServerURL()
             log.info "$imageServerURL"+url
             byte[] imageData = new URL("$imageServerURL"+url).getBytes()
             BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageData))
             attachedFileService.add(url, imageData, abstractImage.id, AbstractImage.class.getName(), "thumb")
             return bufferedImage
+        } else {
+            return ImageIO.read(new ByteArrayInputStream(attachedFile.getData()))
         }
     }
 
@@ -413,7 +397,7 @@ class AbstractImageService extends ModelService {
         String fif = file?.absolutePath
         if (fif) {
             String imageServerURL = abstractImage.getRandomImageServerURL()
-            return "$imageServerURL/image/download?fif=$fif"
+            return "$imageServerURL/image/download?fif=$fif&mimeType=${abstractImage.mimeType}"
         } else {
             return null
         }

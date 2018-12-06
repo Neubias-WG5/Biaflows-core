@@ -168,7 +168,7 @@ class Job extends CytomineDomain  {
         returnArray['project'] = domain?.project?.id
         returnArray['processingServer'] = domain?.processingServer?.id
         returnArray['software'] = domain?.software?.id
-        returnArray['softwareName'] = domain?.software?.name
+        returnArray['softwareName'] = domain?.software?.fullName()
         returnArray['rate'] = domain?.rate
         returnArray['dataDeleted'] = domain?.dataDeleted
         try {

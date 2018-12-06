@@ -237,13 +237,13 @@ var OntologyPanelView = Backbone.View.extend({
     },
     printCreator: function () {
         var self = this;
-        new UserCollection({ontology: self.model.id, creator: true}).fetch({
-            success: function (creator, response) {
+
+        new UserModel({id: self.model.get('user')}).fetch({
+            success: function (creator) {
                 $("#ontologyCreator"+self.model.id).empty();
-                creator.each(function (user) {
-                    $("#ontologyCreator"+self.model.id).append(user.prettyName());
-                });
-            }});
+                $("#ontologyCreator"+self.model.id).append(creator.prettyName());
+            }}
+        );
     },
     printUsers: function () {
         var self = this;

@@ -38,12 +38,13 @@ class SecurityTestsAbstract  {
     static String PASSWORD2 = "PASSWORD2"
     static String USERNAME3 = "USERNAME3"
     static String PASSWORD3 = "PASSWORD3"
+    static String GUEST1 = "GUEST1"
+    static String GPASSWORD1 = "GPASSWORD1"
     static String USERNAMEADMIN = "USERNAMEADMIN"
     static String PASSWORDADMIN = "PASSWORDADMIN"
     static String USERNAMEBAD = "BADUSER"
     static String PASSWORDBAD = "BADPASSWORD"
 
-    static String GHEST1 = "USERNAME1"
 
 
     User getUser1() {
@@ -55,7 +56,11 @@ class SecurityTestsAbstract  {
     }
 
     User getUser3() {
-         BasicInstanceBuilder.getUser(USERNAME3,PASSWORD3)
+        BasicInstanceBuilder.getUser(USERNAME3,PASSWORD3)
+    }
+
+    User getGuest1() {
+        BasicInstanceBuilder.getGhest(GUEST1,GPASSWORD1)
     }
 
     User getUserAdmin() {

@@ -58,6 +58,27 @@ class ImageInstanceTests  {
         assert 200 == result.code
     }
 
+    void testListImagesInstanceByProjectWithLastActivity() {
+        ImageInstance img = BasicInstanceBuilder.getImageInstanceNotExist(BasicInstanceBuilder.getProjectNotExist(true), true)
+
+        def result = ImageInstanceAPI.listByProjectWithLastActivity(img.project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+        assert json.collection.size()  == 1
+
+        assert json.collection.findAll{it.lastActivity != null && ! it.lastActivity instanceof JSONObject.Null}.size() == 0
+
+        BasicInstanceBuilder.getImageConsultationNotExist(img, true)
+
+        result = ImageInstanceAPI.listByProjectWithLastActivity(img.project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+
+        assert json.collection.findAll{it.lastActivity != null && !(it.lastActivity instanceof JSONObject.Null)}.size() == 1
+    }
+
     void testListImagesInstanceByProjectMaxOffset() {
         Project project = BasicInstanceBuilder.getProjectNotExist(true)
         BasicInstanceBuilder.getImageInstanceNotExist(project,true)

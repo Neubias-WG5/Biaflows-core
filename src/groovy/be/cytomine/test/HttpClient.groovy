@@ -117,7 +117,11 @@ class HttpClient {
     void connect(String url, int port) {
         log.debug("Connection to " + url + " with port " + port )
         URL = new URL(url)
-        targetHost = new HttpHost(URL.getHost(), port);
+        if(url.substring(0,8).equals("https://")){
+            targetHost = new HttpHost(URL.getHost(), 443, "https");
+        } else {
+            targetHost = new HttpHost(URL.getHost(), port);
+        }
         InsecureHttpClientFactory ssl = new InsecureHttpClientFactory()
         client = ssl.buildHttpClient() //new DefaultHttpClient();
         localcontext = new BasicHttpContext();
@@ -470,7 +474,15 @@ class HttpClient {
     public  BufferedImage readBufferedImageFromPOST(String url, String post) throws IOException{
         log.debug("readBufferedImageFromURL:" + url);
         URL URL = new URL(url);
-        HttpHost targetHost = new HttpHost(URL.getHost(), URL.getPort());
+
+        HttpHost targetHost
+        if(url.substring(0,8).equals("https://")){
+            targetHost = new HttpHost(URL.getHost(), 443, "https");
+        } else {
+            targetHost = new HttpHost(URL.getHost(), URL.getPort());
+        }
+
+
         log.debug("targetHost:" + targetHost);
         DefaultHttpClient client = new DefaultHttpClient();
 
@@ -488,7 +500,7 @@ class HttpClient {
         log.info("url=" + url + " is " + code + "(OK=" + HttpURLConnection.HTTP_OK + ",MOVED=" + HttpURLConnection.HTTP_MOVED_TEMP + ")");
 
         boolean isOK = (code == HttpURLConnection.HTTP_OK);
-        boolean isFound = (code == HttpURLConnection.HTTP_MOVED_TEMP);
+        boolean isFound = (code == HttpURLConnection.HTTP_MOVED_TEMP || code == HttpURLConnection.HTTP_MOVED_PERM);
         boolean isErrorServer = (code == HttpURLConnection.HTTP_INTERNAL_ERROR);
 
         if (!isOK && !isFound & !isErrorServer) throw new IOException(url + " cannot be read: " + code);
@@ -503,7 +515,12 @@ class HttpClient {
         String encoded = url;
 
        URL URL = new URL(encoded);
-       HttpHost targetHost = new HttpHost(URL.getHost(), URL.getPort());
+        HttpHost targetHost
+        if(url.substring(0,8).equals("https://")){
+            targetHost = new HttpHost(URL.getHost(), 443, "https");
+        } else {
+            targetHost = new HttpHost(URL.getHost(), URL.getPort());
+        }
        DefaultHttpClient client = new DefaultHttpClient();
        // Create AuthCache instance
        AuthCache authCache = new BasicAuthCache();
@@ -551,7 +568,12 @@ class HttpClient {
     public static BufferedImage readBufferedImageFromURLWithRedirect(String url,String loginHTTP, String passHTTP) throws MalformedURLException, IOException {
         //logger.info("readBufferedImageFromURLWithBasicAuth:"+url +" login="+loginHTTP);
         URL URL = new URL(url);
-        HttpHost targetHost = new HttpHost(URL.getHost(), URL.getPort());
+        HttpHost targetHost
+        if(url.substring(0,8).equals("https://")){
+            targetHost = new HttpHost(URL.getHost(), 443, "https");
+        } else {
+            targetHost = new HttpHost(URL.getHost(), URL.getPort());
+        }
         DefaultHttpClient client = new DefaultHttpClient();
         // Create AuthCache instance
         AuthCache authCache = new BasicAuthCache();

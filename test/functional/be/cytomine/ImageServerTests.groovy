@@ -46,7 +46,7 @@ class ImageServerTests {
         assert json.collection.size()>0
     }
 
-
+/*
     void testGetThumb512() {
         ImageInstance imageInstance = BasicInstanceBuilder.initImage()
         def result = ImageServerAPI.thumb(imageInstance.baseImage.id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, 512)
@@ -79,7 +79,7 @@ class ImageServerTests {
         assert thumb.width == expected.width
         assert thumb.height == expected.height
     }
-
+*/
     //api/imageinstance/1676/mask?x=7500&y=16500&w=2000&h=2000&term=28859
 
     //OLD TEST: NEW TESTS WILL COME WITH http://jira.cytomine.be/browse/CYTO-132
@@ -124,7 +124,7 @@ class ImageServerTests {
 //
 //    }
 
-
+/*
     void testGetUserAnnotationMask() {
         ImageInstance imageInstance = BasicInstanceBuilder.initImage()
 
@@ -169,7 +169,7 @@ class ImageServerTests {
         assert thumb.width == expected.width
         assert thumb.height == expected.height
     }
-
+*/
 
 //    static def maskUserAnnotation(Long idAnnotation, Long idTerm, String username, String password) {
 //        String URL = Infos.CYTOMINEURL + "api/userannotation/$idAnnotation/mask-$idTerm"
@@ -195,7 +195,12 @@ class ImageServerTests {
 
 
 
-
+    void testGetWindowUrl() {
+        ImageInstance imageInstance = BasicInstanceBuilder.initImage()
+        def result = ImageServerAPI.windowUrl(imageInstance.id,20000,30000,300,300,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert result.code == 200
+    }
+/*
     void testGetWindow() {
         ImageInstance imageInstance = BasicInstanceBuilder.initImage()
         def result = ImageServerAPI.window(imageInstance.id,20000,30000,300,300,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
@@ -205,12 +210,6 @@ class ImageServerTests {
         assert expected
         assert thumb.width == expected.width
         assert thumb.height == expected.height
-    }
-
-    void testGetWindowUrl() {
-        ImageInstance imageInstance = BasicInstanceBuilder.initImage()
-        def result = ImageServerAPI.windowUrl(imageInstance.id,20000,30000,300,300,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
-        assert result.code == 200
     }
 
     void testGetCropGeometry() {
@@ -399,7 +398,7 @@ class ImageServerTests {
         assert thumb
 
     }
-
+*/
 
     void testGetImageServers() {
 

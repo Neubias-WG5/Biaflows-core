@@ -93,7 +93,7 @@ var DetailedUserProjectInfoDialog = Backbone.View.extend({
 
         $(self.el).find("#totalUserAnnotations-"+self.model.id).html(self.numberAnnotations);
 
-        var prettyDate = window.app.convertLongToPrettyDate(self.lastConnexionDate);
+        var prettyDate = "<span title='"+window.app.convertLongToDate(self.lastConnexionDate)+"'> "+window.app.convertLongToPrettyDate(self.lastConnexionDate)+"</span>"
         $(self.el).find("#lastProjectConnexion-"+self.model.id).html(prettyDate);
 
 

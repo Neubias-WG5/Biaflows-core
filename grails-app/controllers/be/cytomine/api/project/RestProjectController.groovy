@@ -46,6 +46,7 @@ class RestProjectController extends RestController {
     def secUserService
     def dataSource
     def currentRoleServiceProxy
+    def securityACLService
 
     /**
      * List all project available for the current user
@@ -53,14 +54,27 @@ class RestProjectController extends RestController {
     @RestApiMethod(description="Get project listing, according to your access", listing=true)
     def list() {
         SecUser user = cytomineService.currentUser
+        Boolean withMembersCount = params.boolean("withMembersCount")
+        Boolean withLastActivity = params.boolean("withLastActivity")
+        Boolean withDescription = params.boolean("withDescription")
+
+        def projectList
         if(currentRoleServiceProxy.isAdminByNow(user)) {
             //if user is admin, we print all available project
-            responseSuccess(projectService.list())
+            user = null
         } else {
-            // better perf with this direct hql request on spring security acl domain table (than post filter)
-            //responseSuccess(projectService.list(user))
-            responseSuccess(projectService.list(user))
+            securityACLService.checkGuest(user)
         }
+        def extended = [:]
+        if(withMembersCount) extended.put("withMembersCount",withMembersCount)
+        if(withLastActivity) extended.put("withLastActivity",withLastActivity)
+        if (withDescription) extended.put("withDescription", withDescription)
+        if(extended.isEmpty()){
+            projectList = projectService.list(user)
+        } else {
+            projectList = projectService.listExtended(user, extended)
+        }
+        responseSuccess(projectList)
     }
 
     /**
@@ -175,7 +189,7 @@ class RestProjectController extends RestController {
     def listBySoftware() {
         Software software = Software.read(params.long('id'))
         if(software) {
-            responseSuccess(projectService.list(software))
+            responseSuccess(projectService.listBySoftware(software))
         } else {
             responseNotFound("Software", params.id)
         }
@@ -191,7 +205,7 @@ class RestProjectController extends RestController {
     def listByOntology() {
         Ontology ontology = ontologyService.read(params.long('id'));
         if (ontology != null) {
-            responseSuccess(projectService.list(ontology))
+            responseSuccess(projectService.listByOntology(ontology))
         } else {
             responseNotFound("Project", "Ontology", params.id)
         }

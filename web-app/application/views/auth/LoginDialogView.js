@@ -115,7 +115,7 @@ var LoginDialogView = Backbone.View.extend({
         $("#formGroupSubmitForgotUsername").hide();
         $("#formGrouploginEmail").hide();
         $("#formGroupSubmitCreateAccount").hide();
-    },
+    }/*,
     createAccount : function () {
         $("#formGrouploginPassword").hide();
         $("#formGroupSubmitLogin").hide();
@@ -126,6 +126,6 @@ var LoginDialogView = Backbone.View.extend({
         $("#formGrouploginUsername").show();
         $("#formGrouploginEmail").show();
         $("#formGroupSubmitCreateAccount").show();
-    }
+    }*/
 
 });

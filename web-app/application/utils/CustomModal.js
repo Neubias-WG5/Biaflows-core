@@ -173,9 +173,6 @@ var DescriptionModal = {
                 };
 
                 rte.trumbowyg({
-                    btnsGrps: {
-                        semantic2: ['strong', 'em', 'underline', 'del'] // Custom nammed group
-                    },
                     btnsDef: {
                         // Customizables dropdowns
                         align: {
@@ -183,19 +180,19 @@ var DescriptionModal = {
                             ico: 'justifyLeft'
                         },
                         image: {
-                            dropdown: ['insertImage', 'upload'],
+                            dropdown: ['insertImage', 'upload', 'base64'],
                             ico: 'insertImage'
                         }
                     },
+                    tagsToRemove: ['script'],
                     btns: [
                         ['formatting'],
-                        'btnGrp-semantic2',
-                        ['link'],
                         ['align'],
-                        'btnGrp-lists',
+                        ['strong', 'em', 'underline', 'del'],
+                        ['foreColor', 'backColor'],
+                        ['link'],
                         ['image'],
                         ['noembed'],
-                        ['foreColor', 'backColor'],
                         ['specialChars'],
                         ['horizontalRule'],
                         ['removeformat'],
@@ -217,6 +214,7 @@ var DescriptionModal = {
                     // remove the host url for images
 
                     text = rte.trumbowyg('html').split(window.location.protocol + "//" + window.location.host + '/api/attachedfile').join('/api/attachedfile');
+                    text = text.replace("<script>","").replace("</script>","");
                     new DescriptionModel({
                         id: idDescription,
                         domainIdent: domainIdent,
@@ -256,15 +254,19 @@ var DescriptionModal = {
                 success: function (description, response) {
                     container.empty();
                     var text = description.get('data');
-                    text = text.split('STOP_PREVIEW')[0];
+                    if (domainClassName != "be.cytomine.project.Project")
+                        text = text.split('STOP_PREVIEW')[0];
                     text = text.split('\\"').join('"');
                     if (text.replace(/<[^>]*>/g, "").length > maxPreviewCharNumber) {
                         text = text.substr(0, maxPreviewCharNumber) + "...";
                     }
                     container.append(text);
-                    container.append(' <a href="#descriptionModalPreview' + domainIdent + '" role="button" class="descriptionPreview" data-toggle="modal"> See full text </a>');
+                    if (domainClassName != "be.cytomine.project.Project")
+                        container.append(' <a href="#descriptionModalPreview' + domainIdent + '" role="button" class="descriptionPreview" data-toggle="modal"> See full text </a>');
                     if (self.editable) {
-                        container.append('or <a href="#descriptionModal' + domainIdent + '" role="button" class="description" data-toggle="modal"> edit </a>');
+                        if (domainClassName != "be.cytomine.project.Project")
+                            container.append(" or ");
+                        container.append('<a href="#descriptionModal' + domainIdent + '" role="button" class="description btn btn-default btn-xs" data-toggle="modal">Edit description</a>');
                     }
                     callbackGet();
 
@@ -278,7 +280,7 @@ var DescriptionModal = {
                 container.empty();
                 var html = "No description yet";
                 if (self.editable) {
-                    html = ' <a href="#descriptionModal' + domainIdent + '" role="button" class="description" data-toggle="modal">Add description</a>';
+                    html = ' <a href="#descriptionModal' + domainIdent + '" role="button" class="description btn btn-default btn-xs" data-toggle="modal">Add description</a>';
                 }
                 container.append(html);
                 if (self.editable) {

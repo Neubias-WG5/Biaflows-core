@@ -80,10 +80,11 @@ class RestAnnotationTermController extends RestController {
                 responseSuccess([])
             }
 
-            if (annotation && !params.idUser && annotation instanceof UserAnnotation) {
-                responseSuccess(annotationTermService.list(annotation))
-            } else if (annotation && !params.idUser && annotation instanceof AlgoAnnotation) {
-                responseSuccess(algoAnnotationTermService.list(annotation))
+            if (annotation && !params.idUser && (annotation instanceof UserAnnotation || annotation instanceof AlgoAnnotation)) {
+                def result = []
+                result.addAll(annotationTermService.list(annotation))
+                result.addAll(algoAnnotationTermService.list(annotation))
+                responseSuccess(result)
             } else if (annotation && !params.idUser && annotation instanceof ReviewedAnnotation) {
                 responseSuccess(reviewedAnnotationService.listTerms(annotation))
             } else if (annotation && params.idUser) {
@@ -127,8 +128,9 @@ class RestAnnotationTermController extends RestController {
 
     @RestApiMethod(description="Get an annotation term")
     @RestApiParams(params=[
-        @RestApiParam(name="idannotation", type="long", paramType = RestApiParamType.PATH, description = "The annotation id"),
-        @RestApiParam(name="idterm", type="long", paramType = RestApiParamType.PATH, description = "The term id")
+            @RestApiParam(name="idannotation", type="long", paramType = RestApiParamType.PATH, description = "The annotation id"),
+            @RestApiParam(name="idterm", type="long", paramType = RestApiParamType.PATH, description = "The term id"),
+            @RestApiParam(name="idUser", type="long", paramType = RestApiParamType.PATH,description = "(Optional) The user id. If null, it will consider the annotation-term of all users"),
     ])
     def show() {
         AnnotationDomain annotation = AnnotationDomain.getAnnotationDomain(params.long('idannotation'))
@@ -194,8 +196,9 @@ class RestAnnotationTermController extends RestController {
 
     @RestApiMethod(description="Delete an annotation term")
     @RestApiParams(params=[
-        @RestApiParam(name="idannotation", type="long", paramType = RestApiParamType.PATH,description = "The annotation id"),
-        @RestApiParam(name="idterm", type="long", paramType = RestApiParamType.PATH,description = "The term id"),
+            @RestApiParam(name="idannotation", type="long", paramType = RestApiParamType.PATH,description = "The annotation id"),
+            @RestApiParam(name="idterm", type="long", paramType = RestApiParamType.PATH,description = "The term id"),
+            @RestApiParam(name="idUser", type="long", paramType = RestApiParamType.PATH,description = "(Optional) The user id. If null, it will consider the current user"),
     ])
     def delete() {
         if(cytomineService.isUserAlgo()) {

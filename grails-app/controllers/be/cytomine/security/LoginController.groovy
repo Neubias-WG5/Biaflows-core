@@ -388,7 +388,7 @@ class LoginController extends RestController {
 
         }
     }
-    def createAccount () {
+    /*def createAccount () {
         String username = params.j_username
         String email = params.j_email
 
@@ -416,6 +416,6 @@ class LoginController extends RestController {
         } else {
             response([success: false, errors: "The username cannot be blank"], 400)
         }
-    }
+    }*/
 
 }

@@ -37,6 +37,20 @@ class UploadedFileAPI extends DomainAPI {
         return doGET(URL, username, password)
     }
 
+    static def listOnlyRoots(String username, String password) {
+        String URL = Infos.CYTOMINEURL + "api/uploadedfile.json?onlyRoots=true"
+        return doGET(URL, username, password)
+    }
+
+    static def listChilds(Long parentId, String username, String password) {
+        String URL = Infos.CYTOMINEURL + "api/uploadedfile.json?parent="+parentId
+        return doGET(URL, username, password)
+    }
+    static def hierarchicalList(Long rootId, String username, String password) {
+        String URL = Infos.CYTOMINEURL + "api/uploadedfile.json?root="+rootId
+        return doGET(URL, username, password)
+    }
+
     static def create(String json, String username, String password) {
         String URL = Infos.CYTOMINEURL + "api/uploadedfile.json"
         def result = doPOST(URL, json,username, password)

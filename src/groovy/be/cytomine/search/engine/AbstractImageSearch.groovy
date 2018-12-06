@@ -44,7 +44,18 @@ class AbstractImageSearch extends EngineSearch {
         """
     }
 
-    public String createRequestOnProperty(List<String> words) {
+    public String createRequestOnProperty(List<String> words, String attribute = null) {
+        String propertyRequest
+
+        if(attribute == "key"){
+            propertyRequest = "AND ${formatCriteriaToWhere(words, "property.key")}"
+        } else if(attribute == "value"){
+            propertyRequest = "AND ${formatCriteriaToWhere(words, "property.value")}"
+        } else {
+            propertyRequest = "AND (${formatCriteriaToWhere(words, "property.value")} OR ${formatCriteriaToWhere(words, "property.key")})"
+        }
+
+
         if (idProject) return "" //if inside a project, no need to search in abstract image (just image instance)
         return """
             SELECT property.domain_ident as id, property.domain_class_name as type ${
@@ -59,7 +70,7 @@ class AbstractImageSearch extends EngineSearch {
             AND sid.sid = '${currentUser.username}'
             AND ae.acl_object_identity = aoi.id
             AND ae.sid = sid.id
-            AND ${formatCriteriaToWhere(words, "property.value")}
+            $propertyRequest
             AND ai.deleted IS NULL
         """
     }

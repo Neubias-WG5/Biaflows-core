@@ -26,6 +26,7 @@ import be.cytomine.test.http.AlgoAnnotationAPI
 import be.cytomine.test.http.UserAnnotationAPI
 import be.cytomine.utils.JSONUtils
 import be.cytomine.utils.UpdateData
+import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.WKTReader
 import grails.converters.JSON
 import org.codehaus.groovy.grails.web.json.JSONArray
@@ -164,6 +165,18 @@ class UserAnnotationTests  {
         assert 400 == result.code
     }
 
+    void testAddUserAnnotationOutOfBoundsGeom() {
+        def annotationToAdd = BasicInstanceBuilder.getUserAnnotation()
+        ImageInstance im = annotationToAdd.image
+
+        def updateAnnotation = JSON.parse((String)annotationToAdd.encodeAsJSON())
+        updateAnnotation.location = "POLYGON((-1 -1,-1 $im.baseImage.height,${im.baseImage.width+5} $im.baseImage.height,$im.baseImage.width 0,-1 -1))"
+
+        def result = UserAnnotationAPI.create(updateAnnotation.toString(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        assert result.data.location.toString() == "POLYGON ((0 $im.baseImage.height, $im.baseImage.width $im.baseImage.height, $im.baseImage.width 0, 0 0, 0 $im.baseImage.height))"
+    }
+
     void testAddUserAnnotationBadGeomEmpty() {
         def annotationToAdd = BasicInstanceBuilder.getUserAnnotation()
         def updateAnnotation = JSON.parse((String)annotationToAdd.encodeAsJSON())
@@ -192,7 +205,7 @@ class UserAnnotationTests  {
         UserAnnotation annotationToAdd = BasicInstanceBuilder.getUserAnnotation()
         def data = UpdateData.createUpdateSet(
                 BasicInstanceBuilder.getUserAnnotation(),
-                [location: [new WKTReader().read("POLYGON ((2107 2160, 2047 2074, 1983 2168, 1983 2168, 2107 2160))"),new WKTReader().read("POLYGON ((1983 2168, 2107 2160, 2047 2074, 1983 2168, 1983 2168))")]]
+                [location: [new WKTReader().read("POLYGON ((2107 2160, 2047 2074, 1983 2168, 1983 2168, 2107 2160))"),new WKTReader().read("POLYGON ((1983 2168, 2107 2160, 2047 2074, 1983 2168))")]]
         )
 
         def result = UserAnnotationAPI.update(annotationToAdd.id, data.postData,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
@@ -214,6 +227,21 @@ class UserAnnotationTests  {
         assert 200 == result.code
         showResult = UserAnnotationAPI.show(idAnnotation, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         BasicInstanceBuilder.compare(data.mapNew, JSON.parse(showResult.data))
+    }
+
+    void testEditUserAnnotationOutOfBoundsGeom() {
+        def annotation = BasicInstanceBuilder.getUserAnnotation()
+        ImageInstance im = annotation.image
+
+        def updateAnnotation = JSON.parse((String)annotation.encodeAsJSON())
+        updateAnnotation.location = "POLYGON((-1 -1,-1 $im.baseImage.height,${im.baseImage.width+5} $im.baseImage.height,$im.baseImage.width 0,-1 -1))"
+
+        def result = UserAnnotationAPI.update(annotation.id, updateAnnotation.toString(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+        def json = JSON.parse(result.data)
+
+        assert json.annotation.location.toString() == "POLYGON ((0 $im.baseImage.height, $im.baseImage.width $im.baseImage.height, $im.baseImage.width 0, 0 0, 0 $im.baseImage.height))"
     }
 
     void testEditUserAnnotationNotExist() {

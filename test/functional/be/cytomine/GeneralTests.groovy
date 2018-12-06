@@ -26,8 +26,10 @@ import be.cytomine.security.User
 import be.cytomine.test.BasicInstanceBuilder
 import be.cytomine.test.HttpClient
 import be.cytomine.test.Infos
+import be.cytomine.test.http.CommandAPI
 import be.cytomine.test.http.DomainAPI
 import be.cytomine.test.http.ProjectAPI
+import be.cytomine.test.http.UploadedFileAPI
 import be.cytomine.test.http.UserAnnotationAPI
 import be.cytomine.utils.News
 import be.cytomine.utils.Version
@@ -104,9 +106,8 @@ class GeneralTests  {
         result = UserAnnotationAPI.show(idAnnotation, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
 
-        /*
-        * Get the last 3 commands: it must be "REDO ADD ANNOTATION", "UNDO ADD ANNOTATION" and "ADD ANNOTATION"
-        */
+        // Get the last 3 commands: it must be "REDO ADD ANNOTATION", "UNDO ADD ANNOTATION" and "ADD ANNOTATION"
+
         Long idProject = annotationToAdd.image.project.id
         Integer max = 3
         HttpClient client = new HttpClient();
@@ -175,7 +176,29 @@ class GeneralTests  {
         assert 200 == result.code
     }
 
+    void testListDeletedDomains() {
+        def annotation = BasicInstanceBuilder.getUserAnnotationNotExist(BasicInstanceBuilder.getProject(), true)
+        def uploadedFile = BasicInstanceBuilder.getUploadedFileNotExist(true)
 
+        def result = CommandAPI.listDeletedDomain(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, "uploadedFile")
+        assert 200 == result.code
+        int nbFiles = JSON.parse(result.data).collection.size()
+
+        result = CommandAPI.listAllDeleted(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        int total = JSON.parse(result.data).collection.size()
+
+        UserAnnotationAPI.delete(annotation.id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        UploadedFileAPI.delete(uploadedFile.id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+
+        result = CommandAPI.listDeletedDomain(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, "uploadedFile")
+        assert 200 == result.code
+        assert JSON.parse(result.data).collection.size() == nbFiles+1
+
+        result = CommandAPI.listAllDeleted(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        assert JSON.parse(result.data).collection.size() == total+2
+    }
 
 
 

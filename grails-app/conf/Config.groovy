@@ -96,24 +96,26 @@ environments {
         grails.retrievalServerURL = ["http://localhost:9097"]
         grails.converters.default.pretty.print = true
         grails.plugin.springsecurity.useBasicAuth = false
-        grails.resources.adhoc.patterns = ['/images/*', '/js/*', '/plugins/*']
+        grails.resources.adhoc.patterns = ['/images/*', '/js/*']
     }
     production {
         grails.serverURL = "http://localhost:8086"
         grails.uploadURL = "http://localhost:9090"
         grails.plugin.springsecurity.useBasicAuth = false
-        grails.resources.adhoc.patterns = ['/images/*', '/css/jsondoc/*', '/js/*', '/plugins/*']
+        grails.resources.adhoc.patterns = ['/images/*', '/js/*','/css/jsondoc/*']
         grails.retrievalServerURL = []
     }
     development {
-        grails.serverURL = "http://localhost-core:8080"
+        grails.serverURL = "http://localhost-core"
         grails.uploadURL = "http://localhost-upload"
         grails.imageServerURL = ["http://localhost-ims"]
         grails.retrievalServerURL = ["http://localhost-retrieval"]
         grails.converters.default.pretty.print = true
         grails.plugin.springsecurity.useBasicAuth = false
-        grails.resources.adhoc.patterns = ['/images/*', '/css/jsondoc/*', '/js/*', '/plugins/*']
-        grails.readOnlyProjectsByDefault = true
+        grails.resources.adhoc.patterns = ['/images/*', '/js/*','/css/jsondoc/*']
+        grails.readOnlyProjectsByDefault = false
+        grails.retrievalUsername = 'cytomine'
+        grails.retrievalPassword = 'retrieval_default'
         grails.adminPassword="admin"
         grails.ImageServerPrivateKey="ABC"
         grails.ImageServerPublicKey="DEF"
@@ -132,7 +134,7 @@ environments {
         grails.plugin.springsecurity.useBasicAuth = true
         grails.plugin.springsecurity.basic.realmName = "Cytomine log"
         grails.resources.adhoc.patterns = ['/images/*', '/css/*', '/js/*', '/plugins/*']
-        grails.readOnlyProjectsByDefault = true
+        grails.readOnlyProjectsByDefault = false
 
         grails.adminPassword = "password"
         grails.ImageServerPrivateKey=""
@@ -372,7 +374,6 @@ cytomine.customUI.global = [
         storage : ["ROLE_USER","ROLE_ADMIN"],
         software : ["ROLE_USER", "ROLE_ADMIN"],
         activity : ["ALL"],
-        feedback : ["ROLE_USER","ROLE_ADMIN"],
         explore : ["ROLE_USER","ROLE_ADMIN"],
         admin : ["ROLE_ADMIN"],
         help : ["ALL"]
@@ -411,15 +412,14 @@ grails.notification.password = ""
 grails.notification.smtp.host = "smtp.gmail.com"
 grails.notification.smtp.port = "587"
 
-grails.client = "NO"//"AURORA"
-
-grails.integration.aurora.url = "http://localhost:8000/api/image/notify.json?test=true"
-grails.integration.aurora.username = "xxx"
-grails.integration.aurora.password = "xxx"
-grails.integration.aurora.interval = 60000
+grails.client = "NO"
 
 grails.plugin.springsecurity.password.algorithm = 'SHA-256'
 grails.plugin.springsecurity.password.hash.iterations = 1
 
 cytomine.middleware.rabbitmq.user = "router"
 cytomine.middleware.rabbitmq.password = "router"
+
+
+//limitations
+cytomine.annotation.maxNumberOfPoint = 200

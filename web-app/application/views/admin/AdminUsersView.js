@@ -79,6 +79,42 @@ var AdminUsersView = Backbone.View.extend({
             });
         });
 
+        $(self.el).on("click", ".UserLockButton", function() {
+            var self = this;
+            var user = $(this).data("id");
+
+            new UserLockModel({userId:user}).save({}, {
+                success: function (model, response) {
+                    window.app.view.message("Success", response.message, "success");
+                    $(self).removeClass("UserLockButton")
+                    $(self).addClass("UserUnlockButton")
+                    $(self).text("Unlock")
+                },
+                error: function (model, response) {
+                    var json = $.parseJSON(response.responseText);
+                    window.app.view.message("Error", json.errors, "error");
+                }
+            });
+        });
+
+        $(self.el).on("click", ".UserUnlockButton", function() {
+            var self = this;
+            var user = $(this).data("id");
+
+            new UserLockModel({id:user, userId:user}).destroy({
+                success: function (response) {
+                    window.app.view.message("Success", response.message, "success");
+                    $(self).removeClass("UserUnlockButton")
+                    $(self).addClass("UserLockButton")
+                    $(self).text("Lock")
+                },
+                error: function (response) {
+                    var json = $.parseJSON(response.responseText);
+                    window.app.view.message("Error", json.errors, "error");
+                }
+            });
+        });
+
         this.update();
 
         return this;
@@ -108,17 +144,24 @@ var AdminUsersView = Backbone.View.extend({
             { data: "email", targets: [5]},
             { data: "created", render : function ( data, type ) {
                 if(type === "display"){
-                    return window.app.convertLongToPrettyDate(data);
+                    return window.app.convertLongToDate(data);
                 } else {
                     return data
                 }
             }, targets: [6]},
             { data: "updated", defaultContent: "No record", orderable: false, render : function (data) {
-                return window.app.convertLongToPrettyDate(data);
+                return window.app.convertLongToDate(data);
             }, targets: [7]},
             { data: "id", orderable: false, render : function( data, type, row ) {
-                return "<button class='btn btn-xs btn-primary UserDetailsButton' data-id="+data+" >Info</button>"
-                    +" <button class='btn btn-xs btn-primary UserEditButton' data-id="+data+" >Edit</button>";
+                var buttons = "";
+                buttons += "<button class='btn btn-xs btn-primary UserDetailsButton' data-id="+data+" >Info</button>";
+                buttons += " <button class='btn btn-xs btn-primary UserEditButton' data-id="+data+" >Edit</button>";
+                if(row["enabled"]) {
+                    buttons += " <button class='btn btn-xs btn-warning UserLockButton' data-id="+data+" >Lock</button>";
+                } else {
+                    buttons += " <button class='btn btn-xs btn-warning UserUnlockButton' data-id="+data+" >Unlock</button>";
+                }
+                return buttons;
             }, targets: [8]},
             { searchable: true, targets: [0,1,2,5] },
             { searchable: false, targets: [3,4,6,7,8] }

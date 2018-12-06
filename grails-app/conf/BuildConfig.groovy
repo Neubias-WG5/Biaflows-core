@@ -14,14 +14,13 @@
 * limitations under the License.
 */
 
-//grails.client = "be.cytomine.integration"
+
 grails.servlet.version = "3.0"
 grails.reload.enabled = true
 grails.project.class.dir = "target/classes"
 grails.project.test.class.dir = "target/test-classes"
 grails.project.test.reports.dir = "target/test-reports"
-grails.project.war.file = "target/latest.war"
-//grails.project.dependency.resolver="ivy"
+grails.project.war.file = "core.war"
 grails.project.dependency.resolver = "maven"
 
 //UNCOMMENT TO HAVE WORKING TEST
@@ -76,7 +75,7 @@ grails.project.dependency.resolution = {
     }
     dependencies {
         test "org.spockframework:spock-grails-support:0.7-groovy-2.0"
-        runtime 'postgresql:postgresql:9.1-901.jdbc4'
+        runtime 'org.postgresql:postgresql:42.2.2'
         runtime 'com.rabbitmq:amqp-client:3.4.4'
         compile "javax.validation:validation-api:1.1.0.Final"
         runtime "org.hibernate:hibernate-validator:5.0.3.Final"
@@ -111,7 +110,6 @@ grails.project.dependency.resolution = {
         }
         test ":geb:0.9.0"
         compile ':webxml:1.4.1'
-        compile ":teamcity:1.0.3"
     }
 }
 // Remove the DisableOptimizationsTransformation jar before the war is bundled

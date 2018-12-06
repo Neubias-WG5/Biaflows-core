@@ -1,4 +1,9 @@
 <div id="softwareDescription">
+    <div class="pull-right">
+        <a class="btn btn-primary" href="#software-<%= id %>">
+            <i class="fas fa-flask"></i> See software details
+        </a>
+    </div>
     <dl class="dl-horizontal">
         <dt>Name</dt>
         <dd><%= name %></dd>
@@ -6,25 +11,23 @@
         <dd><%= softwareVersion %></dd>
 
         <dt></dt>
-        <dd><a id="softwareShowDetailsButton">More details</a> <i class="icon-info-sign"></i></dd>
+        <dd><a id="softwareShowDetailsButton">Show statistics</a> <i class="icon-info-sign"></i></dd>
     </dl>
 </div>
 <div id="softwareDetailsPanel" title="" style="display:none;">
-
+    <div class="pull-right">
+        <a class="btn btn-primary" href="#software-<%= id %>">
+            <i class="fas fa-flask"></i> See software details
+        </a>
+    </div>
     <dl class="dl-horizontal">
         <dt>Name</dt>
         <dd><%= name %>&nbsp;</dd>
         <dt>Version</dt>
         <dd><%= softwareVersion %></dd>
 
-        <dt>Created</dt>
-        <dd><%= _created %>&nbsp;</dd>
-        <dt>Result generator</dt>
-        <dd><%= resultName %>&nbsp;</dd>
-        <dt>Number of job</dt>
-        <dd><%= numberOfJob %>&nbsp;</dd>
         <dt></dt>
-        <dd><a id="softwareHideDetailsButton">Less details</a> <i class="icon-info-sign"></i></dd>
+        <dd><a id="softwareHideDetailsButton">Hide statistics</a> <i class="icon-info-sign"></i></dd>
     </dl>
 
     <div id="softwareParams">

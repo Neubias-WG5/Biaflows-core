@@ -24,7 +24,7 @@
             </div>
 
             <div class="col-md-4">
-                <input class="input-xlarge focused" id="project-edit-name" type="text"
+                <input class="form-control" id="project-edit-name" type="text"
                        placeholder="Your project name">
             </div>
 
@@ -32,6 +32,20 @@
                 <button id="saveProjectNameButton" href="javascript:void(0);" class="btn btn-info" disabled>Save</button>
             </div>
 
+        </div>
+
+        <hr>
+
+        <div class="row">
+            <div class="col-md-2 col-md-offset-1">
+                <label for="project-edit-discipline" class="control-label">Discipline</label>
+            </div>
+
+            <div class="col-md-4">
+                <select id="project-edit-discipline" class="form-control">
+                    <option value="null">*** Undefined ***</option>
+                </select>
+            </div>
         </div>
 
         <hr>
@@ -81,7 +95,7 @@
         </div>
         <br/>
         <div class="row">
-            <div class="col-md-2 col-md-offset-2">
+            <div class="col-md-2 col-md-offset-1">
                 <input type="radio" id="EditingModeFull-radio-config" name="EditingModeGroup" value="all" checked>
                     Classic<br>
             </div>
@@ -92,7 +106,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-2 col-md-offset-2">
+            <div class="col-md-2 col-md-offset-1">
                     <input type="radio" id="EditingModeRestricted-radio-config" name="EditingModeGroup" value="some"> Restricted<br>
             </div>
             <div class="col-md-8">
@@ -102,7 +116,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-2 col-md-offset-2">
+            <div class="col-md-2 col-md-offset-1">
                     <input type="radio" id="EditingModeReadOnly-radio-config" name="EditingModeGroup" value="none"> Read Only <br>
             </div>
             <div class="col-md-8">
@@ -122,10 +136,10 @@
 
 
         <div class="row">
-            <div class="col-md-9 col-md-offset-2">
+            <div class="col-md-10 col-md-offset-1">
                 <div id="retrievalGroup">
                     <input type="radio" id="retrievalProjectAll-radio-config" name="retrievalProjectGroup" value="all" checked>
-                    Enable retrieval search on all projects (same ontology)<br> <br>
+                    Enable retrieval search on all projects (same ontology)<br>
                     <input type="radio" id="retrievalProjectSome-radio-config" name="retrievalProjectGroup" value="some"> Enable
                     retrieval search for selected projects <br>
                     <div class="ui-helper-clearfix">

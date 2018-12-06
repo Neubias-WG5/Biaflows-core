@@ -130,7 +130,7 @@ var ProjectDashboardAnnotations = Backbone.View.extend({
         self.initSelectUser();
 
         self.initSelectJobs();
-        self.initAnnotationsFilter();
+        //self.initAnnotationsFilter();
         $(self.el).find("#uncheckAllTerms").click(function () {
             self.hideAllTerms();
         });
@@ -672,6 +672,11 @@ var ProjectDashboardAnnotations = Backbone.View.extend({
         var terms = this.selectedTerm.join(",");
         var images = this.selectedImages.join(",");
         var suffix = "&users=" + users + "&terms=" + terms + "&images=" + images + "&reviewed="+ ($('input[name=annotationClass]:checked').val() == "inReviewed");
+
+
+        if(this.selectedTerm.indexOf(-1) >= 0) suffix += "&noTerm=true";
+        if(this.selectedTerm.indexOf(-2) >= 0) suffix += "&multipleTerms=true";
+
         $("#downloadAnnotationsCSV").attr("href", "/api/project/" + this.model.id + "/annotation/download?format=csv" + suffix);
         $("#downloadAnnotationsExcel").attr("href", "/api/project/" + this.model.id + "/annotation/download?format=xls" + suffix);
         $("#downloadAnnotationsPDF").attr("href", "/api/project/" + this.model.id + "/annotation/download?format=pdf" + suffix);

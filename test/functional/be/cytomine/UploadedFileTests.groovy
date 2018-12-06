@@ -1,5 +1,7 @@
 package be.cytomine
 
+import be.cytomine.image.ImageInstance
+
 /*
 * Copyright (c) 2009-2017. Authors: see NOTICE file.
 *
@@ -36,14 +38,85 @@ import org.codehaus.groovy.grails.web.json.JSONObject
  */
 class UploadedFileTests {
 
-  void testListUploadedFil() {
-      def result = UploadedFileAPI.list(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
-      assert 200 == result.code
-      def json = JSON.parse(result.data)
-      assert json.collection instanceof JSONArray
-  }
+    void testListUploadedFile() {
+        def result = UploadedFileAPI.list(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+    }
 
-  void testShowUploadedFileWithCredential() {
+    void testListUploadedFileRootOrFromParentOrHierarchical() {
+        UploadedFile uploadedfileToAdd = BasicInstanceBuilder.getUploadedFileNotExist()
+        def result = UploadedFileAPI.create(uploadedfileToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        int idUploadedFile = result.data.id
+
+        result = UploadedFileAPI.show(idUploadedFile, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+        UploadedFile uploadedfileChildToAdd = BasicInstanceBuilder.getUploadedFileNotExist()
+        uploadedfileChildToAdd.parent = UploadedFile.get(idUploadedFile)
+
+        result = UploadedFileAPI.create(uploadedfileChildToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        int idUploadedFileChild = result.data.id
+
+        result = UploadedFileAPI.show(idUploadedFileChild, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+        UploadedFile uploadedfile3 = BasicInstanceBuilder.getUploadedFileNotExist()
+        uploadedfile3.parent = UploadedFile.get(idUploadedFileChild)
+
+        result = UploadedFileAPI.create(uploadedfile3.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        int idUploadedFile3 = result.data.id
+
+        result = UploadedFileAPI.show(idUploadedFile3, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+        result = UploadedFileAPI.listOnlyRoots(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+
+        def root = json.collection.find { it.id == idUploadedFile}
+        def child = json.collection.find { it.id == idUploadedFileChild}
+        def third = json.collection.find { it.id == idUploadedFile3}
+
+        assert root != null
+        assert child == null
+        assert third == null
+
+
+        result = UploadedFileAPI.listChilds(idUploadedFile, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+
+        root = json.collection.find { it.id == idUploadedFile}
+        child = json.collection.find { it.id == idUploadedFileChild}
+        third = json.collection.find { it.id == idUploadedFile3}
+
+        assert child != null
+        assert root == null
+        assert third == null
+
+
+        result = UploadedFileAPI.hierarchicalList(idUploadedFile, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+
+        root = json.collection.find { it.id == idUploadedFile}
+        child = json.collection.find { it.id == idUploadedFileChild}
+        third = json.collection.find { it.id == idUploadedFile3}
+
+        assert child != null
+        assert root != null
+        assert third != null
+    }
+
+    void testShowUploadedFileWithCredential() {
       def result = UploadedFileAPI.show(BasicInstanceBuilder.getUploadedFile().id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
       assert 200 == result.code
       def json = JSON.parse(result.data)
@@ -75,26 +148,86 @@ class UploadedFileTests {
       BasicInstanceBuilder.compare(data.mapNew, json)
   }
 
-  void testDeleteUploadedFile() {
-      def uploadedfileToDelete = BasicInstanceBuilder.getUploadedFileNotExist()
-      assert uploadedfileToDelete.save(flush: true)!= null
-      def id = uploadedfileToDelete.id
-      def result = UploadedFileAPI.delete(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
-      assert 200 == result.code
+    void testDeleteUploadedFile() {
+        def uploadedfileToDelete = BasicInstanceBuilder.getUploadedFileNotExist()
+        assert uploadedfileToDelete.save(flush: true)!= null
+        def id = uploadedfileToDelete.id
+        def result = UploadedFileAPI.delete(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
 
-      def showResult = UploadedFileAPI.show(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
-      assert 200 == showResult.code
+        def showResult = UploadedFileAPI.show(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 404 == showResult.code
+    }
 
-      def json = JSON.parse(showResult.data)
-      assert json.deleted != null
-      assert json.deleted != ""
+    void testDeleteUploadedFileWithImageInProject() {
+        def uploadedfileToDelete = BasicInstanceBuilder.getUploadedFileNotExist()
+        ImageInstance img = BasicInstanceBuilder.getImageInstanceNotExist(BasicInstanceBuilder.getProjectNotExist(true),true)
+        uploadedfileToDelete.image = img.baseImage;
+        assert uploadedfileToDelete.save(flush: true)!= null
+        def id = uploadedfileToDelete.id
+        def result = UploadedFileAPI.delete(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
 
-  }
+        assert 403 == result.code
+    }
 
-  void testDeleteUploadedFileNotExist() {
+    void testDeleteUploadedFileNotExist() {
       def result = UploadedFileAPI.delete(-99, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
       assert 404 == result.code
   }
+
+    void testLTree() {
+        UploadedFile uploadedfileToAdd = BasicInstanceBuilder.getUploadedFileNotExist()
+        def result = UploadedFileAPI.create(uploadedfileToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        int idUploadedFile = result.data.id
+
+        UploadedFile uploadedfileChildToAdd = BasicInstanceBuilder.getUploadedFileNotExist()
+        uploadedfileChildToAdd.parent = UploadedFile.get(idUploadedFile)
+        result = UploadedFileAPI.create(uploadedfileChildToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        int idUploadedFileChild = result.data.id
+
+        UploadedFile uploadedfile3 = BasicInstanceBuilder.getUploadedFileNotExist()
+        uploadedfile3.parent = UploadedFile.get(idUploadedFileChild)
+        result = UploadedFileAPI.create(uploadedfile3.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        int idUploadedFile3 = result.data.id
+
+        UploadedFile uploadedfile4 = BasicInstanceBuilder.getUploadedFileNotExist()
+        uploadedfile4.parent = UploadedFile.get(idUploadedFile3)
+        result = UploadedFileAPI.create(uploadedfile4.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        int idUploadedFile4 = result.data.id
+
+        result = UploadedFileAPI.show(idUploadedFile, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        def json = JSON.parse(result.data)
+        UploadedFile uf1 = UploadedFile.get(json.id)
+
+        result = UploadedFileAPI.show(idUploadedFileChild, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        json = JSON.parse(result.data)
+        UploadedFile uf2 = UploadedFile.get(json.id)
+
+        result = UploadedFileAPI.show(idUploadedFile3, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        json = JSON.parse(result.data)
+        UploadedFile uf3 = UploadedFile.get(json.id)
+
+        result = UploadedFileAPI.show(idUploadedFile4, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        json = JSON.parse(result.data)
+        UploadedFile uf4 = UploadedFile.get(json.id)
+
+        assert uf4.lTree.contains(uf3.lTree)
+        assert uf3.lTree.contains(uf2.lTree)
+        assert uf2.lTree.contains(uf1.lTree)
+        assert uf4.parent.id == uf3.id
+
+        //delete uf3
+        result = UploadedFileAPI.delete(uf3.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+        result = UploadedFileAPI.show(idUploadedFile3, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 404 == result.code
+
+        result = UploadedFileAPI.show(idUploadedFile4, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        json = JSON.parse(result.data)
+
+        assert json.parent == uf2.id
+    }
 
 //   void testUploadFileWorkflow() {
 //       def oneAnotherImage = BasicInstanceBuilder.initImage()
@@ -134,7 +267,7 @@ class UploadedFileTests {
 //
 //   }
 
-
+/*
     void testUploadFileWorkflowForGhest() {
         User ghest = BasicInstanceBuilder.getGhest("GHESTUPLOAD","PASSWORD")
         def oneAnotherImage = BasicInstanceBuilder.initImage()
@@ -158,7 +291,7 @@ class UploadedFileTests {
 
     }
 
-
+*/
 
 
 }

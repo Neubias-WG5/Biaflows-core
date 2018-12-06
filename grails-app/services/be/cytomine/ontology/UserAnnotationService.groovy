@@ -35,6 +35,8 @@ import be.cytomine.utils.JSONUtils
 import be.cytomine.utils.ModelService
 import be.cytomine.utils.Task
 import com.vividsolutions.jts.geom.Geometry
+import com.vividsolutions.jts.io.ParseException
+import com.vividsolutions.jts.io.WKTReader
 import com.vividsolutions.jts.io.WKTWriter
 import grails.converters.JSON
 import groovy.sql.Sql
@@ -64,7 +66,7 @@ class UserAnnotationService extends ModelService {
     def securityACLService
     def currentRoleServiceProxy
     def sharedAnnotationService
-    //def imageRetrievalService
+    def imageInstanceService
 
     def currentDomain() {
         return UserAnnotation
@@ -213,9 +215,29 @@ class UserAnnotationService extends ModelService {
             }
         }
 
+        Geometry annotationForm
+        try {
+            annotationForm = new WKTReader().read(json.location);
+        } catch (ParseException e){
+            throw new WrongArgumentException("Annotation location not valid")
+        }
+
+        if(!annotationForm.isValid()){
+            throw new WrongArgumentException("Annotation location not valid")
+        }
+
+
+        ImageInstance im = imageInstanceService.read(json.image)
+        if(!im){
+            throw new WrongArgumentException("Annotation not associated with a valid image")
+        }
+        Geometry imageBounds = new WKTReader().read("POLYGON((0 0,0 $im.baseImage.height,$im.baseImage.width $im.baseImage.height,$im.baseImage.width 0,0 0))")
+
+        annotationForm = annotationForm.intersection(imageBounds)
+
         //simplify annotation
         try {
-            def data = simplifyGeometryService.simplifyPolygon(json.location,minPoint,maxPoint)
+            def data = simplifyGeometryService.simplifyPolygon(annotationForm.toString(),minPoint,maxPoint)
             json.location = new WKTWriter().write(data.geometry)
             json.geometryCompression = data.rate
         } catch (Exception e) {
@@ -244,26 +266,16 @@ class UserAnnotationService extends ModelService {
                 }
             }
 
-            def properties = JSONUtils.getJSONList(json.property)
+            def properties = JSONUtils.getJSONList(json.property) + JSONUtils.getJSONList(json.properties)
             if (properties) {
                 properties.each {
                     def key = it.key as String
                     def value = it.value as String
-                    log.info(it)
-                    log.info(key)
-                    log.info(value)
                     propertyService.add(JSON.parse("""{"domainClassName": "be.cytomine.ontology.UserAnnotation", "domainIdent": "$annotationID", "key": "$key", "value": "$value" }"""), transaction)
-//            log.info "it.key"
-//            log.info it.key
-//            log.info "it.value"
-//            log.info it.value
-//                    cytomine.addDomainProperties(image.getStr("class"), image.getLong("id"),
-//                            it.key.toString(), it.value.toString())
                 }
             }
 
         }
-
 
             //add annotation on the retrieval
         log.info "annotationID=$annotationID"
@@ -293,9 +305,27 @@ class UserAnnotationService extends ModelService {
         SecUser currentUser = cytomineService.getCurrentUser()
         //securityACLService.checkIsSameUserOrAdminContainer(annotation,annotation.user,currentUser)
         securityACLService.checkFullOrRestrictedForOwner(annotation,annotation.user)
+
+        Geometry annotationForm
+        try {
+            annotationForm = new WKTReader().read(jsonNewData.location);
+        } catch (ParseException e){
+            throw new WrongArgumentException("Annotation location not valid")
+        }
+        if(!annotationForm.isValid()){
+            throw new WrongArgumentException("Annotation location not valid")
+        }
+        ImageInstance im = imageInstanceService.read(jsonNewData.image)
+        if (!im) {
+            throw new WrongArgumentException("Annotation must have a valid image" + json.image)
+        }
+        Geometry imageBounds = new WKTReader().read("POLYGON((0 0,0 $im.baseImage.height,$im.baseImage.width $im.baseImage.height,$im.baseImage.width 0,0 0))")
+
+        annotationForm = annotationForm.intersection(imageBounds)
+
         //simplify annotation
         try {
-            def data = simplifyGeometryService.simplifyPolygon(jsonNewData.location, jsonNewData.geometryCompression)
+            def data = simplifyGeometryService.simplifyPolygon(annotationForm.toString(), jsonNewData.geometryCompression)
             jsonNewData.location = new WKTWriter().write(data.geometry)
         } catch (Exception e) {
             log.error("update : Cannot simplify:" + e)

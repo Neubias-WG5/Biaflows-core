@@ -56,6 +56,9 @@ class AnnotationUrlMappings {
         "/api/annotation/$id/crop.$format"(controller: "restAnnotationDomain"){
             action = [GET:"crop"]
         }
+        "/api/annotation/$id/cropParameters.$format"(controller: "restAnnotationDomain"){
+            action = [GET:"cropParameters"]
+        }
 
         //keep this for retrieval
         "/api/annotation/$id/cropMin.$format"(controller: "restAnnotationDomain"){
@@ -203,6 +206,10 @@ class AnnotationUrlMappings {
         }
         "/api/imageinstance/$idImage/annotation/included/download"(controller: "restAnnotationDomain"){
             action = [GET:"downloadIncludedAnnotation"]
+        }
+
+        "/api/annotation/$id/fill"(controller: "restAnnotationDomain"){
+            action = [POST:"fillAnnotation"]
         }
 
         /**

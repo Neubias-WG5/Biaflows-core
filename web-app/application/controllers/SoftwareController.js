@@ -17,14 +17,17 @@
 var SoftwareController = Backbone.Router.extend({
     initialized: false,
     routes: {
-        "software": "software"
+        "software": "software",
+        "software-:idSoftware": "software"
     },
-    software: function () {
+    software: function (idSoftware) {
         if (!this.initialized) {
             this.render();
             this.initialized = true;
         }
+        window.app.status.currentSoftwareId = idSoftware;
         window.app.view.showComponent(window.app.view.components.software);
+
     },
     render: function () {
         new SoftwareListView({

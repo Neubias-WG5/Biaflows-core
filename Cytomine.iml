@@ -40,15 +40,12 @@
       <sourceFolder url="file://$MODULE_DIR$/grails-app/domain" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/grails-app/services" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/grails-app/taglib" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/test/unit" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/test/integration" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/grails-app" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/web-app/images" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/web-app" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/web-app/css" type="java-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/web-app/js" type="java-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/images" type="java-resource" />
-      <excludeFolder url="file://$MODULE_DIR$/scripts" />
+      <sourceFolder url="file://$MODULE_DIR$/test/unit" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/test/integration" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
@@ -104,7 +101,6 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jboss/logging/jboss-logging/3.1.1.GA/jboss-logging-3.1.1.GA.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/hibernate/hibernate-validator/5.0.3.Final/hibernate-validator-5.0.3.Final.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/com/rabbitmq/amqp-client/3.4.4/amqp-client-3.4.4.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/postgresql/postgresql/9.1-901.jdbc4/postgresql-9.1-901.jdbc4.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/com/sun/mail/javax.mail/1.5.1/javax.mail-1.5.1.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/liquibase/liquibase-core/2.0.5/liquibase-core-2.0.5.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/net/sourceforge/jexcelapi/jxl/2.6.12/jxl-2.6.12.jar!/" />
@@ -261,6 +257,7 @@
           <root url="jar://$USER_HOME$/.sdkman/candidates/grails/2.4.4/lib/org.apache.ant/ant-junit/jars/ant-junit-1.8.4.jar!/" />
           <root url="jar://$USER_HOME$/.sdkman/candidates/grails/2.4.4/lib/org.apache.ant/ant-trax/jars/ant-trax-1.7.1.jar!/" />
           <root url="jar://$USER_HOME$/.sdkman/candidates/grails/2.4.4/lib/org.apache.ant/ant-launcher/jars/ant-launcher-1.8.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/postgresql/postgresql/42.2.2/postgresql-42.2.2.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/json/json/20141113/json-20141113.jar!/" />
         </CLASSES>
         <JAVADOC />

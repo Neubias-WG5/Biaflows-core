@@ -80,7 +80,7 @@ var ImageReviewAction = Backbone.View.extend({
         if(window.app.status.currentProjectModel.isReadOnly(window.app.models.projectAdmin) || window.app.status.currentProjectModel.get('blindMode')) {
             el.find("a#renameImage" + self.model.id).hide();
         }
-        el.find("a#renameImage" + self.model.id).bind('click',function(){
+        el.find("a#renameImage" + self.model.id).unbind('click').bind('click',function(){
             console.log("rename"+self.model.id);
             self.renameImage();
             return false;
@@ -94,7 +94,7 @@ var ImageReviewAction = Backbone.View.extend({
         if(window.app.status.currentProjectModel.isReadOnly(window.app.models.projectAdmin)) {
             el.find("a.deleteImage" + self.model.id).hide();
         }
-        el.find("a.deleteImage" + self.model.id).bind('click',function(){
+        el.find("a.deleteImage" + self.model.id).unbind('click').bind('click',function(){
             console.log("del"+self.model.id);
             self.deleteImage();
             return false;

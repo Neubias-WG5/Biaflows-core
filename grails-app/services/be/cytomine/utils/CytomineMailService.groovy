@@ -16,8 +16,10 @@ package be.cytomine.utils
 * limitations under the License.
 */
 
+import be.cytomine.Exception.MiddlewareException
 import grails.util.Holders
 import org.springframework.core.io.FileSystemResource
+import org.springframework.mail.MailAuthenticationException
 import org.springframework.mail.javamail.JavaMailSenderImpl
 import org.springframework.mail.javamail.MimeMessageHelper
 
@@ -68,9 +70,9 @@ class CytomineMailService {
         log.info "send $mail"
         try {
             sender.send(mail)
-        } catch (AuthenticationFailedException | MessagingException e) {
+        } catch (AuthenticationFailedException | MessagingException | MailAuthenticationException e) {
             log.error "can't send email $mail (MessagingException)"
-            e.printStackTrace()
+            throw new MiddlewareException(e.getMessage())
         }
     }
 }

@@ -73,6 +73,17 @@ class ImageInstanceService extends ModelService {
         image
     }
 
+    def readMany(def ids) {
+        def images = ImageInstance.findAllByIdInList(ids)
+        if(images) {
+            images.each { image ->
+                securityACLService.check(image.container(),READ)
+                checkDeleted(image)
+            }
+        }
+        images
+    }
+
 
     def list(Project project) {
         securityACLService.check(project,READ)
@@ -188,6 +199,59 @@ class ImageInstanceService extends ModelService {
         }
 
 
+    }
+
+    def listExtended(Project project, String sortColumn, String sortDirection, String search, def extended) {
+
+        def data = []
+        def images = list(project, sortColumn, sortDirection, search)
+
+        //get last activity grouped by images
+        def user = cytomineService.currentUser
+
+        def db = mongo.getDB(noSQLCollectionService.getDatabaseName())
+        def result = db.persistentImageConsultation.aggregate(
+                [$match : [ user : user.id]],
+                [$sort : [ created : -1]],
+                [$group : [_id : '$image', created:[$max:'$created'], user:[$first: '$user']]],
+                [$sort : [ _id : 1]]
+        )
+
+        def consultations = result.results().collect{[imageId : it['_id'],lastActivity:it['created'], user:it['user']]}
+
+        // we sorted to apply binary search instead of a simple "find" method. => performance
+        def binSearchI = { aList, property, target ->
+            def a = aList
+            def offSet = 0
+            while (!a.empty) {
+                def n = a.size()
+                def m = n.intdiv(2)
+                if(a[m]."$property" > target) {
+                    a = a[0..<m]
+                } else if (a[m]."$property" < target) {
+                    a = a[(m + 1)..<n]
+                    offSet += m + 1
+                } else {
+                    return (offSet + m)
+                }
+            }
+            return -1
+        }
+
+        images.each { image ->
+            def index
+            def line = ImageInstance.getDataFromDomain(image)
+            if(extended.withLastActivity) {
+                index = binSearchI(consultations, "imageId", image.id)
+                if(index >= 0){
+                    line.putAt("lastActivity", consultations[index].lastActivity)
+                } else {
+                    line.putAt("lastActivity", null)
+                }
+            }
+            data << line
+        }
+        return data
     }
 
     private long copyAnnotationLayer(ImageInstance image, User user, ImageInstance based, def usersProject,Task task, double total, double alreadyDone,SecUser currentUser, Boolean giveMe ) {

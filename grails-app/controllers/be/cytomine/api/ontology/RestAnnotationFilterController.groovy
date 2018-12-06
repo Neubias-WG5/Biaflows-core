@@ -65,7 +65,7 @@ class RestAnnotationFilterController extends RestController {
         Ontology ontology = Ontology.read(params.idOntology)
         if (ontology) {
             def result = []
-            List<Project> userProject = projectService.list(ontology)
+            List<Project> userProject = projectService.listByOntology(ontology)
             userProject.each {
                 result.addAll(annotationFilterService.listByProject(it))
             }

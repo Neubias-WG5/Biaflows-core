@@ -32,6 +32,7 @@ class RequestFilters {
         //all(uri:'/api/**') {
         all(uri:'/**') {
             before = {
+                if(controllerName.equals("errors")) return
                 if(actionName.equals("crop")) return
                 if(actionName.equals("ping")) return
                 if(actionName.equals("listOnlineFriendsWithPosition")) return
@@ -46,6 +47,7 @@ class RequestFilters {
             }
             after = {}
             afterView = {
+                if(controllerName.equals("errors")) return
                 if(actionName.equals("crop")) return
                 if(actionName.equals("ping")) return
                 if(actionName.equals("listOnlineFriendsWithPosition")) return

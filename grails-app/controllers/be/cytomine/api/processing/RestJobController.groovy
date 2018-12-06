@@ -26,7 +26,6 @@ import be.cytomine.processing.JobData
 import be.cytomine.processing.ProcessingServer
 import be.cytomine.processing.Software
 import be.cytomine.project.Project
-import be.cytomine.security.User
 import be.cytomine.security.UserJob
 import be.cytomine.utils.Task
 import grails.converters.JSON
@@ -59,9 +58,9 @@ class RestJobController extends RestController {
      */
     @RestApiMethod(description="Get a list of jobs", listing = true)
     @RestApiParams(params=[
-        @RestApiParam(name="boolean", type="boolean", paramType = RestApiParamType.QUERY, required=false, description = "(Optional, default false) If true, get a light/quick listing (without job parameters,...)"),
-        @RestApiParam(name="software", type="long", paramType = RestApiParamType.QUERY, required=false, description = "(Optional, default get all) A list of software id to filter"),
-        @RestApiParam(name="project", type="long", paramType = RestApiParamType.QUERY, required=false, description = "(Optional, default get all) A list of project id to filter")
+        @RestApiParam(name="light", type="boolean", paramType = RestApiParamType.QUERY, required = false, description = "If true, get a light/quick listing (without job parameters,...)"),
+        @RestApiParam(name="software", type="long", paramType = RestApiParamType.QUERY, required = false, description = "A list of software id to filter"),
+        @RestApiParam(name="project", type="long", paramType = RestApiParamType.QUERY, required = false, description = "A list of project id to filter")
     ])
     def list() {
         Boolean light = params.boolean('light') ? params.boolean('light') : false;
@@ -109,7 +108,7 @@ class RestJobController extends RestController {
         try {
             def result = jobService.add(request.JSON)
             long idJob = result?.data?.job?.id
-            def userjob = jobService.createUserJob(User.read(springSecurityService.currentUser.id), Job.read(idJob))
+            def userjob = jobService.createUserJob(secUserService.getUser(springSecurityService.currentUser.id), Job.read(idJob))
             result?.data?.job?.userJob = userjob?.id
             log.info userjob
             responseResult(result)

@@ -727,7 +727,7 @@ class BasicInstanceBuilder {
     static AbstractImage getAbstractImage() {
         AbstractImage image = AbstractImage.findByFilename("filename")
         if (!image) {
-            image = new AbstractImage(filename: "filename", scanner: getScanner(), sample: null, mime: getMime(), path: "pathpathpath")
+            image = new AbstractImage(filename: "filename", scanner: getScanner(), sample: null, mime: getMime(), path: "pathpathpath", width: 16000, height: 16000)
         }
         image = saveDomain(image)
         saveDomain(new StorageAbstractImage(storage : getStorage(), abstractImage : image))
@@ -735,7 +735,7 @@ class BasicInstanceBuilder {
     }
 
     static AbstractImage getAbstractImageNotExist(boolean save = false) {
-        def image = new AbstractImage(filename: getRandomString(), scanner: getScanner(), sample: null, mime: getMime(), path: "pathpathpath", width: 1600, height: 1200)
+        def image = new AbstractImage(filename: getRandomString(), scanner: getScanner(), sample: null, mime: getMime(), path: "pathpathpath", width: 16000, height: 16000)
         if(save) {
             saveDomain(image)
             saveDomain(new StorageAbstractImage(storage : getStorage(), abstractImage : image))
@@ -746,7 +746,7 @@ class BasicInstanceBuilder {
     }
 
     static AbstractImage getAbstractImageNotExist(String filename, boolean save = false) {
-        def image = new AbstractImage(filename: filename, scanner: getScanner(), sample: null, mime: getMime(), path: "pathpathpath", width: 1600, height: 1200)
+        def image = new AbstractImage(filename: filename, scanner: getScanner(), sample: null, mime: getMime(), path: "pathpathpath", width: 16000, height: 16000)
         save ? saveDomain(image) : checkDomain(image)
     }
 
@@ -1709,14 +1709,14 @@ class BasicInstanceBuilder {
         def config = Configuration.findByKey(key)
 
         if (!config) {
-            config = new Configuration(key: key, value: value, readingRole: SecRole.findByAuthority("ROLE_GUEST"))
+            config = new Configuration(key: key, value: value, readingRole: Configuration.Role.ALL)
             config = saveDomain(config)
         }
         config
     }
 
     static Configuration getConfigurationNotExist(boolean save = false) {
-        def config = new Configuration(key: getRandomString(), value: getRandomString(), readingRole: SecRole.findByAuthority("ROLE_GUEST"))
+        def config = new Configuration(key: getRandomString(), value: getRandomString(), readingRole: Configuration.Role.ALL)
         log.debug "add config "+ config.key
         Configuration.list().each {
             log.debug it.id + " " + it.version + " " + it.key
@@ -1744,6 +1744,16 @@ class BasicInstanceBuilder {
         connection.project = projectId;
         insertDomain(connection)
         ImageInstance image = getImageInstanceNotExist(Project.read(projectId), true)
+        PersistentImageConsultation consult = new PersistentImageConsultation(image : image.id, imageName: image.instanceFilename,
+                imageThumb: 'NO THUMB', mode:"test", user:getUser(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD).id,
+                project: image.project.id)
+        insert ? insertDomain(consult) : checkDomain(consult)
+    }
+
+    static PersistentImageConsultation getImageConsultationNotExist(ImageInstance image, boolean insert = false) {
+        def connection = getProjectConnection()
+        connection.project = image.project.id;
+        insertDomain(connection)
         PersistentImageConsultation consult = new PersistentImageConsultation(image : image.id, imageName: image.instanceFilename,
                 imageThumb: 'NO THUMB', mode:"test", user:getUser(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD).id,
                 project: image.project.id)

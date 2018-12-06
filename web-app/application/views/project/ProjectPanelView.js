@@ -86,21 +86,22 @@ var ProjectPanelView = Backbone.View.extend({
         var self = this;
 
         var json = self.model.toJSON();
+        json.description = json.description.split("STOP_PREVIEW")[0];
 
         //Get ontology name
         var idOntology = json.ontology;
         //json.ontology = window.app.models.ontologies.get(idOntology).get('name');
 
-        var maxNumberOfChar = 15;
-        var title = json.name;
-        if (title.length > maxNumberOfChar) {
-            title = title.substr(0, maxNumberOfChar) + "...";
-        }
-        json.title = title;
+        // var maxNumberOfChar = 300;
+        // var title = json.name;
+        // if (title.length > maxNumberOfChar) {
+        //     title = title.substr(0, maxNumberOfChar) + "...";
+        // }
+        json.title = json.name;
 
-        if (json.name.length > 40) {
-            json.name = json.name.substr(0, 40) + "...";
-        }
+        // if (json.name.length > 40) {
+        //     json.name = json.name.substr(0, 40) + "...";
+        // }
 
         if(json.isReadOnly) {
             json.name = json.name + ' (<span class="glyphicon glyphicon-lock"></span> Read-Only)';
@@ -109,15 +110,15 @@ var ProjectPanelView = Backbone.View.extend({
 
 
         if (json.disciplineName == undefined) {
-            json.disciplineName = "Undefined";
+            json.disciplineName = "N/A";
         }
 
-        if (json.disciplineName.length > maxNumberOfChar) {
-            json.disciplineName = json.disciplineName.substr(0, maxNumberOfChar) + "...";
-        }
-        if (json.ontologyName.length > maxNumberOfChar) {
-            json.ontologyName = json.ontologyName.substr(0, maxNumberOfChar) + "...";
-        }
+        // if (json.disciplineName.length > maxNumberOfChar) {
+        //     json.disciplineName = json.disciplineName.substr(0, maxNumberOfChar) + "...";
+        // }
+        // if (json.ontologyName.length > maxNumberOfChar) {
+        //     json.ontologyName = json.ontologyName.substr(0, maxNumberOfChar) + "...";
+        // }
         json.ontologyId = idOntology;
 
         for (var i =0; i<json.groups.length;i++) {

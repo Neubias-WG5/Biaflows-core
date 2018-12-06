@@ -1,5 +1,6 @@
 package be.cytomine.social
 
+import be.cytomine.Exception.CytomineException
 import be.cytomine.api.UrlApi
 import be.cytomine.image.ImageInstance
 import be.cytomine.project.Project
@@ -47,6 +48,49 @@ class ImageConsultationService extends ModelService {
         consultation.insert(flush:true, failOnError : true) //don't use save (stateless collection)
 
         return consultation
+    }
+
+    def listImageConsultationByProjectAndUser(Long project, Long user, boolean distinctImages = false, Integer max = 0, Integer offset = 0) {
+        if(max != 0) max += offset;
+
+        if(distinctImages) {
+
+            def data = []
+            def db = mongo.getDB(noSQLCollectionService.getDatabaseName())
+
+            def request = []
+            request << [$match : [ user : user, project : project]]
+            request << [$group : [_id : '$image', "date":[$max:'$created'], "time":[$first:'$time'], "countCreatedAnnotations":[$first:'$countCreatedAnnotations']]]
+            request << [$sort : [ date : -1]]
+            if(max > 0) request << [$limit: max]
+
+            def result = db.persistentImageConsultation.aggregate(request)
+
+            result.results().each {
+                try {
+                    ImageInstance image = imageInstanceService.read(it['_id'])
+                    String filename;
+                    filename = image.instanceFilename == null ? image.baseImage.originalFilename : image.instanceFilename;
+                    if(image.project.blindMode) filename = "[BLIND]"+image.baseImage.id
+                    data << [
+                            created:it['date'],
+                            user:user,
+                            image:it['_id'],
+                            time:it['time'],
+                            imageThumb: UrlApi.getAbstractImageThumbURL(image.baseImage.id),
+                            imageName:filename,
+                            project:image.project.id,
+                            countCreatedAnnotations:it['countCreatedAnnotations']
+                    ]
+                } catch(CytomineException e) {
+                    //if user has data but has no access to picture,  ImageInstance.read will throw a forbiddenException
+                }
+            }
+            data = data.sort{-it.created.getTime()}
+            return data
+        } else {
+            return PersistentImageConsultation.findAllByProjectAndUser(project, user, [sort: 'created', order: 'desc', max: max ])
+        }
     }
 
     def lastImageOfUsersByProject(Project project){
