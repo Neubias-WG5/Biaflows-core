@@ -280,7 +280,7 @@ var DescriptionModal = {
                 container.empty();
                 var html = "No description yet";
                 if (self.editable) {
-                    html = ' <a href="#descriptionModal' + domainIdent + '" role="button" class="description" data-toggle="modal">Add description</a>';
+                    html = ' <a href="#descriptionModal' + domainIdent + '" role="button" class="description btn btn-default btn-xs" data-toggle="modal">Add description</a>';
                 }
                 container.append(html);
                 if (self.editable) {
