@@ -426,9 +426,11 @@ div.olControlOverviewMapElement img {
 
 .projectInfoPanel {
     padding: 0px;
-    margin: 0 15px 15px 0px;
-    min-width: 300px;
     font-size: 12px;
+}
+
+#projectlist > div {
+    width: 49%;
 }
 .thumb-wrapProject{
     float: left;

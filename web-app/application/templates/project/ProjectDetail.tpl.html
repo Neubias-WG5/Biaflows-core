@@ -1,62 +1,31 @@
-<div id='projectlist<%= id %>' data-id='<%= id %>' class="panel panel-default col-md-2 projectInfoPanel">
-<div class="panel-heading">
-    <h4 class="panel-title"><a href="#tabs-dashboard-<%= id %>"><%= title %></a></h4>
-</div>
-<div class="panel-body" style="min-height : 200px;">
-        <% if (dateConnection!=null) { %>
-        <div style="text-align: center">
-            <% if (lastConnection) { %>
-            <span class="label label-info">Last open</span>
-            <br/>
-            <span class="label label-info"><%= dateConnection %></span>
-
-            <% } else { %>
-            <span class="label label-default" style="color:#000000;margin:auto;">Created</span>
-            <br/>
-            <span class="label label-default" style="color:#000000;margin:auto;"><%= dateConnection %></span>
-            <% } %>
-        </div>
-        <% } %>
-
+<div id='projectlist<%= id %>' data-id='<%= id %>' class="panel panel-default projectInfoPanel">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            <a href="#tabs-dashboard-<%= id %>"><%= title %></a>
+        </h3>
+    </div>
+    <div class="panel-body" style="min-height : 200px;">
         <ul style="margin-left : 0px;padding-left: 0px;">
             <li>Name : <a href="#tabs-dashboard-<%= id %>"><%= name %></a></li>
             <li>Discipline : <%= disciplineName %></li>
-            <li>Ontology : <a href="#ontology/<%= ontology %>"><%= ontologyName %></a></li>
-            <!--<li><i class="icon-user"></i> <a href="#project-users-<%= id %>">See users list</a><li>-->
         </ul>
-        <ul style="margin-left : 0px;padding-left: 0px;">
-            <!--<li>Number of samples : <a href="#tabs-images-<%= id %>" ><%= numberOfSlides %></a></li>-->
-            <li>Number of images : <a href="#tabs-images-<%= id %>"><%= numberOfImages %></a></li>
-            <li>Number of user annotations : <% if (numberOfAnnotations == 0) { %> <span class="label label-default"><%= numberOfAnnotations %></span>
-                <% } else if (numberOfAnnotations < 250) { %><span class="label label-warning"><%= numberOfAnnotations %></span>
-                <% } else { %><span class="label label-success"><%= numberOfAnnotations %></span> <% } %>
-            </li>
-            <li>Number of job annotations : <% if (numberOfJobAnnotations == 0) { %> <span
-                    class="label label-default"><%= numberOfJobAnnotations %></span> <% } else if
-                (numberOfJobAnnotations < 250) { %><span
-                        class="label label-warning"><%= numberOfJobAnnotations %></span> <% } else { %><span
-                        class="label label-success"><%= numberOfJobAnnotations %></span> <% } %>
-            </li>
-            <li>Number of validated annotations : <% if (numberOfReviewedAnnotations == 0) { %> <span
-                    class="label label-default"><%= numberOfReviewedAnnotations %></span> <% } else if
-                (numberOfJobAnnotations < 250) { %><span
-                        class="label label-warning"><%= numberOfReviewedAnnotations %></span> <% } else { %><span
-                        class="label label-success"><%= numberOfReviewedAnnotations %></span> <% } %>
-            </li>
-        </ul>
+        <div class="project-description">
+            <%= description %>
+        </div>
 
-</div>
-<div class="panel-footer">
-    <% if (dateConnection==null) { %>
-        <button class="infoProject btn btn-default btn-xs" id="infoProjectButton<%= id %>" style="display : inline-block;">Info </button>
-        <button class="deleteProject btn btn-danger btn-xs" id="deleteProjectButton<%= id %>" style="display : inline-block;">Delete</button>
-        <a href="#tabs-dashboard-<%= id %>" class="btn btn-info btn-xs" id='radioprojectchange<%= id %>'>Open</a>
-
-    <% } else { %>
-            <div style="text-align: center"><a href="#tabs-dashboard-<%= id %>" class="btn btn-info btn-xs">Open</a></div>
-    <% } %>
-
-
-</div>
-
+    </div>
+    <div class="panel-footer">
+        <div class="pull-right">
+            <button class="deleteProject btn btn-danger" id="deleteProjectButton<%= id %>" style="display : inline-block;">
+                <i class="far fa-trash-alt"></i>
+            </button>
+        </div>
+        <a href="#tabs-dashboard-<%= id %>" class="btn btn-primary" id='radioprojectchange<%= id %>'>
+            <i class="fas fa-eye"></i> Open
+        </a>
+        <!--<button class="infoProject btn btn-default btn-xs" id="infoProjectButton<%= id %>" style="display : inline-block;">-->
+            <!--<i class="fas fa-info-circle"></i>-->
+            <!--Info-->
+        <!--</button>-->
+    </div>
 </div>
