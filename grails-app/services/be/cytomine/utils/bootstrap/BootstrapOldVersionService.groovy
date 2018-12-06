@@ -1,6 +1,8 @@
 package be.cytomine.utils.bootstrap
 
 import be.cytomine.image.AbstractImage
+import be.cytomine.image.multidim.ImageGroup
+import be.cytomine.image.multidim.ImageSequence
 
 /*
 * Copyright (c) 2009-2017. Authors: see NOTICE file.
