@@ -39,7 +39,8 @@ var DashboardController = Backbone.Router.extend({
         "tabs-reviewdash-:project-:image-:user-:term": "review",
 //        "tabs-review-:project-:user-:term": "review",
 //        "tabs-review-:project": "review"
-        "tabs-groups-:project": "group"
+        "tabs-groups-:project": "group",
+        "tabs-benchmark-:project": "benchmark"
 
     },
 
@@ -204,6 +205,16 @@ var DashboardController = Backbone.Router.extend({
             tabs.find('a[href^=#tabs-algos-' + window.app.status.currentProject + ']').click();
             self.view.refreshAlgosView(software, job || undefined);
             window.app.controllers.browse.tabs.triggerRoute = true;
+        };
+        this.init(project, func);
+    },
+    benchmark: function(project) {
+        var self = this;
+        console.log("imagesgroup");
+        var func = function () {
+            self.view.refreshBenchmarkView();
+            var tabs = $("#explorer > .browser").find(".nav-tabs");
+            tabs.find('a[href=#tabs-benchmark-' + window.app.status.currentProject + ']').tab('show');
         };
         this.init(project, func);
     },

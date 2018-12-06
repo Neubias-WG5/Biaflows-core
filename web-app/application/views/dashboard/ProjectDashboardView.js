@@ -31,6 +31,7 @@ var ProjectDashboardView = Backbone.View.extend({
     projectDashboardConfig: null,
     projectDashboardUsersConfig: null,
     projectDashboardGroup: null,
+    projectDashboardBenchmark: null,
     rendered: false,
     initialize: function (options) {
         _.bindAll(this, 'render');
@@ -123,6 +124,17 @@ var ProjectDashboardView = Backbone.View.extend({
         }
 
         this.projectDashboardUsersConfig.render();
+
+    },
+    refreshBenchmarkView: function () {
+        if (this.projectDashboardBenchmark == null) {
+            this.projectDashboardBenchmark = new ProjectDashboardBenchmark({
+                model: this.model,
+                el: $("#editableBenchmarkurations")
+            });
+        }
+
+        this.projectDashboardBenchmark.refresh();
 
     },
     refreshReview: function (image,user,term) {

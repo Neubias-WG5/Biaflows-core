@@ -49,6 +49,7 @@ var CustomUI = {
         {componentId: "project-annotations-tab", componentName: "Annotations tab"},
         {componentId: "project-properties-tab", componentName: "Properties tab"},
         {componentId: "project-jobs-tab", componentName: "Jobs tab"},
+        {componentId: "project-benchmark-tab", componentName: "Benchmark tab"},
         {componentId: "project-usersconfiguration-tab", componentName: "User configuration tab"},
         {componentId: "project-configuration-tab", componentName: "Project configuration tab"} //TODO: cannot be hide by project-admin
 
