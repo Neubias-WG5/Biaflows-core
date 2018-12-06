@@ -254,15 +254,19 @@ var DescriptionModal = {
                 success: function (description, response) {
                     container.empty();
                     var text = description.get('data');
-                    text = text.split('STOP_PREVIEW')[0];
+                    if (domainClassName != "be.cytomine.project.Project")
+                        text = text.split('STOP_PREVIEW')[0];
                     text = text.split('\\"').join('"');
                     if (text.replace(/<[^>]*>/g, "").length > maxPreviewCharNumber) {
                         text = text.substr(0, maxPreviewCharNumber) + "...";
                     }
                     container.append(text);
-                    container.append(' <a href="#descriptionModalPreview' + domainIdent + '" role="button" class="descriptionPreview" data-toggle="modal"> See full text </a>');
+                    if (domainClassName != "be.cytomine.project.Project")
+                        container.append(' <a href="#descriptionModalPreview' + domainIdent + '" role="button" class="descriptionPreview" data-toggle="modal"> See full text </a>');
                     if (self.editable) {
-                        container.append('or <a href="#descriptionModal' + domainIdent + '" role="button" class="description" data-toggle="modal"> edit </a>');
+                        if (domainClassName != "be.cytomine.project.Project")
+                            container.append(" or ");
+                        container.append('<a href="#descriptionModal' + domainIdent + '" role="button" class="description btn btn-default btn-xs" data-toggle="modal">Edit description</a>');
                     }
                     callbackGet();
 
