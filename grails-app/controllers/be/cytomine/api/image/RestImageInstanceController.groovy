@@ -140,13 +140,14 @@ class RestImageInstanceController extends RestController {
             String sortColumn = params.sortColumn ? params.sortColumn : "created"
             String sortDirection = params.sortDirection ? params.sortDirection : "desc"
             String search = params.search
+            def withoutLabel = params.boolean('withoutLabel', false)
             def extended = [:]
             if(params.withLastActivity) extended.put("withLastActivity",params.withLastActivity)
             def imageList
             if(extended.isEmpty()){
-                imageList = imageInstanceService.list(project, sortColumn, sortDirection, search)
+                imageList = imageInstanceService.list(project, sortColumn, sortDirection, search, withoutLabel)
             } else {
-                imageList = imageInstanceService.listExtended(project, sortColumn, sortDirection, search, extended)
+                imageList = imageInstanceService.listExtended(project, sortColumn, sortDirection, search, extended, withoutLabel)
             }
 
             responseSuccess(imageList)

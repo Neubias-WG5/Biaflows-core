@@ -85,8 +85,9 @@ class ImageInstanceService extends ModelService {
     }
 
 
-    def list(Project project) {
+    def list(Project project, def withoutLabel) {
         securityACLService.check(project,READ)
+        String _noLabel = (withoutLabel) ? "%_lbl.%" : ""
 
         def images = ImageInstance.createCriteria().list {
             createAlias("baseImage", "i")
@@ -95,6 +96,9 @@ class ImageInstanceService extends ModelService {
             order("i.created", "desc")
             fetchMode 'baseImage', FetchMode.JOIN
             isNull("deleted")
+            not {
+                ilike("i.originalFilename", _noLabel)
+            }
         }
         return images
     }
@@ -166,7 +170,7 @@ class ImageInstanceService extends ModelService {
         securityACLService.check(project,READ)
 
         def children = []
-        list(project).each { image->
+        list(project, true).each { image->
             children << [ id : image.id, key : image.id, title : image.instanceFilename, isFolder : false, children : []]
         }
         def tree = [:]
@@ -180,13 +184,14 @@ class ImageInstanceService extends ModelService {
         return tree
     }
 
-    def list(Project project, String sortColumn, String sortDirection, String search) {
+    def list(Project project, String sortColumn, String sortDirection, String search, def withoutLabel) {
         securityACLService.check(project,READ)
 
         String abstractImageAlias = "ai"
         String _sortColumn = ImageInstance.hasProperty(sortColumn) ? sortColumn : "created"
         _sortColumn = AbstractImage.hasProperty(sortColumn) ? abstractImageAlias + "." + sortColumn : "created"
         String _search = (search != null && search != "") ? "%"+search+"%" : "%"
+        String _noLabel = (withoutLabel) ? "%_lbl.%" : ""
 
         return ImageInstance.createCriteria().list() {
             createAlias("baseImage", abstractImageAlias)
@@ -195,16 +200,19 @@ class ImageInstanceService extends ModelService {
             isNull("deleted")
             fetchMode 'baseImage', FetchMode.JOIN
             ilike(abstractImageAlias + ".originalFilename", _search)
+            not {
+                ilike(abstractImageAlias + ".originalFilename", _noLabel)
+            }
             order(_sortColumn, sortDirection)
         }
 
 
     }
 
-    def listExtended(Project project, String sortColumn, String sortDirection, String search, def extended) {
+    def listExtended(Project project, String sortColumn, String sortDirection, String search, def extended, def withoutLabel) {
 
         def data = []
-        def images = list(project, sortColumn, sortDirection, search)
+        def images = list(project, sortColumn, sortDirection, search, withoutLabel)
 
         //get last activity grouped by images
         def user = cytomineService.currentUser
@@ -527,7 +535,7 @@ class ImageInstanceService extends ModelService {
         }
 
         if(listout.size() == 0)
-            return list(project, sortColumn, sortDirection, search);
+            return list(project, sortColumn, sortDirection, search, false);
 
 
         String abstractImageAlias = "ai"
@@ -558,7 +566,7 @@ class ImageInstanceService extends ModelService {
         }
 
         if(listImageOut.size() == 0)
-            return list(project, sortColumn, sortDirection, search);
+            return list(project, sortColumn, sortDirection, search, false);
 
 
         String abstractImageAlias = "ai"

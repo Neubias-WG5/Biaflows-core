@@ -51,6 +51,17 @@ class ImageGroupService extends ModelService {
         image
     }
 
+    def readMany(def ids) {
+        def images = ImageGroup.findAllByIdInList(ids)
+        if(images) {
+            images.each { image ->
+                securityACLService.check(image.container(),READ)
+                checkDeleted(image)
+            }
+        }
+        images
+    }
+
     def list(Project project) {
         securityACLService.check(project,READ)
         return ImageGroup.findAllByProjectAndDeletedIsNull(project)

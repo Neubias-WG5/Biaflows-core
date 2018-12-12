@@ -176,20 +176,24 @@ var ImageInstanceModel = Backbone.Model.extend({
 var ImageInstanceCollection = PaginatedCollection.extend({
     model: ImageModel,
     url: function () {
+
         if (this.tree) {
-            return "api/project/" + this.project + "/imageinstance.json?tree=true";
+            var noLabel = (this.noLabel) ? '&withoutLabel=true' : '';
+            return "api/project/" + this.project + "/imageinstance.json?tree=true"+noLabel;
         } else {
             if(this.imagegroup != undefined && this.imagegroup)
                 return "api/project/" + this.project + "/imageinstance.json?excludeimagegroup=" + this.imagegroup;
-            else
-                return "api/project/" + this.project + "/imageinstance.json";
+            else {
+                var noLabel = (this.noLabel) ? '?withoutLabel=true' : '';
+                return "api/project/" + this.project + "/imageinstance.json"+noLabel;
+            }
         }
     },
     initialize: function (options) {
         this.initPaginator(options);
         this.project = options.project;
         this.tree = options.tree != undefined && options.tree == true;
+        this.noLabel = options.noLabel != undefined && options.noLabel == true;
         this.imagegroup = options.imagegroup;
-
     }
 });

@@ -45,6 +45,8 @@ class DataTablesService {
         def property = params[sortProperty]
 
         if(domain==ImageInstance) {
+            def withoutLabel = params.boolean('withoutLabel', false)
+            String _noLabel = (withoutLabel) ? "%_lbl.%" : ""
             List<ImageInstance> images = ImageInstance.createCriteria().list() {
                 createAlias("baseImage", abstractImageAlias)
                 eq("project", project)
@@ -52,6 +54,9 @@ class DataTablesService {
                 isNull("deleted")
                 fetchMode 'baseImage', FetchMode.JOIN
                 ilike(abstractImageAlias + ".originalFilename", _search)
+                not {
+                    ilike(abstractImageAlias + ".originalFilename", _noLabel)
+                }
             }
 
             if(property) {

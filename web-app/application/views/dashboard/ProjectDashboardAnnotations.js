@@ -185,7 +185,7 @@ var ProjectDashboardAnnotations = Backbone.View.extend({
                 self.loadingCallBack(callback);
             }});
 
-        new ImageInstanceCollection({project: window.app.status.currentProject, tree: true}).fetch({
+        new ImageInstanceCollection({project: window.app.status.currentProject, tree: true, noLabel: true}).fetch({
             success: function (collection, response) {
                 $(self.el).find('#treeImageListing').dynatree({
                     checkbox: true,

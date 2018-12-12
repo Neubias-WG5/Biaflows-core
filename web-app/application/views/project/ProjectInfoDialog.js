@@ -124,7 +124,7 @@ var ProjectInfoDialog = Backbone.View.extend({
 
 
 
-        new ImageInstanceCollection({project: project.id, max: 3}).fetch({
+        new ImageInstanceCollection({project: project.id, max: 3, noLabel:true}).fetch({
             success: function (collection) {
                 if (collection.length != 0) {
                     collection.each(function (image) {

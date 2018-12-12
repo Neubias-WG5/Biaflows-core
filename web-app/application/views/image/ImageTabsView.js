@@ -161,7 +161,7 @@ var ImageTabsView = Backbone.View.extend({
             processing: true,
             serverSide: true,
             ajax: {
-                url: new ImageInstanceCollection({project: this.idProject}).url(),
+                url: new ImageInstanceCollection({project: this.idProject, noLabel:true}).url(),
                 data: {
                     "datatables": "true"
                 }

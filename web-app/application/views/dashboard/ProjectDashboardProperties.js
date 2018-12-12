@@ -237,7 +237,7 @@ var ProjectDashboardProperties = Backbone.View.extend({
                 }
             });
         } else if (self.nameDomain == "ImageInstance") {
-            new ImageInstanceCollection({project: self.model.id}).fetch({
+            new ImageInstanceCollection({project: self.model.id, noLabel:true}).fetch({
                 success: function (collection, response) {
                     self.imageInstanceCollection = collection;
                     addValueSelect(collection, ident);
