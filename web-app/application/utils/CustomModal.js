@@ -256,6 +256,8 @@ var DescriptionModal = {
                     var text = description.get('data');
                     if (domainClassName != "be.cytomine.project.Project")
                         text = text.split('STOP_PREVIEW')[0];
+                    else
+                        text = text.replace('STOP_PREVIEW','');
                     text = text.split('\\"').join('"');
                     if (text.replace(/<[^>]*>/g, "").length > maxPreviewCharNumber) {
                         text = text.substr(0, maxPreviewCharNumber) + "...";

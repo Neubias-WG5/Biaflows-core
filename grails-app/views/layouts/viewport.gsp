@@ -26,7 +26,7 @@
 <link rel='stylesheet' href='lib/multiselect-next/css/jquery.uix.multiselect.css' type='text/css'/>
 <link rel="stylesheet" href="lib/jquery-ui/jquery-ui.css" />
 <link rel='stylesheet' href='lib/OpenLayers-2.13.1/theme/default/style.css' type='text/css'/>
-<link rel="stylesheet" href="lib/bootstrap-3.0.3/css/bootstrap.min.css"/>
+<link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="lib/Trumbowyg/ui/trumbowyg.min.css"/>
 <link rel="stylesheet" href="lib/Trumbowyg/plugins/colors/ui/trumbowyg.colors.min.css"/>
 <link rel="stylesheet" href="lib/Trumbowyg/plugins/specialchars/ui/trumbowyg.specialchars.min.css"/>
@@ -276,6 +276,7 @@ body {
     <script type="text/javascript" src="application/views/dashboard/ProjectDashboardUsersConfig.js" ></script>
     <script type="text/javascript" src="application/views/dashboard/ProjectDashboardProperties.js" ></script>
     <script type="text/javascript" src="application/views/dashboard/ProjectDashboardGroup.js" ></script>
+    <script type="text/javascript" src="application/views/dashboard/ProjectDashboardBenchmark.js" ></script>
 
 
     <script type="text/javascript" src="application/views/graph/GraphView.js" ></script>

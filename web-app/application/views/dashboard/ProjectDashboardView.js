@@ -246,7 +246,7 @@ var ProjectDashboardView = Backbone.View.extend({
 
             DescriptionModal.initDescriptionView(self.model.id, self.model.get('class'),
                 window.app.status.currentProjectModel.isAdmin(window.app.models.projectAdmin),
-                $("#projectInfoPanel").find(".description"), 800,
+                $("#projectInfoPanel").find(".description"), 800000,
                     function() {
                         var text = $("#projectInfoPanel").find(".description").html();
                         $("#projectInfoPanel").find(".description").empty().append(text.replace(new RegExp("<h.>", "g"),'<br>').replace(new RegExp("</h.>", "g"),'<br>'));

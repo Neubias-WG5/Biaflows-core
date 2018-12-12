@@ -1121,7 +1121,7 @@ body .ui-tooltip { border-width:2px; }
 
 
 /*** Input field styling from Bootstrap **/
- input, textarea {
+ input:not(.multiselect__input):not(.input-radio), textarea {
   -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
   -moz-transition: border linear 0.2s, box-shadow linear 0.2s;
   -ms-transition: border linear 0.2s, box-shadow linear 0.2s;
@@ -1131,21 +1131,21 @@ body .ui-tooltip { border-width:2px; }
   -moz-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 }
-input:focus, textarea:focus {
+input:not(.multiselect__input):not(.input-radio):focus, textarea:focus {
   outline: 0;
   border-color: rgba(82, 168, 236, 0.8);
   -webkit-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 8px rgba(82, 168, 236, 0.6);
   -moz-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 8px rgba(82, 168, 236, 0.6);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 8px rgba(82, 168, 236, 0.6);
 }
-input[type=file]:focus, input[type=checkbox]:focus, select:focus {
+input[type=file]:focus, input[type=checkbox]:focus, select:not(.multiselect__input):focus {
   -webkit-box-shadow: none;
   -moz-box-shadow: none;
   box-shadow: none;
   outline: 1px dotted #666;
 }
 
-input[type="text"],
+input[type="text"]:not(.multiselect__input),
 input[type="password"],
 .ui-autocomplete-input,
 textarea,

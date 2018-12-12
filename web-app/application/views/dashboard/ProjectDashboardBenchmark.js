@@ -15,21 +15,21 @@
  */
 
 var ProjectDashboardBenchmark = Backbone.View.extend({
-    imagesBenchmarkTabsView: null,
+    benchmarkTabsView: null,
     render: function () {
         var self = this;
-        self.doLayout(imageBenchmarkTableTemplate);
+        self.doLayout();
         return this;
     },
     doLayout: function () {
-        window.setImageBenchmarkTabInstance(this.model.get('id'));
+        window.setBenchmarkTabInstance(this.model.get('id'));
     },
     refresh: function(){
         var self = this;
-        if (this.imagesBenchmarkTabsView == null) {
+        if (this.benchmarkTabsView == null) {
             self.render();
         } else {
-            console.log("this.imagesBenchmarkTabsView.refresh()");
+            console.log("this.BenchmarkTabsView.refresh()");
             //this.imagesTabsView.refresh();
         }
     }
