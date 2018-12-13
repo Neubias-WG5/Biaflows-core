@@ -62,9 +62,16 @@ class ImageGroupService extends ModelService {
         images
     }
 
-    def list(Project project) {
+    def list(Project project, def withoutLabel) {
         securityACLService.check(project,READ)
-        return ImageGroup.findAllByProjectAndDeletedIsNull(project)
+        String _noLabel = (withoutLabel) ? "%_lbl.%" : ""
+        return ImageGroup.createCriteria().list {
+            eq("project", project)
+            isNull("deleted")
+            not {
+                ilike("name", _noLabel)
+            }
+        }
     }
 
 

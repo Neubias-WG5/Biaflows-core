@@ -63,9 +63,10 @@ class RestImageGroupController extends RestController {
     ])
     def listByProject() {
         Project project = projectService.read(params.long('id'))
+        def withoutLabel = params.boolean('withoutLabel', false)
 
         if (project)  {
-            responseSuccess(imageGroupService.list(project))
+            responseSuccess(imageGroupService.list(project, withoutLabel))
         }
         else {
             responseNotFound("ImageGroup", "Project", params.id)
