@@ -20,6 +20,7 @@ var ImageTabsView = Backbone.View.extend({
     idProject: null,
     searchPanel: null,
     project : null,
+    showLabel: false,
     initialize: function (options) {
         this.idProject = options.idProject;
         this.project = options.project;
@@ -37,7 +38,7 @@ var ImageTabsView = Backbone.View.extend({
         require(["text!application/templates/image/ImageReviewAction.tpl.html"], function (actionMenuTpl) {
             self.doLayout(actionMenuTpl);
             if(window.app.status.user.model.get('guest')){
-                $("#imageAdd"+self.idProject).hide()
+                $("#imageAdd"+self.idProject).hide();
             } else {
                 $("#imageAdd"+self.idProject).click(function() {
                     new AddImageToProjectDialog({el: "#dialogs", model: self.project}).render();
@@ -46,6 +47,15 @@ var ImageTabsView = Backbone.View.extend({
             $("#imageRefresh"+self.idProject).click(function() {
                 self.refresh();
             });
+            $("#imageShowLabel"+self.idProject).click(function() {
+
+                self.showLabel = !self.showLabel;
+                self.refresh();
+                if (self.showLabel)
+                    $("#imageShowLabel"+self.idProject).text("Hide labeled images");
+                else
+                    $("#imageShowLabel"+self.idProject).text("Show labeled images");
+            })
 
         });
 
@@ -116,44 +126,44 @@ var ImageTabsView = Backbone.View.extend({
             { data: "numberOfAnnotations", targets: [7] },
             { data: "numberOfJobAnnotations", targets: [8] },
             { data: "numberOfReviewedAnnotations", targets: [9] },
-            { data: "mime", defaultContent: "", orderable: false, render : function( data, type, row ) {
-                var mimeType = row["mime"];
-                if (mimeType == "openslide/ndpi" || mimeType == "openslide/vms") {
-                    return '<img src="images/brands/hamamatsu.png" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
-                } else if (mimeType == "openslide/mrxs") {
-                    return '<img src="images/brands/3dh.png" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
-                } else if (mimeType == "openslide/svs") {
-                    return '<img src="images/brands/aperio.png" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
-                } else if (mimeType == "openslide/scn") {
-                    return '<img src="images/brands/leica.png" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
-                } else if (mimeType == "openslide/ventana" || mimeType == "openslide/bif") {
-                    return '<img src="images/brands/roche.png" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
-                } else if (mimeType == "philips/tif") {
-                    return '<img src="images/brands/philips.png" alt="philips" style="max-width : 100px;max-height : 40px;" >';
-                }
-                else return '<span class="label label-default">Undefined</span>';
-            }, targets: [10] },
+            // { data: "mime", defaultContent: "", orderable: false, render : function( data, type, row ) {
+            //     var mimeType = row["mime"];
+            //     if (mimeType == "openslide/ndpi" || mimeType == "openslide/vms") {
+            //         return '<img src="images/brands/hamamatsu.png" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
+            //     } else if (mimeType == "openslide/mrxs") {
+            //         return '<img src="images/brands/3dh.png" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
+            //     } else if (mimeType == "openslide/svs") {
+            //         return '<img src="images/brands/aperio.png" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
+            //     } else if (mimeType == "openslide/scn") {
+            //         return '<img src="images/brands/leica.png" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
+            //     } else if (mimeType == "openslide/ventana" || mimeType == "openslide/bif") {
+            //         return '<img src="images/brands/roche.png" alt="hamamatsu photonics" style="max-width : 100px;max-height : 40px;" >';
+            //     } else if (mimeType == "philips/tif") {
+            //         return '<img src="images/brands/philips.png" alt="philips" style="max-width : 100px;max-height : 40px;" >';
+            //     }
+            //     else return '<span class="label label-default">Undefined</span>';
+            // }, targets: [10] },
             { data: "created", defaultContent: "", render : function ( data, type ) {
                 if(type === "display"){
                     return window.app.convertLongToDate(data);
                 }
                 return data;
-            }, targets: [11]} ,
-            { orderable: false, render : function ( data, type, row ) {
-                if (row["reviewStart"] && row["reviewStop"]) {
-                    return '<span class="label label-success">Reviewed</span>';
-                } else if (row["reviewStart"]) {
-                    return '<span class="label label-warning">In review</span>';
-                } else {
-                    return '<span class="label label-info">None</span>';
-                }
-            }, targets: [12]},
+            }, targets: [10]} ,
+            // { orderable: false, render : function ( data, type, row ) {
+            //     if (row["reviewStart"] && row["reviewStop"]) {
+            //         return '<span class="label label-success">Reviewed</span>';
+            //     } else if (row["reviewStart"]) {
+            //         return '<span class="label label-warning">In review</span>';
+            //     } else {
+            //         return '<span class="label label-info">None</span>';
+            //     }
+            // }, targets: [11]},
             { orderable: false, render : function( data, type, row ) {
                 self.images.push(row);
                 row["project"]  = self.idProject;
                 return _.template(actionMenuTpl, row);
 
-            }, targets: [13]},
+            }, targets: [11]},
             { searchable: false, targets: "_all" }
         ];
         self.imagesdDataTables = table.DataTable({
@@ -161,7 +171,7 @@ var ImageTabsView = Backbone.View.extend({
             processing: true,
             serverSide: true,
             ajax: {
-                url: new ImageInstanceCollection({project: this.idProject, noLabel:true}).url(),
+                url: new ImageInstanceCollection({project: this.idProject, noLabel:!this.showLabel}).url(),
                 data: {
                     "datatables": "true"
                 }
