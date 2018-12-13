@@ -20,7 +20,7 @@ import be.cytomine.Exception.WrongArgumentException
 
 import be.cytomine.api.RestController
 import be.cytomine.processing.Job
-import be.cytomine.processing.metric.ImageInstanceMetricResult
+import be.cytomine.processing.metric.ImageGroupMetricResult
 import be.cytomine.project.Project
 import grails.converters.JSON
 import org.restapidoc.annotation.RestApi
@@ -31,11 +31,11 @@ import org.restapidoc.pojo.RestApiParamType
 
 
 @RestApi(name = "Processing | metric result services", description = "Methods to manage metric results")
-class RestImageInstanceMetricResultController extends RestController {
+class RestImageGroupMetricResultController extends RestController {
 
-    def imageInstanceMetricResultService
+    def imageGroupMetricResultService
     def jobService
-    def imageInstanceService
+    def imageGroupService
     def projectService
 
     @RestApiMethod(description="Get metric result listing, according to your access", listing = true)
@@ -54,9 +54,9 @@ class RestImageInstanceMetricResultController extends RestController {
         }
 
         def jobs = (jobIds) ? jobService.readMany(jobIds) : jobService.list([project])
-        def images = (imageIds) ? imageInstanceService.readMany(imageIds) : imageInstanceService.list(project, true)
+        def images = (imageIds) ? imageGroupService.readMany(imageIds) : imageGroupService.list(project, true)
 
-        responseSuccess(imageInstanceMetricResultService.list(jobs, images, aggregate))
+        responseSuccess(imageGroupMetricResultService.list(jobs, images, aggregate))
     }
 
     @RestApiMethod(description="Get metric results for a job", listing = true)
@@ -67,7 +67,7 @@ class RestImageInstanceMetricResultController extends RestController {
         Job job = jobService.read(params.long('id'))
         if(job) {
             def aggregate = params.boolean("aggregate", false)
-            responseSuccess(imageInstanceMetricResultService.list(job, aggregate))
+            responseSuccess(imageGroupMetricResultService.list(job, aggregate))
         } else {
             responseNotFound("Job", params.id)
         }
@@ -78,17 +78,17 @@ class RestImageInstanceMetricResultController extends RestController {
             @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The metric result id")
     ])
     def show () {
-        ImageInstanceMetricResult metricResult = imageInstanceMetricResultService.read(params.long('id'))
+        ImageGroupMetricResult metricResult = imageGroupMetricResultService.read(params.long('id'))
         if (metricResult) {
             responseSuccess(metricResult)
         } else {
-            responseNotFound("ImageInstanceMetricResult", params.id)
+            responseNotFound("ImageGroupMetricResult", params.id)
         }
     }
 
     @RestApiMethod(description="Add a new metric result")
     def add () {
-        add(imageInstanceMetricResultService, request.JSON)
+        add(imageGroupMetricResultService, request.JSON)
     }
 
     @RestApiMethod(description="Delete a metric result")
@@ -96,7 +96,7 @@ class RestImageInstanceMetricResultController extends RestController {
             @RestApiParam(name="id", type="int", paramType = RestApiParamType.PATH)
     ])
     def delete () {
-        delete(imageInstanceMetricResultService, JSON.parse("{id : $params.id}"),null)
+        delete(imageGroupMetricResultService, JSON.parse("{id : $params.id}"),null)
     }
 
 }

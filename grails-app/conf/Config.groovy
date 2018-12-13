@@ -371,9 +371,9 @@ cytomine.customUI.global = [
         search : ["ROLE_ADMIN"],
         project: ["ALL"],
         ontology: ["ROLE_ADMIN"],
-        storage : ["ROLE_USER","ROLE_ADMIN"],
+        storage : ["ROLE_ADMIN"],
         software : ["ROLE_USER", "ROLE_ADMIN"],
-        activity : ["ALL"],
+        activity : ["ROLE_ADMIN"],
         explore : ["ROLE_USER","ROLE_ADMIN"],
         admin : ["ROLE_ADMIN"],
         help : ["ALL"]

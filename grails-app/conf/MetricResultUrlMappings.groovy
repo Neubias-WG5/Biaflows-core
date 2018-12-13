@@ -18,13 +18,23 @@
 class MetricResultUrlMappings {
 
     static mappings = {
-        "/api/metricresult.$format"(controller:"restImageInstanceMetricResult"){
+        "/api/imageinstancemetricresult.$format"(controller:"restImageInstanceMetricResult"){
             action = [GET: "list",POST:"add"]
         }
-        "/api/metricresult/$id.$format"(controller:"restImageInstanceMetricResult"){
+        "/api/imageinstancemetricresult/$id.$format"(controller:"restImageInstanceMetricResult"){
             action = [GET:"show", DELETE:"delete"]
         }
-        "/api/job/$id/metricresult.$format"(controller:"restImageInstanceMetricResult"){
+        "/api/job/$id/imageinstancemetricresult.$format"(controller:"restImageInstanceMetricResult"){
+            action = [GET:"listByJob"]
+        }
+
+        "/api/imagegroupmetricresult.$format"(controller:"restImageGroupMetricResult"){
+            action = [GET: "list",POST:"add"]
+        }
+        "/api/imagegroupmetricresult/$id.$format"(controller:"restImageGroupMetricResult"){
+            action = [GET:"show", DELETE:"delete"]
+        }
+        "/api/job/$id/imagegroupmetricresult.$format"(controller:"restImageGroupMetricResult"){
             action = [GET:"listByJob"]
         }
     }

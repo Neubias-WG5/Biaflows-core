@@ -18,6 +18,7 @@ package be.cytomine.processing.metric
 
 
 import be.cytomine.command.*
+import be.cytomine.image.multidim.ImageGroup
 import be.cytomine.processing.Job
 import be.cytomine.security.SecUser
 import be.cytomine.utils.ModelService
@@ -27,7 +28,7 @@ import groovy.sql.Sql
 
 import static org.springframework.security.acls.domain.BasePermission.READ
 
-class ImageInstanceMetricResultService extends ModelService {
+class ImageGroupMetricResultService extends ModelService {
 
     static transactional = true
     def cytomineService
@@ -38,7 +39,7 @@ class ImageInstanceMetricResultService extends ModelService {
     def dataSource
 
     def currentDomain() {
-        ImageInstanceMetricResult
+        ImageGroupMetricResult
     }
 
     def list(Job job, def aggregate) {
@@ -47,7 +48,7 @@ class ImageInstanceMetricResultService extends ModelService {
         }
         else {
             securityACLService.check(job.container(),READ)
-            ImageInstanceMetricResult.findAllByJob(job)
+            ImageGroupMetricResult.findAllByJob(job)
         }
     }
 
@@ -63,7 +64,7 @@ class ImageInstanceMetricResultService extends ModelService {
             String groupby = "GROUP BY mr.metric_id, mr.job_id, j.software_id "
 
             if (images?.size() > 0) {
-                where += "AND mr.image_instance_id IN (" + imageIds.join(",") + ") "
+                where += "AND mr.image_group_id IN (" + imageIds.join(",") + ") "
             }
 
             select += ", min(value) as minimum" +
@@ -89,17 +90,17 @@ class ImageInstanceMetricResultService extends ModelService {
 
             return data
         }
-        ImageInstanceMetricResult.findAllByJobInListAndImageInstanceInList(jobs, images)
+        ImageGroupMetricResult.findAllByJobInListAndImageGroupInList(jobs, images)
     }
 
     def read(def id) {
         securityACLService.checkGuest(cytomineService.currentUser)
-        ImageInstanceMetricResult.read(id)
+        ImageGroupMetricResult.read(id)
     }
 
     def get(def id) {
         securityACLService.checkGuest(cytomineService.currentUser)
-        ImageInstanceMetricResult.get(id)
+        ImageGroupMetricResult.get(id)
     }
 
     /**
@@ -121,7 +122,7 @@ class ImageInstanceMetricResultService extends ModelService {
      * @param printMessage Flag if client will print or not confirm message
      * @return Response structure (code, old domain,..)
      */
-    def delete(ImageInstanceMetricResult domain, Transaction transaction = null, Task task = null, boolean printMessage = true) {
+    def delete(ImageGroupMetricResult domain, Transaction transaction = null, Task task = null, boolean printMessage = true) {
         SecUser currentUser = cytomineService.getCurrentUser()
         securityACLService.checkAdmin(currentUser)
         Command c = new DeleteCommand(user: currentUser,transaction:transaction)
