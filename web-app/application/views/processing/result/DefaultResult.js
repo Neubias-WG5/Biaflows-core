@@ -36,7 +36,9 @@ var DefaultResult = Backbone.View.extend({
         return this;
     },
     doLayout: function (tpl) {
-        var content = _.template(tpl, {});
+        var content = _.template(tpl, this.model.toJSON());
         $(this.el).append(content);
+        window.app.status.currentJobModel = this.model;
+        window.setJobMetricResultPanel(this.model.get('id'));
     }
 });
