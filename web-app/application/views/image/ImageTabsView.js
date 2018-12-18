@@ -178,7 +178,7 @@ var ImageTabsView = Backbone.View.extend({
                 self.images = [];
             },
             columnDefs : columns,
-            order: [[ 0, "desc" ]]
+            order: [[ 2, "asc" ]]
         });
     }
 });
