@@ -190,6 +190,22 @@ var ImageReviewAction = Backbone.View.extend({
         $(self.el).find("a.copyimage" + self.model.id).unbind('click',openCopyImage).bind('click',openCopyImage);
 
 
+        if (window.app.status.user.model.get('guest')) {
+            el.find("#explore" + self.model.id).show();
+            el.find("#review" + self.model.id).hide();
+            el.find("#reviewCyto" + self.model.id).hide();
+            el.find("#startreview" + self.model.id).hide();
+            el.find("#startCytoreview" + self.model.id).hide();
+            el.find("#cancelreview" + self.model.id).hide();
+            el.find("#validateimage" + self.model.id).hide();
+            el.find("#unvalidateimage" + self.model.id).hide();
+            el.find("a.copyimage" + self.model.id).hide();
+            el.find("a.importannotation" + self.model.id).hide();
+            el.find("a#renameImage" + self.model.id).hide();
+            el.find("a.deleteImage" + self.model.id).hide();
+            el.find("#moreinfo" + self.model.id).show();
+            el.find("#descriptionImage" + self.model.id).show();
+        }
     },
     startReviewing: function () {
         var self = this;
