@@ -111,6 +111,10 @@ var AccountDetails = Backbone.View.extend({
             }
         });
 
+        if (window.app.status.user.model.get('guest')) {
+            $("#password_panel").remove();
+        }
+
 
         $("#input_new_password_confirm").keyup(function () {
             $("#input_new_password_confirm").closest('.form-group').removeClass("has-warning");
