@@ -113,6 +113,10 @@ var AccountDetails = Backbone.View.extend({
 
         if (window.app.status.user.model.get('guest')) {
             $("#password_panel").remove();
+            $("#input_firstname").attr("disabled", true);
+            $("#input_lastname").attr("disabled", true);
+            $("#input_email").attr("disabled", true);
+            $("#edit_profile_submit").remove();
         }
 
 
