@@ -131,9 +131,10 @@
             <h3 class="panel-title"><i class="glyphicon glyphicon-transfer"/> PYTHON Connection example</h3>
         </div>
         <div class="panel-body">
-            <div class="alert alert-success">
-                import cytomine<br />
-                conn = cytomine.Cytomine('<%= host %>','<%= publicKey %>','<%= privateKey %>', verbose= True)
+            <div class="well">
+                <code>from cytomine import Cytomine</code><br />
+                <code>with Cytomine(host='<%= host %>', public_key='<%= publicKey %>', private_key='<%= privateKey %>') as conn:</code><br>
+                <code style="padding-left: 2em;">print(conn.current_user)</code>
             </div>
         </div>
     </div>
