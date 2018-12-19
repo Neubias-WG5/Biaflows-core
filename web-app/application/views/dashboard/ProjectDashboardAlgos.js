@@ -140,10 +140,15 @@ var ProjectDashboardAlgos = Backbone.View.extend({
         //load result
         self.fillJobSelectView();
 
-        if (self.software.get('executable'))
-            $("#softwareLaunchJobButton").show();
-        else
-            $("#softwareLaunchJobButton").hide();
+        if(window.app.status.user.model.get('guest')) {
+            $("#softwareLaunchJobButton").remove();
+        }
+        else {
+            if (self.software.get('executable'))
+                $("#softwareLaunchJobButton").show();
+            else
+                $("#softwareLaunchJobButton").hide();
+        }
 
         self.printSoftwareButton();
     },
