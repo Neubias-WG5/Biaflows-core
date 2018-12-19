@@ -133,6 +133,11 @@ var ProjectDashboardProperties = Backbone.View.extend({
         if (!self.nameDomain) {
             $("#buttonProjectProperty").click();
         }
+
+        if (window.app.status.user.model.get('guest')) {
+            $("#add-property-" + self.model.id).remove();
+            $("#deleteProperty").remove();
+        }
     },
 
     initPropertyRowEvents: function () {
@@ -174,6 +179,10 @@ var ProjectDashboardProperties = Backbone.View.extend({
         });
 
         $(document).on('dblclick', "td.propertyValue", function () {
+            if (window.app.status.user.model.get('guest')) {
+                return;
+            }
+
             var id = $(this).attr('data-id');
             var idForm = "propertyFormValue" + id;
             var model;
@@ -506,6 +515,10 @@ var ProjectDashboardProperties = Backbone.View.extend({
     drawOption: function (model) {
         $("#infoDisplayTable").empty();
 
+        if (window.app.status.user.model.get('guest') && model.get('key') == '@CUSTOM_UI_PROJECT') {
+            return;
+        }
+
         var tbody = $(this.el).find("#tableProperty");
         var option = _.template("<tr class='trProperty<%= id %>' id='<%= id %>'><td data-id='<%= id %>' class='propertyKey'><%= key %></td>" +
             "<td data-id='<%= id %>' class='propertyValue'><%= value %></td>" +
@@ -519,6 +532,10 @@ var ProjectDashboardProperties = Backbone.View.extend({
         //Empty input key and value
         $("#input_key").val("");
         $("#input_value").val("");
+
+        if (window.app.status.user.model.get('guest')) {
+            $("#checkbox"+model.get('id')).remove()
+        }
     },
 
     addPropertyTable: function (isKeyword) {
@@ -615,6 +632,10 @@ var ProjectDashboardProperties = Backbone.View.extend({
     },
 
     deleteProperty: function () {
+        if (window.app.status.user.model.get('guest')) {
+            return;
+        }
+
         var self = this;
         var collection;
 
