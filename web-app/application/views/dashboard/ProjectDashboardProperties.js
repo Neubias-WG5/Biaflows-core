@@ -130,13 +130,13 @@ var ProjectDashboardProperties = Backbone.View.extend({
             self.deleteProperty();
         });
 
-        if (!self.nameDomain) {
-            $("#buttonProjectProperty").click();
-        }
-
         if (window.app.status.user.model.get('guest')) {
             $("#add-property-" + self.model.id).remove();
             $("#deleteProperty").remove();
+        }
+
+        if (!self.nameDomain) {
+            $("#buttonProjectProperty").click();
         }
     },
 
