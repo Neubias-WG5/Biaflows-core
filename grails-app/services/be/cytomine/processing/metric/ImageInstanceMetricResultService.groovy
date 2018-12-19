@@ -69,7 +69,8 @@ class ImageInstanceMetricResultService extends ModelService {
             select += ", min(value) as minimum" +
                     ", max(value) as maximum" +
                     ", avg(value) as average" +
-                    ", COALESCE(stddev_samp(value),0) as stddev "
+                    ", COALESCE(stddev_samp(value),0) as stddev " +
+                    ", COALESCE(median(value),0) as median "
 
             def query = select + from + where + groupby
 
