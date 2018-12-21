@@ -149,6 +149,7 @@ class RestJobController extends RestController {
         long jobId = params.long("id")
         Job job = Job.read(jobId)
 
+        securityACLService.checkUser(cytomineService.currentUser)
         securityACLService.check(job.container(), READ)
         UserJob userJob = UserJob.findByJob(job)
 
@@ -169,6 +170,7 @@ class RestJobController extends RestController {
         long processingServerId = params.long("processingServerId")
         ProcessingServer processingServer = ProcessingServer.read(processingServerId)
 
+        securityACLService.checkUser(cytomineService.currentUser)
         securityACLService.check(job.container(), READ)
         UserJob userJob = UserJob.findByJob(job)
 
