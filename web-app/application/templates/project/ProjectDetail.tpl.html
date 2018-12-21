@@ -24,13 +24,8 @@
             <!--<li><i class="icon-user"></i> <a href="#project-users-<%= id %>">See users list</a><li>-->
         </ul>
 
-        <% for (var i =0; i<groups.length;i++) { %>
-        <a href="#tabs-imagegroup-<%=id%>-<%=groups[i].id%>"><img src="<%= groups[i].thumb %>"></a>
-        <% } %>
-        <% if(groups.length == 0) {
-            for (var i =0; i<images.length;i++) { %>
-                <a href="#tabs-imagetab-<%=id%>-<%=images[i].id%>"><img src="<%= images[i].thumb %>"></a>
-            <% } %>
+        <% if(description) { %>
+        <p><%= description %></p>
         <% } %>
 
     </div>

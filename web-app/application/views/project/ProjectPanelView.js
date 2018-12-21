@@ -120,9 +120,11 @@ var ProjectPanelView = Backbone.View.extend({
         }
         json.ontologyId = idOntology;
 
+        if(!json.groups) {json.groups = []}
         for (var i =0; i<json.groups.length;i++) {
             json.groups[i].thumb = json.groups[i].thumb.substring(0, json.groups[i].thumb.indexOf("maxSize=")+"maxSize=".length)+"128";
         }
+        if(!json.images) {json.images = []}
         for (var i =0; i<json.images.length;i++) {
             json.images[i].thumb = json.images[i].thumb.substring(0, json.images[i].thumb.indexOf("maxSize=")+"maxSize=".length)+"128";
         }

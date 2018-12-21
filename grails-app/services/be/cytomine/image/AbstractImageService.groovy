@@ -360,15 +360,15 @@ class AbstractImageService extends ModelService {
         String url = "/image/thumb.$format?" + parameters.collect {k, v -> "$k=$v"}.join("&")
 
         AttachedFile attachedFile = AttachedFile.findByDomainIdentAndFilename(id, url)
-        if (attachedFile) {
-            return ImageIO.read(new ByteArrayInputStream(attachedFile.getData()))
-        } else {
+        if (!attachedFile  || params.refresh) {
             String imageServerURL = abstractImage.getRandomImageServerURL()
             log.info "$imageServerURL"+url
             byte[] imageData = new URL("$imageServerURL"+url).getBytes()
             BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageData))
             attachedFileService.add(url, imageData, abstractImage.id, AbstractImage.class.getName(), "thumb")
             return bufferedImage
+        } else {
+            return ImageIO.read(new ByteArrayInputStream(attachedFile.getData()))
         }
     }
 

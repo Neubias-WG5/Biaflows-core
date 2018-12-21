@@ -66,6 +66,7 @@ class ProjectService extends ModelService {
     def notificationService
     def projectRepresentativeUserService
     def imageGroupService
+    def descriptionService
 
     def currentDomain() {
         Project
@@ -139,26 +140,30 @@ class ProjectService extends ModelService {
     def list() {
         securityACLService.checkAdmin(cytomineService.currentUser)
         Boolean description = Boolean.parseBoolean(RequestContextHolder.currentRequestAttributes().params.description);
+        Boolean imagesThumbs = Boolean.parseBoolean(RequestContextHolder.currentRequestAttributes().params.imagesThumbs);
+        Boolean imageGroupsThumbs = Boolean.parseBoolean(RequestContextHolder.currentRequestAttributes().params.imageGroupsThumbs);
 
         //list ALL projects,
         List<Project> projects = Project.findAllByDeletedIsNull([sort: "name"]);
 
-        if(description) return appendFurtherInformation(projects);
+        if(description || imagesThumbs || imageGroupsThumbs) return appendFurtherInformation(projects, description, imagesThumbs, imageGroupsThumbs);
         else return projects;
     }
 
     def list(SecUser user) {
         securityACLService.checkGuest(cytomineService.currentUser)
         Boolean description = Boolean.parseBoolean(RequestContextHolder.currentRequestAttributes().params.description);
+        Boolean imagesThumbs = Boolean.parseBoolean(RequestContextHolder.currentRequestAttributes().params.imagesThumbs);
+        Boolean imageGroupsThumbs = Boolean.parseBoolean(RequestContextHolder.currentRequestAttributes().params.imageGroupsThumbs);
 
         //faster to get it from database table (getProjectList) than PostFilter
         List<Project> projects = securityACLService.getProjectList(user)
 
-        if(description) return appendFurtherInformation(projects);
+        if(description || imagesThumbs || imageGroupsThumbs) return appendFurtherInformation(projects, description, imagesThumbs, imageGroupsThumbs);
         else return projects;
     }
 
-    private def appendFurtherInformation(List<Project> projects){
+    private def appendFurtherInformation(List<Project> projects, boolean description, boolean imageThumbs, boolean imageGroupsThumbs){
 
         def data = []
         def sql = new Sql(dataSource)
@@ -172,18 +177,28 @@ class ProjectService extends ModelService {
         projects.each { project ->
             json = JSON.parse((project as JSON).toString())
             if(projects.find{data.contains(it.id)}) json.putAt("isAdmin", "true");
-            def thumbs = []
-            def groups = imageGroupService.list(project)
-            for(int i = 0;i<groups.size() && i<3;i++){
-                thumbs << [id : groups[i].id, thumb : ImageGroup.getDataFromDomain(groups[i]).thumb]
+
+            if(imageGroupsThumbs) {
+                def thumbs = []
+                def groups = imageGroupService.list(project)
+                for(int i = 0;i<groups.size() && i<3;i++){
+                    thumbs << [id : groups[i].id, thumb : ImageGroup.getDataFromDomain(groups[i]).thumb]
+                }
+                json.putAt("groups", thumbs);
             }
-            json.putAt("groups", thumbs);
-            def thumbsImg = []
-            def images = imageInstanceService.list(project)
-            for(int i = 0;i<images.size() && i<3;i++){
-                thumbs << [id : images[i].id, thumb : ImageInstance.getDataFromDomain(images[i]).thumb]
+            if(imageThumbs) {
+                def thumbsImg = []
+                def images = imageInstanceService.list(project)
+                for(int i = 0;i<images.size() && i<3;i++){
+                    thumbsImg << [id : images[i].id, thumb : ImageInstance.getDataFromDomain(images[i]).thumb]
+                }
+                json.putAt("images", thumbsImg);
             }
-            json.putAt("images", thumbsImg);
+            if(description) {
+                String descriptionText = descriptionService.get(project)?.data
+                json.putAt("description", descriptionText);
+            }
+
             result << json
         }
 
@@ -209,7 +224,7 @@ class ProjectService extends ModelService {
         securityACLService.checkIsSameUser(user,cytomineService.currentUser)
         def data = []
         def sql = new Sql(dataSource)
-         sql.eachRow("select * from creator_project where user_id = ?",[user.id]) {
+        sql.eachRow("select * from creator_project where user_id = ?",[user.id]) {
             data << [id:it.id, name:it.name]
         }
         sql.close()
