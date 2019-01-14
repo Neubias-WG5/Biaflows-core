@@ -106,25 +106,25 @@ environments {
         grails.retrievalServerURL = []
     }
     development {
-        grails.serverURL = "http://localhost-core"
-        grails.uploadURL = "http://localhost-upload"
-        grails.imageServerURL = ["http://localhost-ims"]
-        grails.retrievalServerURL = ["http://localhost-retrieval"]
+        grails.serverURL = "http://$CORE_URL:8080"
+        grails.uploadURL = "http://$UPLOAD_URL"
+        grails.imageServerURL = ["http://$IMS_URLS[0]"]
+        grails.retrievalServerURL = ["http://$RETRIEVAL_URL"]
         grails.converters.default.pretty.print = true
         grails.plugin.springsecurity.useBasicAuth = false
-        grails.resources.adhoc.patterns = ['/images/*', '/js/*','/css/jsondoc/*']
-        grails.readOnlyProjectsByDefault = false
-        grails.retrievalUsername = 'cytomine'
-        grails.retrievalPassword = 'retrieval_default'
+        grails.resources.adhoc.patterns = ['/images/*', '/css/jsondoc/*', '/js/*', '/plugins/*']
+        grails.readOnlyProjectsByDefault = true
         grails.adminPassword="admin"
-        grails.ImageServerPrivateKey="ABC"
-        grails.ImageServerPublicKey="DEF"
-        grails.adminPrivateKey="GHI"
-        grails.adminPublicKey="JKL"
-        grails.superAdminPrivateKey="MNO"
-        grails.superAdminPublicKey="PQR"
-        grails.rabbitMQPrivateKey="STU"
-        grails.rabbitMQPublicKey="VWX"
+        grails.ImageServerPrivateKey="$IMS_PRIV_KEY"
+        grails.ImageServerPublicKey="$IMS_PUB_KEY"
+        grails.adminPrivateKey="$ADMIN_PRIV_KEY"
+        grails.adminPublicKey="$ADMIN_PUB_KEY"
+        grails.superAdminPrivateKey="$SUPERADMIN_PRIV_KEY"
+        grails.superAdminPublicKey="$SUPERADMIN_PUB_KEY"
+        grails.rabbitMQPrivateKey="$RABBITMQ_PRIV_KEY"
+        grails.rabbitMQPublicKey="$RABBITMQ_PUB_KEY"
+        grails.retrievalUsername="cytomine"
+        grails.retrievalPassword="retrieval_default"
     }
     test {
         grails.serverURL = "http://localhost:8090"

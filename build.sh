@@ -22,7 +22,7 @@ docker build \
     -t neubiaswg5/core:latest -t neubiaswg5/core:v$VERSION docker/
 
 # 6) Push image to Docker Hub
-#docker push neubiaswg5/core:latest
-#docker push neubiaswg5/core:v$VERSION
+docker push neubiaswg5/core:latest
+docker push neubiaswg5/core:v$VERSION
 
 # 7) Update NeubiasWG5/Cytomine-bootstrap with the new Docker image version for core.
