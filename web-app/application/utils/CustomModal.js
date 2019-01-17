@@ -169,6 +169,7 @@ var DescriptionModal = {
                     serverPath: '/api/attachedfileRTEditor.json?domainClassName=' + domainClassName + "&domainIdent=" + domainIdent,
                     fileFieldName: 'image',
                     urlPropertyName: 'url',
+                    imageWidthModalEdit: true,
                     statusPropertyName: 'id' // hack. in the success callback, the plugin looks for a field only present in case of success ...
                 };
 
