@@ -189,6 +189,9 @@ class BootStrap {
 
         bootstrapUtilsService.initProcessingServerQueues()
 
+        bootstrapUtilsService.createDisciplines(bootstrapDataService.defaultDisciplines())
+        bootstrapUtilsService.createMetrics(bootstrapDataService.defaultMetrics())
+
         fixPlugins()
     }
 

@@ -181,14 +181,20 @@ class BootstrapUtilsService {
 
     def createDisciplines(def disciplineSamples) {
         disciplineSamples.each {
-            if (!Discipline.findByShortName(it.shortName)) {
-                Discipline discipline = new Discipline(name: it.name, shortName: it.shortName)
-                if (discipline.validate()) {
-                    discipline.save(flush: true)
-                } else {
-                    discipline.errors?.each {
-                        log.info it
-                    }
+            Discipline discipline = Discipline.findByShortName(it.shortName)
+            if (!discipline) {
+                discipline = new Discipline(name: it.name, shortName: it.shortName)
+            }
+            else {
+                discipline.name = it.name
+                discipline.shortName = it.shortName
+            }
+
+            if (discipline.validate()) {
+                discipline.save(flush: true)
+            } else {
+                discipline.errors?.each {
+                    log.info it
                 }
             }
         }
@@ -198,15 +204,22 @@ class BootstrapUtilsService {
         def disciplines = Discipline.findAll()
         
         metricSamples.each {
-            if (!Metric.findByShortName(it.shortName)) {
-                def disciplineIds = disciplines.findAll { d -> d.shortName in it.disciplines }
-                Metric metric = new Metric(name: it.name, shortName: it.shortName, disciplines: disciplineIds)
-                if (metric.validate()) {
-                    metric.save(flush: true)
-                } else {
-                    metric.errors?.each {
-                        log.info it
-                    }
+            def disciplineIds = disciplines.findAll { d -> d.shortName in it.disciplines }
+            Metric metric = Metric.findByShortName(it.shortName)
+            if (!metric) {
+                metric = new Metric(name: it.name, shortName: it.shortName, disciplines: disciplineIds)
+            }
+            else {
+                metric.name = it.name
+                metric.shortName = it.shortName
+                metric.disciplines = disciplineIds
+            }
+
+            if (metric.validate()) {
+                metric.save(flush: true)
+            } else {
+                metric.errors?.each {
+                    log.info it
                 }
             }
         }
