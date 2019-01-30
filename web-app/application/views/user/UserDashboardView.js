@@ -78,7 +78,7 @@ var UserDashboardView = Backbone.View.extend({
         $.get("/api/project/method/lastopened.json?max=5", function(data) {
             var collection = data.collection;
             elem.empty();
-            elem.append('<div class="col-md-2 col-sm-2 stat well stat-first"><div class="data"><span class="number"></span>Last opened&nbsp;&nbsp;<br />Projects »</div><span class="date"></span></div>');
+            elem.append('<div class="col-sm-2 dashboard-col-header">Last opened projects&nbsp;»</div>');
             _.each(collection,function(item) {
 
                 var project = window.app.models.projects.get(item.id);
@@ -271,6 +271,10 @@ var UserDashboardView = Backbone.View.extend({
                 }
             });
         });
+
+        $("#dashboard-project-typeahead").find(".twitter-typeahead").css("display", "inline");
+        $("#dashboard-project-typeahead").find(".twitter-typeahead").find(".tt-dropdown-menu").css("top", "unset");
+
     },
     initGotoImage : function() {
         var self = this;
@@ -300,8 +304,12 @@ var UserDashboardView = Backbone.View.extend({
                         }
                     })
                 });
+                $("#dashboard-image-typeahead").find(".twitter-typeahead").css("display", "inline");
+                $("#dashboard-image-typeahead").find(".twitter-typeahead").find(".tt-dropdown-menu").css("top", "unset");
             });
         }
+
+
 
     },
 
@@ -310,11 +318,11 @@ var UserDashboardView = Backbone.View.extend({
         var elem = $(self.el).find("#lastOpenImage");
         $.get("/api/imageinstance/method/lastopened.json?max=5", function(data) {
             elem.empty();
-            elem.append('<div class="col-md-2 col-sm-2 stat well stat-first"><div class="data"><span class="number"></span>Last opened&nbsp;&nbsp;<br />Images »</div><span class="date"></span></div>');
+            elem.append('<div class="col-sm-2 dashboard-col-header">Last opened images&nbsp;»</div>');
             _.each (data.   collection, function (item){
                 item.lastOpen = window.app.convertLongToDate(item.date)
                 item.maxW = Math.min(elem.width(),300);
-                var maxNumberOfChar = 15;
+                var maxNumberOfChar = 30;
                 var title = item.instanceFilename;
                 if (title.length > maxNumberOfChar) {
                     title = title.substr(0, maxNumberOfChar) + "...";

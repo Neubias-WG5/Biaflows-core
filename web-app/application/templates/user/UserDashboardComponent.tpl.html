@@ -1,106 +1,40 @@
 <div id="userdashboard">
-    <div id="communicationRow" class="row" style="display: none">
-
-        <div class="main-stats">
-            <div class="row stats-row">
-                <div class="col-md-2 col-sm-2 stat well" style="min-height: 150px;">
-                    <div class="data">
-                        <span class="number"></span>
-                        Communication »
+    <div class="container-fluid">
+        <div id="communicationRow" class="row equal dashboard-row">
+            <div class="col-sm-2 dashboard-col-header">Communication&nbsp;»</div>
+            <div class="col-sm-10 dashboard-col">
+                <div class="well" style="margin-bottom: 0;">
+                    <div id="welcomeMessage"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row equal dashboard-row">
+            <div class="col-sm-2 dashboard-col-header">Shortcuts&nbsp;»</div>
+            <div class="col-sm-5 dashboard-col dashboard-border-right">
+                <div class="form-group">
+                    <label for="goToProjectUser">Go to project&nbsp;»</label>
+                    <div id="dashboard-project-typeahead">
+                        <input type="text" id="goToProjectUser" class="form-control typeahead" />
                     </div>
                 </div>
-                <div class="col-md-8 col-md-offset-1" style="padding-right: 20px;padding-top: 40px;">
-                    <label id="welcomeMessage"></label>
-                </div>
             </div>
-        </div>
-    </div>
-    <div class="row">
-
-        <div class="main-stats">
-            <div class="row stats-row">
-                <div class="col-md-2 col-sm-2 stat well">
-                    <div class="data">
-                        <span class="number"></span>
-                        Shortcuts »
+            <div class="col-sm-5 dashboard-col">
+                <div class="form-group">
+                    <label for="goToImageUser">Go to image&nbsp;»</label>
+                    <div id="dashboard-image-typeahead">
+                        <input type="text" id="goToImageUser" class="form-control typeahead" />
                     </div>
-                    <span class="date"></span>
-                </div>
-                <div class="col-md-4 col-sm-4 stat" style="padding-right: 20px;padding-top: 40px;">
-                    <form class="form-inline" role="form">
-                        <div class="form-group">
-                            <label>Go to project »</label>
-                            <input type="text" id="goToProjectUser" class="typeahead" />
-                        </div>
-                    </form>
-                </div>
-                <div id="goToImagePanel" class="col-md-4 col-sm-4 stat" style="padding-right: 20px;padding-top: 40px;">
-                    <form class="form-inline" role="form">
-                        <div class="form-group">
-                            <label>Go to image »</label>
-                            <input type="text" class="typeahead" id="goToImageUser">
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
-    </div>
-    <div id="userStatsDashboard" class="row">
-        <div class="alert alert-info"><i class="icon-refresh"/> Loading...</div>
-    </div>
-    <div class="row">
-        <div class="main-stats">
-            <div class="row stats-row" id="lastOpenImage">
-            </div>
+        <div id="userStatsDashboard" class="row equal dashboard-row">
+            <div class="alert alert-info"><i class="icon-refresh"/> Loading...</div>
+        </div>
+        <div id="lastOpenImage" class="row equal dashboard-row">
+            <div class="alert alert-info"><i class="icon-refresh"/> Loading...</div>
+        </div>
+        <div id="userDashboardLastProject" class="row equal dashboard-row">
+            <div class="alert alert-info"><i class="icon-refresh"/> Loading...</div>
         </div>
     </div>
-    <div class="row">
-        <div class="main-stats">
-            <div class="row stats-row" id="userDashboardLastProject">
-            </div>
-        </div>
-    </div>
-    <!--<div class="row">-->
-        <!--<div class="main-stats">-->
-            <!--<div class="row stats-row" >-->
-                <!--<div class="col-md-2 col-sm-2 stat  stat-first well" style="min-height: 300px;">-->
-                    <!--<div class="data">-->
-                        <!--<span class="number"></span>-->
-                        <!--Your Activity »-->
-                    <!--</div>-->
-                    <!--<span class="date"></span>-->
-                <!--</div>-->
-                <!--<div class="col-md-4 col-sm-4 stat class='with-3d-shadow with-transitions" id="chartActivity" style="height: 300px;">-->
-                    <!--<svg> </svg>-->
-                <!--</div>-->
-                <!--<div class="col-md-4 col-sm-4 stat" style="max-height: 300px;overflow-y : auto;text-align: left;padding-left: 10px;">-->
-                    <!--<ul id="userdashboardLastAction"></ul>-->
-                <!--</div>-->
-                <!--<div class="col-md-2 col-sm-2 stat">-->
-                    <!--<div class="data">-->
-                        <!--<span class="number"></span>-->
-                        <!--<a href='#activity-'>View all »</a>-->
-                    <!--</div>-->
-                    <!--<span class="date"></span>-->
-
-                <!--</div>-->
-            <!--</div>-->
-        <!--</div>-->
-    <!--</div>-->
-    <!--<div class="row">
-        <div class="main-stats">
-            <div class="row stats-row">
-                <div class="col-md-2 col-sm-2 stat">
-                    <div class="data">
-                        <span class="number"></span>
-                        News »
-                    </div>
-                    <span class="date"></span>
-                </div>
-                <div class="col-md-10 col-sm-10 stat" style="max-height: 300px;overflow-y : auto;text-align: left;">
-                    <ul id="userdashboardLastNews"></ul>
-                </div>
-            </div>
-        </div>
-    </div> -->
 </div>
