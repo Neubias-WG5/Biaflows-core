@@ -95,7 +95,7 @@ var ProjectCommandView = Backbone.View.extend({
         if (commandHistory.get('className') == "be.cytomine.command.AddCommand") {
             if (commandHistory.get('serviceName') == "userAnnotationService") {
                 var cropStyle = "block";
-                var cropURL = jsonCommand.smallCropURL;
+                var cropURL = "api" + jsonCommand.smallCropURL.split("/api")[1];
                 return _.template(commandAnnotationTpl,
                     {   idProject: self.idProject,
                         idAnnotation: jsonCommand.id,
@@ -110,7 +110,7 @@ var ProjectCommandView = Backbone.View.extend({
             }
             else if (commandHistory.get('serviceName') == "reviewedAnnotationService") {
                 var cropStyle = "block";
-                var cropURL = jsonCommand.smallCropURL;
+                var cropURL = "api" + jsonCommand.smallCropURL.split("/api")[1];
                 return _.template(commandAnnotationTpl,
                     {   idProject: self.idProject,
                         idAnnotation: jsonCommand.id,
@@ -125,7 +125,7 @@ var ProjectCommandView = Backbone.View.extend({
             }
             else if (commandHistory.get('serviceName') == "algoAnnotationService") {
                 var cropStyle = "block";
-                var cropURL = jsonCommand.smallCropURL;
+                var cropURL = "api" + jsonCommand.smallCropURL.split("/api")[1];
                 return _.template(commandAnnotationTpl,
                     {   idProject: self.idProject,
                         idAnnotation: jsonCommand.id,
@@ -143,7 +143,7 @@ var ProjectCommandView = Backbone.View.extend({
             }
             else if (commandHistory.get('serviceName') == "imageInstanceService") {
                 var cropStyle = "block";
-                var cropURL = jsonCommand.thumb;
+                var cropURL = "api" + jsonCommand.thumb.split("/api")[1];
                 return _.template(commandImageInstanceTpl, {idProject: self.idProject, idImage: jsonCommand.id, imageFilename: jsonCommand.filename, icon: "add.png", text: commandHistory.get("prefixAction") + " " + commandHistory.get('action'), datestr: dateStr, cropURL: cropURL, cropStyle: cropStyle});
             }
             else if (commandHistory.get('serviceName') == "jobService") {
@@ -155,17 +155,17 @@ var ProjectCommandView = Backbone.View.extend({
 
             if (commandHistory.get('serviceName') == "userAnnotationService") {
                 var cropStyle = "";
-                var cropURL = jsonCommand.newUserAnnotation.smallCropURL;
+                var cropURL = "api" + jsonCommand.newUserAnnotation.smallCropURL.split("/api")[1];
                 return _.template(commandAnnotationTpl, {idProject: self.idProject, idAnnotation: jsonCommand.newUserAnnotation.id, idImage: jsonCommand.newUserAnnotation.image, imageFilename: jsonCommand.newUserAnnotation.imageFilename, icon: "delete.gif", text: commandHistory.get("prefixAction") + " " + commandHistory.get('action'), datestr: dateStr, cropURL: cropURL, cropStyle: cropStyle});
             }
             else if (commandHistory.get('serviceName') == "reviewedAnnotationService") {
                 var cropStyle = "";
-                var cropURL = jsonCommand.newReviewedAnnotation.smallCropURL;
+                var cropURL = "api" + jsonCommand.newReviewedAnnotation.smallCropURL.split("/api")[1];
                 return _.template(commandAnnotationTpl, {idProject: self.idProject, idAnnotation: jsonCommand.newReviewedAnnotation.id, idImage: jsonCommand.newReviewedAnnotation.image, imageFilename: jsonCommand.newReviewedAnnotation.imageFilename, icon: "delete.gif", text: commandHistory.get("prefixAction") + " " + commandHistory.get('action'), datestr: dateStr, cropURL: cropURL, cropStyle: cropStyle});
             }
             else if (commandHistory.get('serviceName') == "algoAnnotationService") {
                 var cropStyle = "";
-                var cropURL = jsonCommand.newAnnotation.smallCropURL;
+                var cropURL = "api" + jsonCommand.newAnnotation.smallCropURL.split("/api")[1];
                 return _.template(commandAnnotationTpl, {idProject: self.idProject, idAnnotation: jsonCommand.newAnnotation.id, idImage: jsonCommand.newAnnotation.image, imageFilename: jsonCommand.newAnnotation.imageFilename, icon: "delete.gif", text: commandHistory.get("prefixAction") + " " + commandHistory.get('action'), datestr: dateStr, cropURL: cropURL, cropStyle: cropStyle});
             }
             else if (commandHistory.get('serviceName') == "annotationTermService") {
@@ -181,18 +181,18 @@ var ProjectCommandView = Backbone.View.extend({
         else if (commandHistory.get('className') == "be.cytomine.command.DeleteCommand") {
             if (commandHistory.get('serviceName') == "userAnnotationService") {
                 var cropStyle = "";
-                var cropURL = jsonCommand.smallCropURL;
+                var cropURL = "api" + jsonCommand.smallCropURL.split("/api")[1];
                 return _.template(commandAnnotationTpl, {idProject: self.idProject, idAnnotation: jsonCommand.id, idImage: jsonCommand.image, imageFilename: jsonCommand.imageFilename, icon: "delete.gif", text: commandHistory.get("prefixAction") + " " + commandHistory.get('action'), datestr: dateStr, cropURL: cropURL, cropStyle: cropStyle});
 
             }
             else if (commandHistory.get('serviceName') == "reviewedAnnotationService") {
                 var cropStyle = "";
-                var cropURL = jsonCommand.smallCropURL;
+                var cropURL = "api" + jsonCommand.smallCropURL.split("/api")[1];
                 return _.template(commandAnnotationTpl, {idProject: self.idProject, idAnnotation: jsonCommand.id, idImage: jsonCommand.image, imageFilename: jsonCommand.imageFilename, icon: "delete.gif", text: commandHistory.get("prefixAction") + " " + commandHistory.get('action'), datestr: dateStr, cropURL: cropURL, cropStyle: cropStyle});
             }
             else if (commandHistory.get('serviceName') == "algoAnnotationService") {
                 var cropStyle = "";
-                var cropURL = jsonCommand.smallCropURL;
+                var cropURL = "api" + jsonCommand.smallCropURL.split("/api")[1];
                 return _.template(commandAnnotationTpl, {idProject: self.idProject, idAnnotation: jsonCommand.id, idImage: jsonCommand.image, imageFilename: jsonCommand.imageFilename, icon: "delete.gif", text: commandHistory.get("prefixAction") + " " + commandHistory.get('action'), datestr: dateStr, cropURL: cropURL, cropStyle: cropStyle});
             }
             else if (commandHistory.get('serviceName') == "annotationTermService") {
@@ -201,7 +201,7 @@ var ProjectCommandView = Backbone.View.extend({
             }
             else if (commandHistory.get('serviceName') == "imageInstanceService") {
                 var cropStyle = "block";
-                var cropURL = jsonCommand.thumb;
+                var cropURL = "api" + jsonCommand.thumb.split("/api")[1];
                 return _.template(commandImageInstanceTpl, {idProject: self.idProject, idImage: jsonCommand.id, imageFilename: jsonCommand.filename, icon: "delete.gif", text: commandHistory.get("prefixAction") + " " + commandHistory.get('action'), datestr: dateStr, cropURL: cropURL, cropStyle: cropStyle});
 
             }
