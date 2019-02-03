@@ -231,9 +231,9 @@ class UserAnnotationService extends ModelService {
         if(!im){
             throw new WrongArgumentException("Annotation not associated with a valid image")
         }
-        Geometry imageBounds = new WKTReader().read("POLYGON((0 0,0 $im.baseImage.height,$im.baseImage.width $im.baseImage.height,$im.baseImage.width 0,0 0))")
+//        Geometry imageBounds = new WKTReader().read("POLYGON((0 0,0 $im.baseImage.height,$im.baseImage.width $im.baseImage.height,$im.baseImage.width 0,0 0))")
 
-        annotationForm = annotationForm.intersection(imageBounds)
+//        annotationForm = annotationForm.intersection(imageBounds)
 
         //simplify annotation
         try {
