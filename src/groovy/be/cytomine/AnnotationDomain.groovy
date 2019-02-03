@@ -262,7 +262,6 @@ abstract class AnnotationDomain extends CytomineDomain implements Serializable {
 
 
     def getCentroid() {
-        if (location.area < 1) return null
         def centroid = location.getCentroid()
         def response = [:]
         response.x = centroid.x
