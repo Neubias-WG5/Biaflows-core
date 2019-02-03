@@ -471,7 +471,7 @@ class ImageInstanceService extends ModelService {
         def jsonNewData = JSON.parse(domain.encodeAsJSON())
         jsonNewData.deleted = new Date().time
         SecUser currentUser = cytomineService.getCurrentUser()
-        Command c = new EditCommand(user: currentUser)
+        Command c = new EditCommand(user: currentUser, transaction: transaction)
         c.delete = true
         return executeCommand(c,domain,jsonNewData)
     }

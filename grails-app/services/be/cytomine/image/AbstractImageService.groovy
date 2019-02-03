@@ -225,7 +225,7 @@ class AbstractImageService extends ModelService {
             def jsonNewData = JSON.parse(domain.encodeAsJSON())
             jsonNewData.deleted = new Date().time
             SecUser currentUser = cytomineService.getCurrentUser()
-            Command c = new EditCommand(user: currentUser)
+            Command c = new EditCommand(user: currentUser, transaction: transaction)
             c.delete = true
             return executeCommand(c,domain,jsonNewData)
         } else{
@@ -431,13 +431,13 @@ class AbstractImageService extends ModelService {
     }
 
     def uploadedFileService
-    def deleteFile(AbstractImage ai){
+    def deleteFile(AbstractImage ai, Transaction transaction = null){
         UploadedFile uf = UploadedFile.findByImage(ai)
         uploadedFileService.delete(uf)
 
         while(uf.parent){
             if(UploadedFile.countByParentAndDeletedIsNull(uf.parent) == 0){
-                uploadedFileService.delete(uf.parent)
+                uploadedFileService.delete(uf.parent, transaction)
                 uf = uf.parent
             } else {
                 break
