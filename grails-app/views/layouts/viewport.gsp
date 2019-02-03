@@ -12,7 +12,7 @@
 -->
 <html>
 <head>
-<title>Cytomine</title>
+<title>Biaflows</title>
 <meta charset="UTF-8" />
 <!-- Of course it is advisable to have touch icons ready for each device -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
