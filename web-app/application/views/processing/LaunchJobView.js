@@ -43,7 +43,7 @@ var LaunchJobView = Backbone.View.extend({
     loadResult: function (JobLaunchTpl) {
 
         var self = this;
-        var content = _.template(JobLaunchTpl, {softwareName : self.software.get('name'), projectName : self.project.get('name')});
+        var content = _.template(JobLaunchTpl, {softwareName : self.software.get('fullName'), projectName : self.project.get('name')});
 
         $(self.el).empty();
         $(self.el).append(content);
@@ -197,8 +197,8 @@ var LaunchJobView = Backbone.View.extend({
         }
 
         var launchJobParamsTable = $('#launchJobParamsTable');
-        var tbody = launchJobParamsTable.find("tbody");
-
+        // var tbody = launchJobParamsTable.find("tbody");
+        var tbody = launchJobParamsTable;
         tbody.empty();
 
         _.each(self.paramsViews, function (paramView) {
@@ -317,15 +317,19 @@ var InputTextView = Backbone.View.extend({
     },
     addRow: function (tbody) {
         var self = this;
-        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.humanName + '</td><td>' + self.getHtmlElem() + '</td><td ><span class="label label-important hidden"></span></td></tr>');
-        self.trElem = tbody.find('tr#' + self.param.id);
+        tbody.append('<div class="form-group" id="' + self.param.id + '">' +
+            '<label class="col-sm-2 control-label">' + self.param.humanName + '</label>' +
+            self.getHtmlElem() +
+            '</div>');
+        // tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.humanName + '</td><td>' + self.getHtmlElem() + '</td><td ><span class="label label-important hidden"></span></td></tr>');
+        self.trElem = tbody.find('div#' + self.param.id);
         self.trElem.find('input').keyup(function () {
             self.checkEntryValidation();
         });
     },
     getHtmlElem: function () {
         var self = this;
-        return _.template('<div class="control-group success"><div class="controls"><input type="text" style="width: 100%;" value="<%= value%>" <%= required %>></div></div>', {
+        return _.template('<div class="col-sm-10"><input id="" type="text" class="form-control" value="<%= value%>" <%= required %>/><span class="help-block"></span></div>', {
                value : this.getDefaultValue(),
                required: (self.param.required) ? "required" : ""
         });
@@ -339,7 +343,7 @@ var InputTextView = Backbone.View.extend({
 
         if (self.param.required && self.getValue().trim() == "") {
             success = false;
-            self.changeStyle(self.trElem, success, "Field required");
+            self.changeStyle(self.trElem, success, "This field is required.");
         }
         else {
             success = true;
@@ -370,16 +374,20 @@ var InputNumberView = Backbone.View.extend({
     },
     addRow: function (tbody) {
         var self = this;
-        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.humanName + '</td><td>' + self.getHtmlElem() + '</td><td><span class="label label-important hidden"></span></td></tr>');
-        self.trElem = tbody.find('tr#' + self.param.id);
+        tbody.append('<div class="form-group" id="' + self.param.id + '">' +
+            '<label class="col-sm-2 control-label">' + self.param.humanName + '</label>' +
+            self.getHtmlElem() +
+            '</div>');
+        self.trElem = tbody.find('div#' + self.param.id);
         self.trElem.find('input').keyup(function () {
             self.checkEntryValidation();
         });
     },
     getHtmlElem: function () {
-        return _.template('<div class="control-group success"><div class="controls"><input type="text" style="width: 100%;" value="<%= value%>" <%= required %>></div></div>', {
+        var self = this;
+        return _.template('<div class="col-sm-10"><input id="" type="text" class="form-control" value="<%= value%>" <%= required %>/><span class="help-block"></span></div>', {
             value : this.getDefaultValue(),
-            required: (this.param.required) ? "required" : ""
+            required: (self.param.required) ? "required" : ""
         });
     },
     getDefaultValue: function () {
@@ -391,11 +399,11 @@ var InputNumberView = Backbone.View.extend({
 
         if (self.param.required && self.getValue().trim() == "") {
             success = false;
-            self.changeStyle(self.trElem, success, "Field required");
+            self.changeStyle(self.trElem, success, "Required field.");
         }
         else if (self.getValue().trim() != "" && isNaN(self.getValue())) {
             success = false;
-            self.changeStyle(self.trElem, success, "Not valid number");
+            self.changeStyle(self.trElem, success, "Not a valid number.");
         }
         else {
             success = true;
@@ -505,14 +513,22 @@ var InputBooleanView = Backbone.View.extend({
     },
     addRow: function (tbody) {
         var self = this;
-        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.humanName + '</td><td>' + self.getHtmlElem() + '</td><td><span class="label label-important hidden"></span></td></tr>');
-        self.trElem = tbody.find('tr#' + self.param.id);
+        tbody.append('<div class="form-group" id="' + self.param.id + '">' +
+            '<label class="col-sm-2 control-label">' + self.param.humanName + '</label>' +
+            self.getHtmlElem() +
+            '</div>');
+        self.trElem = tbody.find('div#' + self.param.id);
         self.trElem.find('input').keyup(function () {
             self.checkEntryValidation();
         });
     },
     getHtmlElem: function () {
-        return _.template('<div><input type="checkbox" class="col-md-3" <%= value %> ></input></div>', {
+        var self = this;
+        return _.template('<div class="col-sm-10"><div class="checkbox">' +
+            '<label>' +
+            '<input type="checkbox" <%= value %>> Enabled' +
+            '</label>\n' +
+            '</div><span class="help-block"></span></div>', {
             value : this.getDefaultValue()
         });
     },
@@ -844,21 +860,21 @@ var InputView = {
         var className = "";
         //color input
         if (success) {
-            className = "success";
+            className = "has-success";
         }
         else {
-            className = "error";
+            className = "has-error";
         }
 
-        elem.removeClass("error")
-        elem.removeClass("success")
-        elem.addClass(className)
+        elem.removeClass("has-error");
+        elem.removeClass("has-success");
+        elem.addClass(className);
 
-        var valueElem = elem.children().eq(1).children().eq(0);
-        valueElem.removeClass("success");
-        valueElem.removeClass("error");
-        valueElem.addClass(className);
-
+        // var valueElem = elem.children().eq(1).children().eq(0);
+        // valueElem.removeClass("success");
+        // valueElem.removeClass("error");
+        // valueElem.addClass(className);
+        //
         var labelElem = elem.find('span');
         if (success) {
             labelElem.addClass("hidden");
