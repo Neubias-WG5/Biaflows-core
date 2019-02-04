@@ -267,7 +267,7 @@ class SecUserService extends ModelService {
 
     private def getUserJobImage(ImageInstance image) {
 
-        String request = "SELECT u.id as id, u.username as username, s.name as softwareName, s.software_version as softwareVersion, j.created as created \n" +
+        String request = "SELECT u.id as id, u.username as username, s.name as softwareName, s.software_version as softwareVersion, j.created as created, u.job_id as job, j.favorite as favorite \n" +
                 "FROM annotation_index ai, sec_user u, job j, software s\n" +
                 "WHERE ai.image_id = ${image.id}\n" +
                 "AND ai.user_id = u.id\n" +
@@ -284,6 +284,8 @@ class SecUserService extends ModelService {
 
             item.created = it.created
             item.algo = true
+            item.favorite = it.favorite
+            item.job = it.job
             data << item
         }
         try {
