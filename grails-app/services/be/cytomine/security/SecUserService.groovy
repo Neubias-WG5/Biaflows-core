@@ -308,25 +308,25 @@ class SecUserService extends ModelService {
             users << User.getDataFromDomain(it)
         }
 
+        def jobs = []
         if(image) {
-            def jobs = getUserJobImage(image)
+            jobs = getUserJobImage(image)
             users.addAll(jobs)
-
         }
         def  admins = listAdmins(project)
 
         log.info(humans.contains(currentUser))
 
 
-        if(project.checkPermission(ADMINISTRATION,currentRoleServiceProxy.isAdminByNow(currentUser))) {
+        if(currentRoleServiceProxy.isAdminByNow(currentUser)) {
             return users
         } else if(project.hideAdminsLayers && project.hideUsersLayers && humans.contains(currentUser)) {
-            return [currentUser]
+            return jobs
         } else if(project.hideAdminsLayers && !project.hideUsersLayers && humans.contains(currentUser)) {
             users.removeAll(admins)
             return users
         } else if(!project.hideAdminsLayers && project.hideUsersLayers && humans.contains(currentUser)) {
-            admins.add(currentUser)
+//            admins.add(currentUser)
             return admins
          }else if(!project.hideAdminsLayers && !project.hideUsersLayers && humans.contains(currentUser)) {
             return users
