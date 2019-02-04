@@ -84,6 +84,17 @@ class BootstrapOldVersionService {
         Version.setCurrentVersion(Long.parseLong(grailsApplication.metadata.'app.versionDate'))
     }
 
+    void init20190204() {
+        log.info "20190204"
+
+        boolean exists = new Sql(dataSource).rows("SELECT column_name " +
+                "FROM information_schema.columns " +
+                "WHERE table_name='job' and column_name='favorite';").size() == 1;
+        if (!exists) {
+            new Sql(dataSource).executeUpdate("ALTER TABLE job ADD COLUMN favorite boolean NOT NULL DEFAULT false;")
+        }
+    }
+
     void init20181206() {
         log.info "20181206"
         bootstrapUtilsService.createDisciplines(bootstrapDataService.defaultDisciplines())

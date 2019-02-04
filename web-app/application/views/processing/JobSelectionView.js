@@ -176,7 +176,8 @@ var JobSelectionView = Backbone.View.extend({
 
         var data = [];
         _.each(jobs, function (job) {
-            data.push(["<i class='glyphicon glyphicon-plus'></i>", job.id, job.get('number'),
+            var favorite = (job.get('favorite') ? '<i class="fas fa-star"></i>' : '');
+            data.push(["<i class='glyphicon glyphicon-plus'></i>", favorite, job.id, job.get('number'),
                 window.app.convertLongToDate(job.get('created')),
                 self.getStateElement(job),
                 // self.comparator ?
@@ -189,6 +190,7 @@ var JobSelectionView = Backbone.View.extend({
                 '<ul class="dropdown-menu">' +
                 ((job.isInQueue() || job.isRunning()) ?'<li><a href="#" id="job-kill-'+job.id+'"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> Kill job</a></li>': '') +
                 ((window.app.status.user.model.get('guest')) ? '' : '<li>'+(job.get('dataDeleted') ? '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span> All job data are deleted ' : '<a href="#" id="job-delete-data-' + job.id + '"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete data</a>') + '</li>') +
+                    ((window.app.status.user.model.get('guest')) ? '' : '<li>'+(!job.get('favorite') ? '<a href="#" id="job-favorite-' + job.id + '"><i class="fas fa-star"></i> Add star</a>' : '<a href="#" id="job-unfavorite-' + job.id + '"><i class="far fa-star"></i> Remove star</a>') + '</li>') +
                 '</ul>' +
                 '</div>'
             ]);
@@ -203,13 +205,15 @@ var JobSelectionView = Backbone.View.extend({
             displayLength: 10,
             lengthChange: false,
             destroy: true,
+            order: [[2, "desc"]],
             columnDefs: [
-                { width: "10%", targets: [ 0 ] },
-                { width: "15%", targets: [ 1 ] },
+                { width: "5%", targets: [ 0 ], orderable: false },
+                { width: "5%", targets: [ 1 ] },
                 { width: "15%", targets: [ 2 ] },
-                { width: "25%", targets: [ 3 ] },
-                { width: "20%", targets: [ 4 ] },
-                { width: "15%", targets: [ 5 ] }
+                { width: "15%", targets: [ 3 ] },
+                { width: "25%", targets: [ 4 ] },
+                { width: "20%", targets: [ 5 ] },
+                { width: "15%", targets: [ 6 ], orderable: false }
                 // { width: "15%", targets: [ 6 ] }
             ]
         });
@@ -241,6 +245,46 @@ var JobSelectionView = Backbone.View.extend({
               });
               return false;
             });
+
+              $(self.el).find("#job-favorite-" + job.id).click(function () {
+                  new JobModel({ id: job.id}).fetch({
+                      success: function (model, response) {
+                          model.save({
+                              "favorite": true
+                          }, {
+                              success: function(model, response) {
+                                  window.app.view.message("Job", "Job starred", "success");
+                                  self.refresh();
+                              },
+                              errors: function(model, response) {
+                                  window.app.view.message("Job", "Error during job starring", "error");
+                                  self.refresh();
+                              }
+                          })
+                      }
+                  });
+                  return false;
+              });
+
+              $(self.el).find("#job-unfavorite-" + job.id).click(function () {
+                  new JobModel({ id: job.id}).fetch({
+                      success: function (model, response) {
+                          model.save({
+                              "favorite": false
+                          }, {
+                              success: function(model, response) {
+                                  window.app.view.message("Job", "Job unstarred", "success");
+                                  self.refresh();
+                              },
+                              errors: function(model, response) {
+                                  window.app.view.message("Job", "Error during job unstarring", "error");
+                                  self.refresh();
+                              }
+                          })
+                      }
+                  });
+                  return false;
+              });
           });
 
         self.initSubGridDatatables();
@@ -295,16 +339,16 @@ var JobSelectionView = Backbone.View.extend({
                 $(this).addClass("glyphicon-minus");
                 row.child(self.seeDetails(nTr)).show();
                 var aData =  self.table.row( nTr).data();
-                new JobModel({ id: aData[1]}).fetch({
+                new JobModel({ id: aData[2]}).fetch({
                     success: function (model, response) {
-                        var tableParam = $(self.el).find('#selectJobTable').find('table[id=' + aData[1] + ']');
+                        var tableParam = $(self.el).find('#selectJobTable').find('table[id=' + aData[2] + ']');
                         _.each(model.get('jobParameters'), function (param) {
                             var value = param.value
                             if (value.length > 50) {
                                 value = value.substring(0, 50) + "..."
                             }
 
-                            tableParam.append('<tr><td>' + param.humanName + '</td><td>' + value + '</td><td>' + param.type + '</td></tr>');
+                            tableParam.append('<tr><td style="width: 40%">' + param.humanName + '</td><td style="width: 40%">' + value + '</td><td style="width: 20%;">' + param.type + '</td></tr>');
                         });
                     }
                 });
@@ -319,7 +363,7 @@ var JobSelectionView = Backbone.View.extend({
         var row = self.table.row( nTr );
         var aData = self.table.row( nTr).data();
 
-        var sOut = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;" id="' + aData[1] + '">';
+        var sOut = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px; width: 100%" id="' + aData[2] + '">';
         sOut += '</table>';
 
         return sOut;
