@@ -111,14 +111,34 @@ var LaunchJobView = Backbone.View.extend({
         self.params = [];
         self.paramsViews = [];
 
+        if (window.app.isUndefined(self.software)) {
+            return;
+        }
+
+        var launchJobParamsTable = $('#launchJobParamsTable');
+        // var tbody = launchJobParamsTable.find("tbody");
+        var tbody = launchJobParamsTable;
+        tbody.empty();
+
         //if(self.jobTemplate==null) {
             _.each(self.software.get('parameters'), function (param) {
-                self.params.push(param);
-                self.paramsViews.push(self.getParamView(param));
+                new DescriptionModel({domainIdent: param.id, domainClassName: param.class}).fetch({
+                    success: function(model, response) {
+                        param.description = model.get('data');
+                        console.log(self.params);
+                        self.params.push(param);
+                        var paramView = self.getParamView(param);
+                        self.paramsViews.push(paramView);
+                        paramView.addRow(tbody);
+                        paramView.checkEntryValidation();
+                    },
+                    error: function (model, response) {
+                        console.log(response)
+                    }
+                })
+
             });
         //}
-
-        self.printSoftwareParams();
 
     },
 
@@ -205,6 +225,10 @@ var LaunchJobView = Backbone.View.extend({
             paramView.addRow(tbody);
             paramView.checkEntryValidation();
         });
+
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
 
     },
 
@@ -318,11 +342,12 @@ var InputTextView = Backbone.View.extend({
     addRow: function (tbody) {
         var self = this;
         tbody.append('<div class="form-group" id="' + self.param.id + '">' +
-            '<label class="col-sm-2 control-label">' + self.param.humanName + '</label>' +
+            '<label class="col-sm-2 control-label" data-toggle="tooltip" data-placement="right" title="'+ self.param.description +'">' + self.param.humanName + '</label>' +
             self.getHtmlElem() +
             '</div>');
         // tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.humanName + '</td><td>' + self.getHtmlElem() + '</td><td ><span class="label label-important hidden"></span></td></tr>');
         self.trElem = tbody.find('div#' + self.param.id);
+        self.trElem.find('label').tooltip();
         self.trElem.find('input').keyup(function () {
             self.checkEntryValidation();
         });
@@ -375,10 +400,11 @@ var InputNumberView = Backbone.View.extend({
     addRow: function (tbody) {
         var self = this;
         tbody.append('<div class="form-group" id="' + self.param.id + '">' +
-            '<label class="col-sm-2 control-label">' + self.param.humanName + '</label>' +
+            '<label class="col-sm-2 control-label" data-toggle="tooltip" data-placement="right" title="'+ self.param.description +'">' + self.param.humanName + '</label>' +
             self.getHtmlElem() +
             '</div>');
         self.trElem = tbody.find('div#' + self.param.id);
+        self.trElem.find('label').tooltip();
         self.trElem.find('input').keyup(function () {
             self.checkEntryValidation();
         });
@@ -514,10 +540,11 @@ var InputBooleanView = Backbone.View.extend({
     addRow: function (tbody) {
         var self = this;
         tbody.append('<div class="form-group" id="' + self.param.id + '">' +
-            '<label class="col-sm-2 control-label">' + self.param.humanName + '</label>' +
+            '<label class="col-sm-2 control-label" data-toggle="tooltip" data-placement="right" title="'+ self.param.description +'">' + self.param.humanName + '</label>' +
             self.getHtmlElem() +
             '</div>');
         self.trElem = tbody.find('div#' + self.param.id);
+        self.trElem.find('label').tooltip();
         self.trElem.find('input').keyup(function () {
             self.checkEntryValidation();
         });
