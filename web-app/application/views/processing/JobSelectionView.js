@@ -210,6 +210,7 @@ var JobSelectionView = Backbone.View.extend({
                 '<ul class="dropdown-menu">' +
                 ((job.isInQueue() || job.isRunning()) ?'<li><a href="#" id="job-kill-'+job.id+'"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> Kill job</a></li>': '') +
                 ((window.app.status.user.model.get('guest')) ? '' : '<li>'+(job.get('dataDeleted') ? '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span> All job data are deleted ' : '<a href="#" id="job-delete-data-' + job.id + '"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete data</a>') + '</li>') +
+                ((window.app.status.user.model.get('guest')) ? '' : '<li><a href="#" id="job-delete-' + job.id + '"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete job</a></li>') +
                     ((window.app.status.user.model.get('guest')) ? '' : '<li>'+(!job.get('favorite') ? '<a href="#" id="job-favorite-' + job.id + '"><i class="fas fa-star"></i> Add star</a>' : '<a href="#" id="job-unfavorite-' + job.id + '"><i class="far fa-star"></i> Remove star</a>') + '</li>') +
                 '</ul>' +
                 '</div>'
@@ -298,6 +299,25 @@ var JobSelectionView = Backbone.View.extend({
                               },
                               errors: function(model, response) {
                                   window.app.view.message("Job", "Error during job unstarring", "error");
+                                  self.refresh();
+                              }
+                          })
+                      }
+                  });
+                  return false;
+              });
+
+              $(self.el).find("#job-delete-" + job.id).click(function () {
+                  new JobModel({ id: job.id}).fetch({
+                      success: function (model, response) {
+                          model.destroy( {
+                              success: function(model, response) {
+                                  window.app.view.message("Job", "Job deleted", "success");
+                                  self.refresh();
+                                  self.parent.changeJobSelection("");
+                              },
+                              errors: function(model, response) {
+                                  window.app.view.message("Job", "Error during job deleting", "error");
                                   self.refresh();
                               }
                           })
