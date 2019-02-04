@@ -60,6 +60,8 @@ var JobSelectionView = Backbone.View.extend({
             self.disableDateChangeEvent = true;
             $(self.el).find("#datepicker").datepicker('setDate', null);
             self.disableDateChangeEvent = false;
+            $(self.el).find("#onlyStarredJob").prop('checked', false);
+            $(self.el).find("#onlySuccessfulJob").prop('checked', false);
             self.refresh();
         });
 
@@ -121,6 +123,14 @@ var JobSelectionView = Backbone.View.extend({
            self.refreshJobs();
         });
 
+        $(self.el).find("#onlyStarredJob").change(function() {
+            self.refreshJobs();
+        });
+
+        $(self.el).find("#onlySuccessfulJob").change(function() {
+            self.refreshJobs();
+        });
+
     },
     refreshJobs: function () {
         var self = this;
@@ -145,6 +155,16 @@ var JobSelectionView = Backbone.View.extend({
             var noDeletedData = $(self.el).find("#onlyDeletedJob").is(':checked');
             if(noDeletedData) {
                 filteredJobs = _.filter(filteredJobs, function(job,index){ return !job.get('dataDeleted')});
+            }
+
+            var onlyStarred = $(self.el).find("#onlyStarredJob").is(':checked');
+            if(onlyStarred) {
+                filteredJobs = _.filter(filteredJobs, function(job,index){ return job.get('favorite')});
+            }
+
+            var onlySuccessful = $(self.el).find("#onlySuccessfulJob").is(':checked');
+            if(onlySuccessful) {
+                filteredJobs = _.filter(filteredJobs, function(job,index){ return job.isSuccess()});
             }
 
             self.printDatatables(filteredJobs, date);

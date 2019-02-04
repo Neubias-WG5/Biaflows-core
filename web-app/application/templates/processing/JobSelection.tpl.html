@@ -1,15 +1,38 @@
 <div id="jobSelectionView">
     <div id="jobListDiv">
-        <form class="well form-inline">
-            <div class="input-append">
-                <input type="text" id="datepicker" class="datepicker" placeholder="date"><span class="add-on"><i
-                    class="icon-calendar"></i> </span>
+        <form class="well form-horizontal">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="onlyStarredJob"> <strong>Only starred jobs</strong>
+                        </label>
+                    </div>
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="onlySuccessfulJob"> <strong>
+                            Only successful jobs
+                        </strong>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label for="datepicker" class="control-label">Execution date</label>
+                        <input type="text" id="datepicker" class="datepicker" placeholder="Date">
+                        <span class="add-on"><i class="icon-calendar"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center">
+                <button class="btn btn-primary" id="refreshButton">
+                    <i class="glyphicon glyphicon-refresh"></i> Refresh
+                </button>
+                <button class="btn btn-primary" id="seeAllButton">Reset</button>
             </div>
 
-            &nbsp;&nbsp;<input id="onlyDeletedJob" type="checkbox"> Just show jobs with no deleted data &nbsp;&nbsp;
 
-            <button class="btn btn-info btn-xs" id="refreshButton"><i class="glyphicon glyphicon-refresh"></i> Refresh</button>
-            <button class="btn btn-info btn-xs" id="seeAllButton">Reset</button>
 
         </form>
         <table width="100%" style="width:100%;max-width:100%" cellpadding="0" cellspacing="0" border="0"
