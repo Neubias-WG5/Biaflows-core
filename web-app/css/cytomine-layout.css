@@ -101,6 +101,11 @@ ul,
     list-style:none;
 }
 
+.list-group-badge {
+    border-radius: 10px !important;
+    padding: 3px 7px !important;
+}
+
 .termDropZone {
     min-height: 20px;
 }
