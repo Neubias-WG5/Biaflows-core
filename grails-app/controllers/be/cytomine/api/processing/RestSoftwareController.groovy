@@ -39,11 +39,13 @@ class RestSoftwareController extends RestController {
     @RestApiMethod(description="Get all software available in cytomine", listing = true)
     def list() {
         boolean executableOnly = params.boolean('executableOnly', false)
+        boolean lastReleaseOnly = params.boolean('lastReleaseOnly', false)
         String sort = params.sort ?: 'id'
         if (!['id', 'name', 'fullName', 'softwareVersion', 'created']) sort = 'id'
         String order = params.order ?: 'desc'
         if (!['asc', 'desc'].contains(order)) order = 'desc'
-        responseSuccess(softwareService.list(executableOnly, sort, order))
+        String search = params.search
+        responseSuccess(softwareService.list(executableOnly, lastReleaseOnly, sort, order, search))
     }
 
     /**
