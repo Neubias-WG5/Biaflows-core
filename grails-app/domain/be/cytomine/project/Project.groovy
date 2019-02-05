@@ -224,6 +224,7 @@ class Project extends CytomineDomain implements Serializable {
         returnArray['discipline'] = domain?.discipline?.id
         returnArray['blindMode'] = (domain?.blindMode != null &&  domain?.blindMode)
         returnArray['disciplineName'] = domain?.discipline?.name
+        returnArray['disciplineShortName'] = domain?.discipline?.shortName
         returnArray['numberOfSlides'] = domain?.countSamples()
         returnArray['numberOfImages'] = domain?.countImageInstance()
         returnArray['numberOfAnnotations'] = domain?.countAnnotations()
