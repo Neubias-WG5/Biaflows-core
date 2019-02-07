@@ -122,18 +122,13 @@ var LaunchJobView = Backbone.View.extend({
 
         //if(self.jobTemplate==null) {
             _.each(self.software.get('parameters'), function (param) {
-                new DescriptionModel({domainIdent: param.id, domainClassName: param.class}).fetch({
+                new DescriptionModel({domainIdent: param.id, domainClassName: "be.cytomine.processing.SoftwareParameter"}).fetch({
                     success: function(model, response) {
                         param.description = model.get('data');
-                        console.log(self.params);
-                        self.params.push(param);
-                        var paramView = self.getParamView(param);
-                        self.paramsViews.push(paramView);
-                        paramView.addRow(tbody);
-                        paramView.checkEntryValidation();
+                        self.addParam(param)
                     },
                     error: function (model, response) {
-                        console.log(response)
+                        self.addParam(param)
                     }
                 })
 
@@ -141,7 +136,15 @@ var LaunchJobView = Backbone.View.extend({
         //}
 
     },
-
+    addParam: function(param) {
+        var self = this;
+        var tbody = $('#launchJobParamsTable');
+        self.params.push(param);
+        var paramView = self.getParamView(param);
+        self.paramsViews.push(paramView);
+        paramView.addRow(tbody);
+        paramView.checkEntryValidation();
+    },
     retrieveDefaultValue : function(param) {
         var self = this;
 
@@ -681,8 +684,10 @@ var InputListDomainView = Backbone.View.extend({
     },
     addRow: function (tbody) {
         var self = this;
-        tbody.append('<tr id="' + self.param.id + '"><td>' + self.param.humanName + '</td><td id="' + self.param.id + '"></td><td><span class="errorMessage label label-important hidden"></span></td></tr>');
-        self.trElem = tbody.find('tr#' + self.param.id);
+        tbody.append('<div class="form-group" id="' + self.param.id + '">' +
+            '<label class="col-sm-2 control-label" data-toggle="tooltip" data-placement="right" title="'+ self.param.description +'">' + self.param.humanName + '</label><div class="col-sm-10 input-list-'+ self.param.id +'"></div></div>');
+        self.trElem = tbody.find('div#' + self.param.id);
+        self.trElem.find('label').tooltip();
 
         self.collection = new SoftwareParameterModelCollection({uri: window.app.replaceVariable(self.param.uri), sortAttribut: self.param.uriSortAttribut});
 
@@ -692,7 +697,7 @@ var InputListDomainView = Backbone.View.extend({
         var toReload = window.app.isUndefined(currentCollection) || currentCollection.length === 0 || currentCollection.uri.indexOf("/api/job") >=0;
         if (toReload) {
             if (window.app.isUndefined(self.collection) || (self.collection.length > 0 && window.app.isUndefined(self.collection.at(0).id))) {
-                self.trElem.find("td#" + self.param.id).append('<div class="alert alert-info" style="margin-left : 10px;margin-right: 10px;"><i class="icon-refresh" /> Loading...</div>');
+                self.trElem.find("div.input-list-"+self.param.id).append('<div class="alert alert-info" style="margin-left : 10px;margin-right: 10px;margin-bottom: 0;"><i class="icon-refresh" /> Loading...</div>');
                 if (self.param.required) {
                     self.changeStyle(self.trElem, false, "Field required");
                 }
@@ -722,7 +727,7 @@ var InputListDomainView = Backbone.View.extend({
     },
     addHtmlElem : function() {
         var self = this;
-        var cell = self.trElem.find("td#" + self.param.id);
+        var cell = self.trElem.find("div.input-list-" + self.param.id);
         cell.empty();
         cell.append(self.getHtmlElem());
 
@@ -771,7 +776,7 @@ var InputListDomainView = Backbone.View.extend({
 
 
         if (self.multiple) {
-            cell.append(_.template("<a class='checkAll<%= id %>'>check all</a>, <a class='uncheckAll<%= id %>'>uncheck all</a>", { id : self.param.id}));
+            cell.append(_.template("<div class='pull-right'><a class='checkAll<%= id %> btn btn-default btn-xs'>Check all</a><a class='uncheckAll<%= id %> btn btn-default btn-xs'>Uncheck all</a></div>", { id : self.param.id}));
             $("a.checkAll" + self.param.id).on("click", function (e) {
                 self.elemSuggest.setValue(_.pluck(magicSuggestData, 'id'));
             });
@@ -790,7 +795,7 @@ var InputListDomainView = Backbone.View.extend({
 
     },
     getHtmlElem: function () {
-        return "<div class='suggest' />";
+        return "<div class='suggest'></div>";
     },
     checkEntryValidationWithAllValue: function (value, checked) {
         var self = this;
@@ -868,12 +873,12 @@ var InputListDomainView = Backbone.View.extend({
         var className = "";
         //color input
         if (success) {
-            elem.removeClass("error")
-            elem.addClass("success")
+            elem.removeClass("has-error")
+            elem.addClass("has-success")
         }
         else {
-            elem.removeClass("success")
-            elem.addClass("error")
+            elem.removeClass("has-success")
+            elem.addClass("has-error")
 
         }
 
