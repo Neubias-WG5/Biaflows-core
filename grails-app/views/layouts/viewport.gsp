@@ -390,35 +390,15 @@ body {
 
 
 
-<g:if test="${Environment.getCurrent() != Environment.PRODUCTION}">
-    <script type="text/javascript">
-        //Prevent IE to cache AJAX request
-        $.ajaxSetup({ cache: false });
-        setTimeout(function(){
-            if (navigator.appVersion.indexOf("Linux")!=-1) {
-                $("#j_username").val("lrollus");
-                $("#j_password").val("lR$2011");
-            }
-            if (navigator.appVersion.indexOf("Mac")!=-1) {
-                $("#j_username").val("stevben");
-            }
+<script type="text/javascript">
+    //Prevent IE to cache AJAX request
+    $.ajaxSetup({ cache: false });
+    setTimeout(function(){
+        $("#j_username").val("guest");
+        $("#j_password").val("guest");
+    }, 1000);
+</script>
 
-        }, 1000);
-
-        //disable console for not supported by browser (ie lesser than 8)
-        var alertFallback = false;
-        if (typeof console === "undefined" || typeof console.log === "undefined") {
-            console = {};
-            if (alertFallback) {
-                console.log = function(msg) {
-                    alert(msg);
-                };
-            } else {
-                console.log = function() {};
-            }
-        }
-    </script>
-</g:if>
 </head>
 <body>
 
