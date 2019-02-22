@@ -25,7 +25,7 @@
 <link rel='stylesheet' href='lib/stepy/css/jquery.stepy.bootstrap.css' type='text/css'/>
 <link rel='stylesheet' href='lib/multiselect-next/css/jquery.uix.multiselect.css' type='text/css'/>
 <link rel="stylesheet" href="lib/jquery-ui/jquery-ui.css" />
-    <script type="text/javascript" src="lib/jquery-ui-bootstrap/js/jquery-ui-1.9.2.custom.min.js"></script>
+
     <link rel="stylesheet" type="text/css" href="lib/jquery-ui-bootstrap/css/custom-theme/jquery-ui-1.9.2.custom.css" />
     <link rel="stylesheet" type="text/css" href="lib/jquery-ui-bootstrap/css/custom-theme/jquery.ui.1.9.2.ie.css" />
 <link rel='stylesheet' href='lib/OpenLayers-2.13.1/theme/default/style.css' type='text/css'/>
@@ -66,7 +66,7 @@ body {
 
 </wthr:isNotOldMsie>
 
-
+    <script type="text/javascript" src="lib/jquery-ui-bootstrap/js/jquery-ui-1.9.2.custom.min.js"></script>
 
 %{--<link rel='stylesheet' href='lib/magicsuggest/magicsuggest-1.2.7-min.css'/>--}%
 %{--<script type="text/javascript" src="lib/magicsuggest/magicsuggest-1.2.7-min.js"></script>--}%
