@@ -308,6 +308,7 @@ class JobService extends ModelService {
             job.number = it.number
             job.created = it.created?.time?.toString()
             job.dataDeleted = it.dataDeleted
+            job.favorite = it.favorite
             data << job
         }
         return data

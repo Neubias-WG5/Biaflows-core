@@ -167,6 +167,7 @@ class BootstrapDataService {
                 [name: "Precision", shortName: "PR", disciplines: ["PixCla", "ObjDet"]],
                 [name: "Recall", shortName: "RE", disciplines: ["PixCla", "ObjDet"]],
                 [name: "Distance root mean square error", shortName: "RMSE", disciplines: ["ObjDet"]],
+                [name: "DIADEM metric", shortName: "DM", disciplines: ["TreTrc"]],
                 [name: "Unmatched voxel rate", shortName: "UVR", disciplines: ["LooTrc"]],
                 [name: "Geometric false negative rate", shortName: "FNR", disciplines: ["LooTrc"]],
                 [name: "Geometric false positive rate", shortName: "FPR", disciplines: ["LooTrc"]],

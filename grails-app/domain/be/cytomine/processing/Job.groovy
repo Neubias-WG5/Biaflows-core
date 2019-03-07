@@ -91,6 +91,10 @@ class Job extends CytomineDomain  {
     @RestApiObjectField(description = "Flag to see if data generate by this job are deleted",mandatory = false)
     boolean dataDeleted = false
 
+    @RestApiObjectField(description = "Flag to star an interesting job", mandatory =
+    false)
+    boolean favorite = false
+
     @RestApiObjectFields(params=[
         @RestApiObjectField(apiFieldName = "algoType", description = "The algo type based on the class name",allowedType = "string",useForCreation = false),
         @RestApiObjectField(apiFieldName = "softwareName", description = "The software name of the job",allowedType = "string",useForCreation = false),
@@ -148,6 +152,7 @@ class Job extends CytomineDomain  {
         domain.software = JSONUtils.getJSONAttrDomain(json, "software", new Software(), true)
         domain.rate = JSONUtils.getJSONAttrDouble(json, 'rate', -1)
         domain.dataDeleted =  JSONUtils.getJSONAttrBoolean(json,'dataDeleted', false)
+        domain.favorite = JSONUtils.getJSONAttrBoolean(json, 'favorite', false)
         domain.created = JSONUtils.getJSONAttrDate(json, 'created')
         domain.updated = JSONUtils.getJSONAttrDate(json, 'updated')
         return domain
@@ -171,6 +176,7 @@ class Job extends CytomineDomain  {
         returnArray['softwareName'] = domain?.software?.fullName()
         returnArray['rate'] = domain?.rate
         returnArray['dataDeleted'] = domain?.dataDeleted
+        returnArray['favorite'] = domain?.favorite
         try {
             UserJob user = UserJob.findByJob(domain)
             returnArray['username'] = user?.humanUsername()

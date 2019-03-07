@@ -3,12 +3,12 @@
 # 1) Update version number BEFORE running this script, in application.properties
 
 # 2) Generate executables
-./grailsw rest-api-doc
-./grailsw war
-
-# 3) Copy to Docker build context
-cp restapidoc.json docker
-cp core.war docker
+#./grailsw rest-api-doc
+#./grailsw war
+#
+## 3) Copy to Docker build context
+#cp restapidoc.json docker
+#cp core.war docker
 
 # 4) Retrieve version number
 VERSION=$(cat application.properties | grep app.version=)

@@ -25,6 +25,9 @@
 <link rel='stylesheet' href='lib/stepy/css/jquery.stepy.bootstrap.css' type='text/css'/>
 <link rel='stylesheet' href='lib/multiselect-next/css/jquery.uix.multiselect.css' type='text/css'/>
 <link rel="stylesheet" href="lib/jquery-ui/jquery-ui.css" />
+
+    <link rel="stylesheet" type="text/css" href="lib/jquery-ui-bootstrap/css/custom-theme/jquery-ui-1.9.2.custom.css" />
+    <link rel="stylesheet" type="text/css" href="lib/jquery-ui-bootstrap/css/custom-theme/jquery.ui.1.9.2.ie.css" />
 <link rel='stylesheet' href='lib/OpenLayers-2.13.1/theme/default/style.css' type='text/css'/>
 <link rel="stylesheet" href="lib/bootstrap-3.3.7/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="lib/Trumbowyg/ui/trumbowyg.min.css"/>
@@ -63,9 +66,7 @@ body {
 
 </wthr:isNotOldMsie>
 
-<script type="text/javascript" src="lib/jquery-ui-bootstrap/js/jquery-ui-1.9.2.custom.min.js"></script>
-<link rel="stylesheet" type="text/css" href="lib/jquery-ui-bootstrap/css/custom-theme/jquery-ui-1.9.2.custom.css" />
-<link rel="stylesheet" type="text/css" href="lib/jquery-ui-bootstrap/css/custom-theme/jquery.ui.1.9.2.ie.css" />
+    <script type="text/javascript" src="lib/jquery-ui-bootstrap/js/jquery-ui-1.9.2.custom.min.js"></script>
 
 %{--<link rel='stylesheet' href='lib/magicsuggest/magicsuggest-1.2.7-min.css'/>--}%
 %{--<script type="text/javascript" src="lib/magicsuggest/magicsuggest-1.2.7-min.js"></script>--}%
@@ -389,35 +390,15 @@ body {
 
 
 
-<g:if test="${Environment.getCurrent() != Environment.PRODUCTION}">
-    <script type="text/javascript">
-        //Prevent IE to cache AJAX request
-        $.ajaxSetup({ cache: false });
-        setTimeout(function(){
-            if (navigator.appVersion.indexOf("Linux")!=-1) {
-                $("#j_username").val("lrollus");
-                $("#j_password").val("lR$2011");
-            }
-            if (navigator.appVersion.indexOf("Mac")!=-1) {
-                $("#j_username").val("stevben");
-            }
+<script type="text/javascript">
+    //Prevent IE to cache AJAX request
+    $.ajaxSetup({ cache: false });
+    setTimeout(function(){
+        $("#j_username").val("guest");
+        $("#j_password").val("guest");
+    }, 1000);
+</script>
 
-        }, 1000);
-
-        //disable console for not supported by browser (ie lesser than 8)
-        var alertFallback = false;
-        if (typeof console === "undefined" || typeof console.log === "undefined") {
-            console = {};
-            if (alertFallback) {
-                console.log = function(msg) {
-                    alert(msg);
-                };
-            } else {
-                console.log = function() {};
-            }
-        }
-    </script>
-</g:if>
 </head>
 <body>
 

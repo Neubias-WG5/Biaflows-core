@@ -52,14 +52,14 @@ var LoginDialogView = Backbone.View.extend({
             e.preventDefault();
             window.app.controllers.auth.createAccount();
         });
-        $('#forgotUsername').click(function(e) {
-            e.preventDefault();
-            self.forgotUsername();
-        });
-        $('#forgotPassword').click(function(e) {
-            e.preventDefault();
-            self.forgotPassword();
-        });
+        // $('#forgotUsername').click(function(e) {
+        //     e.preventDefault();
+        //     self.forgotUsername();
+        // });
+        // $('#forgotPassword').click(function(e) {
+        //     e.preventDefault();
+        //     self.forgotPassword();
+        // });
         $('#restoreLogin').click(function(e) {
             e.preventDefault();
             self.restoreLogin();

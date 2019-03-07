@@ -112,11 +112,15 @@ var ProjectDashboardAlgos = Backbone.View.extend({
     },
     initProjectSoftwareList: function () {
         var self = this;
+        $("#projectSoftwareListUl").empty();
         self.softwares.each(function (software) {
             var executable = (!software.get('executable')) ? '<span class="label label-default">Not executable</span>' : '';
-            var del = (software.get('deprecated')) ? '<del>' : '';
-            $("#projectSoftwareListUl").append('<a class="list-group-item" id="consultSoftware-' + software.id +'" href="#tabs-algos-' + self.model.id + '-' + software.id + '-">'
-              + del + software.get('fullName') + " " + executable + del +'</a>');
+            $("#projectSoftwareListUl").append(
+                '<a class="list-group-item" id="consultSoftware-' + software.id +'" href="#tabs-algos-' + self.model.id + '-' + software.id + '-">'
+              + ((software.get('deprecated')) ? '<del>' : '')
+                + software.get('fullName')
+                + ((software.get('deprecated')) ? '</del>' : '')
+                + ' <span class="badge list-group-badge">' + software.get('numberOfJob') + '</span> ' + executable +'</a>');
             $("#projectSoftwareListUl").children().removeClass("active");
             if (software.id == self.idSoftware) {
                 $("#consultSoftware-" + software.id).addClass("active");
@@ -173,6 +177,13 @@ var ProjectDashboardAlgos = Backbone.View.extend({
         if (self.jobSelectView != undefined) {
             self.jobSelectView.refresh();
         }
+
+        new SoftwareCollection({ project: self.model.id}).fetch({
+            success: function (collection, response) {
+                self.software = collection.get(self.idSoftware);
+                self.softwares = collection;
+                self.initProjectSoftwareList();
+            }});
     },
     printSoftwareButton: function () {
         var self = this;
@@ -188,13 +199,13 @@ var ProjectDashboardAlgos = Backbone.View.extend({
         var modalLaunch = new CustomModal({
             idModal : "launchJobModal",
             button : $("#softwareLaunchJobButton"),
-            header :"Launch new job",
+            header :"Run " + self.software.get('fullName'),
             body :"<div id='jobComparatorDialogParent'></div>",
             wide : true,
             callBack: function() {launchView.render();}
         });
         modalLaunch.addButtons("closeNewJob","Close",false,true);
-        modalLaunch.addButtons("createNewJob","Create new job",true,false,function() {
+        modalLaunch.addButtons("createNewJob","Launch this new job",true,false,function() {
             if(launchView.validate()){
                 launchView.createJobFromParam(launchView.executeJob);
                 modalLaunch.close();
