@@ -120,7 +120,8 @@ var ProjectDashboardAlgos = Backbone.View.extend({
               + ((software.get('deprecated')) ? '<del>' : '')
                 + software.get('fullName')
                 + ((software.get('deprecated')) ? '</del>' : '')
-                + ' <span class="badge list-group-badge">' + software.get('numberOfJob') + '</span> ' + executable +'</a>');
+                // + ' <span class="badge list-group-badge">' + software.get('numberOfJob') + '</span> '
+                + executable +'</a>');
             $("#projectSoftwareListUl").children().removeClass("active");
             if (software.id == self.idSoftware) {
                 $("#consultSoftware-" + software.id).addClass("active");
@@ -473,9 +474,8 @@ var ProjectDashboardAlgos = Backbone.View.extend({
     },
     getJobProgress: function (job, className, text, width) {   //todo: add class " progress-striped"
         //var tpl = '<div id="progresstext"> <%= text %></div><div class="progress progress-striped <%= className %>"><div class="bar" style="width : <%= progress %>%;"></div></div>';
-        var tpl = '<div class="progress"><div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: <%= progress %>%;"></div></div>';
+        var tpl = '<div class="progress"><div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: <%= progress %>%;"><%= progress %>%</div></div>';
         return _.template(tpl, {text: text, className: className, progress: job.get('progress')});
-
     },
 
     buildJobParamElem: function (job) {

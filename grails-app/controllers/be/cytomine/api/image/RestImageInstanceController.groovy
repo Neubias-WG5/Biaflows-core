@@ -163,29 +163,29 @@ class RestImageInstanceController extends RestController {
 
 
 
-    @RestApiMethod(description="Get the next project image (first image created before)")
+    @RestApiMethod(description="Get the next project image (by instance filename)")
     @RestApiParams(params=[
     @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The current image instance id"),
     ])
     def next() {
         def image = imageInstanceService.read(params.long('id'))
-        def next = ImageInstance.findAllByProjectAndCreatedLessThan(image.project,image.created,[sort:'created',order:'desc',max:1])
-        if(next && !next.isEmpty()) {
-            responseSuccess(next.first())
+        def next = ImageInstance.findByProjectAndInstanceFilenameGreaterThanAndDeletedIsNull(image.project,image.instanceFilename,[sort:'instanceFilename',order:'asc'])
+        if(next) {
+            responseSuccess(next)
         } else {
             responseSuccess([:])
         }
     }
 
-    @RestApiMethod(description="Get the previous project image (first image created after)")
+    @RestApiMethod(description="Get the previous project image (by instance filename)")
     @RestApiParams(params=[
     @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The current image instance id"),
     ])
     def previous() {
         def image = imageInstanceService.read(params.long('id'))
-        def previous = ImageInstance.findAllByProjectAndCreatedGreaterThan(image.project,image.created,[sort:'created',order:'asc',max:1])
-        if(previous && !previous.isEmpty()) {
-            responseSuccess(previous.first())
+        def previous = ImageInstance.findByProjectAndInstanceFilenameLessThanAndDeletedIsNull(image.project,image.instanceFilename,[sort:'instanceFilename',order:'desc'])
+        if(previous) {
+            responseSuccess(previous)
         } else {
             responseSuccess([:])
         }
