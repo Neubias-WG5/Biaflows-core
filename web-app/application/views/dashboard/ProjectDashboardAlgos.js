@@ -120,7 +120,8 @@ var ProjectDashboardAlgos = Backbone.View.extend({
               + ((software.get('deprecated')) ? '<del>' : '')
                 + software.get('fullName')
                 + ((software.get('deprecated')) ? '</del>' : '')
-                + ' <span class="badge list-group-badge">' + software.get('numberOfJob') + '</span> ' + executable +'</a>');
+                // + ' <span class="badge list-group-badge">' + software.get('numberOfJob') + '</span> '
+                + executable +'</a>');
             $("#projectSoftwareListUl").children().removeClass("active");
             if (software.id == self.idSoftware) {
                 $("#consultSoftware-" + software.id).addClass("active");
