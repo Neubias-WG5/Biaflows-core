@@ -21,14 +21,19 @@ var LoginDialogView = Backbone.View.extend({
     },
     doLayout: function (tpl) {
         var self = this;
-        this.dialog = new ConfirmDialogView({
-            el: '#dialogs',
-            template: _.template(tpl, {version: window.app.status.version, url:window.app.status.serverURL}),
-            dialogAttr: {
-                dialogID: "#login-confirm",
-                backdrop: false
-            }
-        }).render();
+        // this.dialog = new ConfirmDialogView({
+        //     el: '#dialogs',
+        //     template: _.template(tpl, {version: window.app.status.version, url:window.app.status.serverURL}),
+        //     dialogAttr: {
+        //         dialogID: "#login-confirm",
+        //         backdrop: false
+        //     }
+        // }).render();
+        $("body").css("background-color", "#eee");
+
+        $(this.el).html(_.template(tpl, {}));
+
+
 
         $("#j_username").click(function () {
             $(this).select();
@@ -40,18 +45,18 @@ var LoginDialogView = Backbone.View.extend({
             e.preventDefault();
             window.app.controllers.auth.doLogin();
         });
-        $('#submit-forgotPassword').click(function(e) {
-            e.preventDefault();
-            window.app.controllers.auth.doForgotPassword();
-        });
-        $('#submit-forgotUsername').click(function(e) {
-            e.preventDefault();
-            window.app.controllers.auth.doForgotUsername();
-        });
-        $('#submit-CreateAccount').click(function(e) {
-            e.preventDefault();
-            window.app.controllers.auth.createAccount();
-        });
+        // $('#submit-forgotPassword').click(function(e) {
+        //     e.preventDefault();
+        //     window.app.controllers.auth.doForgotPassword();
+        // });
+        // $('#submit-forgotUsername').click(function(e) {
+        //     e.preventDefault();
+        //     window.app.controllers.auth.doForgotUsername();
+        // });
+        // $('#submit-CreateAccount').click(function(e) {
+        //     e.preventDefault();
+        //     window.app.controllers.auth.createAccount();
+        // });
         // $('#forgotUsername').click(function(e) {
         //     e.preventDefault();
         //     self.forgotUsername();
@@ -60,27 +65,29 @@ var LoginDialogView = Backbone.View.extend({
         //     e.preventDefault();
         //     self.forgotPassword();
         // });
-        $('#restoreLogin').click(function(e) {
-            e.preventDefault();
-            self.restoreLogin();
-        });
-        $('#createAccount').click(function(e) {
-            e.preventDefault();
-            self.createAccount();
-        });
+        // $('#restoreLogin').click(function(e) {
+        //     e.preventDefault();
+        //     self.restoreLogin();
+        // });
+        // $('#createAccount').click(function(e) {
+        //     e.preventDefault();
+        //     self.createAccount();
+        // });
 
 
         return this;
     },
     render: function () {
         var self = this;
-        require(["text!application/templates/auth/LoginDialog.tpl.html"], function (tpl) {
+        require(["text!application/templates/auth/BiaflowsIndex.tpl.html"], function (tpl) {
             self.doLayout(tpl);
         });
         return this;
     },
     close: function () {
-        this.dialog.close();
+        $(this.el).html("");
+        $("body").css("background-color", "#fff");
+        // this.dialog.close();
     },
     forgotPassword : function () {
         $("#formGrouploginPassword").hide();

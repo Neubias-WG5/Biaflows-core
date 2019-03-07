@@ -23,7 +23,9 @@ var AuthController = Backbone.Router.extend({
 
 
     login: function () {
-        this.loginDialog = new LoginDialogView({});
+        this.loginDialog = new LoginDialogView({
+            el: "#biaflows-index"
+        });
         this.loginDialog.render();
         $('#login-confirm').on('hide.bs.modal', function(e) {
             // override the hide. Users cannot close this modal window

@@ -1146,7 +1146,6 @@ input[type=file]:focus, input[type=checkbox]:focus, select:not(.multiselect__inp
 }
 
 input[type="text"]:not(.multiselect__input):not(.form-control),
-input[type="password"],
 .ui-autocomplete-input,
 textarea,
 .uneditable-input {

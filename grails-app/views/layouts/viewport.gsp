@@ -393,14 +393,16 @@ body {
 <script type="text/javascript">
     //Prevent IE to cache AJAX request
     $.ajaxSetup({ cache: false });
-    setTimeout(function(){
-        $("#j_username").val("guest");
-        $("#j_password").val("guest");
-    }, 1000);
+    // setTimeout(function(){
+    //     $("#j_username").val("guest");
+    //     $("#j_password").val("guest");
+    // }, 1000);
 </script>
 
 </head>
 <body>
+
+<div id="biaflows-index"></div>
 
 <div id="modals">
 </div>
