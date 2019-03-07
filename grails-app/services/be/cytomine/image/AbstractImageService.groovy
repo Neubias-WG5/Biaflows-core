@@ -42,7 +42,7 @@ import static org.springframework.security.acls.domain.BasePermission.WRITE
 
 class AbstractImageService extends ModelService {
 
-    static transactional = false
+    static transactional = true
 
     def commandService
     def cytomineService

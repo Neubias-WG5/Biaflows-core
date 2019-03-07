@@ -45,7 +45,7 @@ import static org.springframework.security.acls.domain.BasePermission.READ
  */
 class ImageInstanceService extends ModelService {
 
-    static transactional = false
+    static transactional = true
 
     def cytomineService
     def transactionService
