@@ -25,6 +25,7 @@ import be.cytomine.processing.Job
 import be.cytomine.processing.JobData
 import be.cytomine.processing.ProcessingServer
 import be.cytomine.processing.Software
+import be.cytomine.processing.SoftwareProject
 import be.cytomine.project.Project
 import be.cytomine.security.UserJob
 import be.cytomine.utils.Task
@@ -78,7 +79,7 @@ class RestJobController extends RestController {
         if (softwares_id) {
             softwares = softwareService.readMany(softwares_id)
         } else {
-            softwares = Software.list() //implement security ?
+            softwares = SoftwareProject.findAllByProjectInListAndDeletedIsNull(projects).collect {it.software}
         }
 
         responseSuccess(jobService.list(softwares, projects, light))
