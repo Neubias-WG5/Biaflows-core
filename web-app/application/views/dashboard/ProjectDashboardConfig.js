@@ -468,9 +468,18 @@ var SoftwareProjectPanel = Backbone.View.extend({
 
         var newSoft = softwareProject.toJSON();
 
+        var badgeRelease;
+        if (!newSoft.executable) {
+            badgeRelease = '<span class="label label-danger">Not executable</span>'
+        } else if (!newSoft.deprecated) {
+            badgeRelease = '<span class="label label-primary">Last release</span>'
+        } else {
+            badgeRelease = '<span class="label label-default">Deprecated</span>'
+        }
+
         softwares.append(
                 '<div id="software'+newSoft.id+'" class="row">' +
-                    '<div class="col-md-5 col-md-offset-4"><p>' + newSoft.fullName +'</p></div>' +
+                    '<div class="col-md-5 col-md-offset-4"><p>' + newSoft.fullName +' ' + badgeRelease + '</p></div>' +
                     '<div class="col-md-2"><a class="removesoftwarebutton btn btn-danger" href="javascript:void(0);" data-id='+newSoft.id+'>Remove</a></div>'+
                 '</div>');
     },
@@ -480,7 +489,17 @@ var SoftwareProjectPanel = Backbone.View.extend({
         new SoftwareCollection().fetch({
             success: function (softwareCollection, response) {
                 softwareCollection.each(function (software) {
-                    var option = _.template("<option value='<%= id %>'><%= fullName %></option>", software.toJSON());
+                    var badge;
+                    if (!software.get('executable')) {
+                        badge = 'NOT EXECUTABLE'
+                    } else if (!software.get('deprecated')) {
+                        badge = 'LAST RELEASE'
+                    } else {
+                        badge = 'DEPRECATED'
+                    }
+                    software.set('badge', badge);
+
+                    var option = _.template("<option value='<%= id %>'>[<%= badge %>] <%= fullName %></option>", software.toJSON());
                     $(self.el).find("#addSoftware").append(option);
                 });
                 $(self.el).find("#addSoftwareButton").click(function (event) {
