@@ -32,6 +32,7 @@ import be.cytomine.processing.ImageFilter
 import be.cytomine.processing.ImagingServer
 import be.cytomine.processing.ParameterConstraint
 import be.cytomine.processing.ProcessingServer
+import be.cytomine.processing.Software
 import be.cytomine.processing.metric.Metric
 import be.cytomine.project.Discipline
 import be.cytomine.security.*
@@ -709,6 +710,15 @@ class BootstrapUtilsService {
                 }
             }
 
+        }
+    }
+
+    def softwareService
+    def updateWorkflowConfiguration() {
+        log.info("Update workflow configuration")
+
+        Software.findAllByExecuteCommandIsNotNullAndPullingCommandIsNotNull().each {
+            softwareService.updateWorkflowConfiguration(it)
         }
     }
 
