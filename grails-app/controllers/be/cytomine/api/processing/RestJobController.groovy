@@ -280,9 +280,7 @@ class RestJobController extends RestController {
                 jobService.deleteAllJobData(job)
 
                 taskService.finishTask(task)
-                job.dataDeleted = true;
-                job.save(flush:true)
-                responseSuccess([message:"All data from job launch "+ job.created + " are deleted!"])
+                delete(jobService, JSON.parse("{id : $params.id}"),null)
             }
         }
     }

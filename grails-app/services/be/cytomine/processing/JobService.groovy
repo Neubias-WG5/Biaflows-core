@@ -17,6 +17,8 @@ package be.cytomine.processing
 */
 
 import be.cytomine.command.*
+import be.cytomine.processing.metric.ImageGroupMetricResult
+import be.cytomine.processing.metric.ImageInstanceMetricResult
 import be.cytomine.project.Project
 import be.cytomine.security.SecUser
 import be.cytomine.security.SecUserSecRole
@@ -330,6 +332,20 @@ class JobService extends ModelService {
     def deleteDependentUserJob(Job job, Transaction transaction, Task task = null) {
         UserJob.findAllByJob(job).each {
             secUserService.delete(it, transaction,null, false)
+        }
+    }
+    
+    def imageGroupMetricResultService
+    def deleteDependentImageGroupMetricResult(Job job, Transaction transaction, Task task = null) {
+        ImageGroupMetricResult.findAllByJob(job).each {
+            imageGroupMetricResultService.delete(it, transaction, null, false)
+        }
+    }
+
+    def imageInstanceMetricResultService
+    def deleteDependentImageInstanceMetricResult(Job job, Transaction transaction, Task task = null) {
+        ImageInstanceMetricResult.findAllByJob(job).each {
+            imageInstanceMetricResultService.delete(it, transaction, null, false)
         }
     }
 
