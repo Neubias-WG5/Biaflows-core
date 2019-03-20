@@ -232,7 +232,7 @@ class BootstrapUtilsService {
 
         def configs = []
 
-        configs << new Configuration(key: "WELCOME", value: "<p>Welcome to the Cytomine software.</p><p>This software is supported by the <a href='https://cytomine.coop'>Cytomine company</a></p>", readingRole: allUsers)
+        configs << new Configuration(key: "WELCOME", value: "<p style=\"text-align: center; \"><a href=\"https://eubias.org/NEUBIAS/\" target=\"_blank\"><img src=\"images/neubias_logo_sm.png\" style=\"height: 96px; margin-left: 2px; margin-right: 2px;\"></a><a href=\"https://www.cost.eu/COST_Actions/ca/CA15124?\" target=\"_blank\"><img src=\"images/costeu_logo_sm.png\" style=\"height: 33px; margin-left: 20px; margin-right: 2px;\"></a></p>", readingRole: allUsers)
 
         configs << new Configuration(key: "retrieval.enabled", value: true, readingRole: allUsers)
 

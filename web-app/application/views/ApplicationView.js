@@ -205,11 +205,11 @@ var ApplicationView = Backbone.View.extend({
                     "text!application/templates/about/About.tpl.html"
                 ],
                 function (tpl) {
-                    body = _.template(tpl, {version : window.app.status.version, mail : "info@cytomine.org", url : window.app.status.serverURL});
+                    body = _.template(tpl, {version : window.app.status.version, mail : "biaflows@neubias.org", url : window.app.status.serverURL});
 
                     var modal = new CustomModal({
                         idModal: "about" + "DialogModal",
-                        header: "<i class=\"glyphicon glyphicon-info-sign\"/> About Cytomine",
+                        header: "<i class=\"glyphicon glyphicon-info-sign\"/> About BIAFLOWS",
                         body: body,
                         wide: true
                     });
@@ -224,6 +224,54 @@ var ApplicationView = Backbone.View.extend({
             );
             return false;
         });
+
+        $("#a-info-video-benchmarking").click(function () {
+            var body = "<div style=\"position: relative; padding-bottom: 56.25%; height: 0;\"><iframe src=\"https://www.useloom.com/embed/433762f568f949f794248327f770220f\" frameborder=\"0\" webkitallowfullscreen mozallowfullscreen allowfullscreen style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%;\"></iframe></div>";
+
+            var modal = new CustomModal({
+                idModal: "video-benchmarking-modal",
+                header: "<i class=\"fas fa-file-video\"></i> Screencast: Benchmarking",
+                body: body,
+                wide: true
+            });
+
+            modal.render();
+            $("#video-benchmarking-modal").modal();
+            $(".modal-footer").hide();
+            return false;
+        });
+
+        $("#a-info-video-multidim").click(function () {
+            var body = "<div style=\"position: relative; padding-bottom: 56.25%; height: 0;\"><iframe src=\"https://www.useloom.com/embed/84b22ce550464b1b9a805200561059b6\" frameborder=\"0\" webkitallowfullscreen mozallowfullscreen allowfullscreen style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%;\"></iframe></div>";
+
+            var modal = new CustomModal({
+                idModal: "video-multidim-modal",
+                header: "<i class=\"fas fa-file-video\"></i> Screencast: Multidimensional images",
+                body: body,
+                wide: true
+            });
+
+            modal.render();
+            $("#video-multidim-modal").modal();
+            $(".modal-footer").hide();
+            return false;
+        });
+
+        $("#a-info-video-multiview").click(function () {
+            var body = "<div style=\"position: relative; padding-bottom: 56.25%; height: 0;\"><iframe src=\"https://www.useloom.com/embed/a1c294119c2149dbaaeed53b28a7965b\" frameborder=\"0\" webkitallowfullscreen mozallowfullscreen allowfullscreen style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%;\"></iframe></div>";
+
+            var modal = new CustomModal({
+                idModal: "video-multiview-modal",
+                header: "<i class=\"fas fa-file-video\"></i> Screencast: Multiple viewers",
+                body: body,
+                wide: true
+            });
+
+            modal.render();
+            $("#video-multiview-modal").modal();
+            $(".modal-footer").hide();
+            return false;
+        })
 
     },
     showHideMenuAction : function() {
