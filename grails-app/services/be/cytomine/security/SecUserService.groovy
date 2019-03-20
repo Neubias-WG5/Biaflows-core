@@ -267,12 +267,14 @@ class SecUserService extends ModelService {
 
     private def getUserJobImage(ImageInstance image) {
 
-        String request = "SELECT u.id as id, u.username as username, s.name as softwareName, s.software_version as softwareVersion, j.created as created, u.job_id as job, j.favorite as favorite \n" +
-                "FROM annotation_index ai, sec_user u, job j, software s\n" +
-                "WHERE ai.image_id = ${image.id}\n" +
-                "AND ai.user_id = u.id\n" +
-                "AND u.job_id = j.id\n" +
-                "AND j.software_id = s.id\n" +
+        String request = "SELECT u.id as id, u.username as username, s.name as softwareName, s.software_version as softwareVersion, j.created as created, u.job_id as job, j.favorite as favorite " +
+                "FROM annotation_index ai " +
+                "RIGHT JOIN sec_user u ON ai.user_id = u.id " +
+                "RIGHT JOIN job j ON j.id = u.job_id " +
+                "RIGHT JOIN software_project sp ON sp.software_id = j.software_id " +
+                "RIGHT JOIN software s ON s.id = sp.software_id " +
+                "WHERE ai.image_id = ${image.id} " +
+                "AND sp.project_id = ${image.project} " +
                 "ORDER BY j.created"
         def data = []
         def sql = new Sql(dataSource)
