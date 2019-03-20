@@ -877,7 +877,7 @@ var UploadFormView = Backbone.View.extend({
                 linkProjectSelect.attr("disabled", "disabled");
             }
         });
-        new ProjectCollection().fetch({
+        new ProjectCollection({user: window.app.status.user.id}).fetch({
             success: function (collection, response) {
                 var optionTpl = "<option value='<%= id %>'><%= name %></option>";
                 collection.each(function (project) {
