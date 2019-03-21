@@ -273,14 +273,17 @@ class RestJobController extends RestController {
                 taskService.updateTask(task,30,"Delete all terms from annotations...")
                 jobService.deleteAllAlgoAnnotationsTerm(job)
 
-                taskService.updateTask(task,60,"Delete all annotations...")
+                taskService.updateTask(task,40,"Delete all annotations...")
                 jobService.deleteAllAlgoAnnotations(job)
 
-                taskService.updateTask(task,90,"Delete all files...")
+                taskService.updateTask(task,70,"Delete all files...")
                 jobService.deleteAllJobData(job)
 
+                taskService.updateTask(task, 85, "Delete all metrics...")
+                jobService.deleteAllMetrics(job)
+
                 taskService.finishTask(task)
-                delete(jobService, JSON.parse("{id : $params.id}"),null)
+                delete(jobService, JSON.parse("{id : $params.id}"),task)
             }
         }
     }

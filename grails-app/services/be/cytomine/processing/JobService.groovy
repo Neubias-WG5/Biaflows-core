@@ -277,6 +277,12 @@ class JobService extends ModelService {
         JobData.executeUpdate("delete from JobData a where a.id IN (:list)",[list:jobDatasId])
     }
 
+    public def deleteAllMetrics(Job job) {
+        securityACLService.check(job.container(),READ)
+        def sql = new Sql(dataSource)
+        sql.executeUpdate("delete from metric_result where job_id = " + job.id)
+    }
+
     public UserJob createUserJob(User user, Job job) {
         securityACLService.check(job.container(),READ)
         UserJob userJob = new UserJob()

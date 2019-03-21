@@ -124,7 +124,7 @@ class ImageInstanceMetricResultService extends ModelService {
      */
     def delete(ImageInstanceMetricResult domain, Transaction transaction = null, Task task = null, boolean printMessage = true) {
         SecUser currentUser = cytomineService.getCurrentUser()
-        securityACLService.checkAdmin(currentUser)
+        securityACLService.check(domain.container(),READ)
         Command c = new DeleteCommand(user: currentUser,transaction:transaction)
         return executeCommand(c,domain,null)
     }

@@ -274,7 +274,7 @@ class SecUserService extends ModelService {
                 "RIGHT JOIN software_project sp ON sp.software_id = j.software_id " +
                 "RIGHT JOIN software s ON s.id = sp.software_id " +
                 "WHERE ai.image_id = ${image.id} " +
-                "AND sp.project_id = ${image.project} " +
+                "AND sp.project_id = ${image.project.id} " +
                 "ORDER BY j.created"
         def data = []
         def sql = new Sql(dataSource)

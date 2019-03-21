@@ -42,4 +42,8 @@ class MetricResult extends CytomineDomain {
         return returnArray
     }
 
+    public CytomineDomain container() {
+        return job.container();
+    }
+
 }
