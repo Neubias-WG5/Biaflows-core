@@ -158,15 +158,17 @@ class SoftwareService extends ModelService {
         def nometrics = !grailsApplication.config.biaflows.workflows.metrics
         def noexport = !grailsApplication.config.biaflows.workflows.export
 
-        if (nometrics && !software.executeCommand.contains("--nometrics"))
-            software.executeCommand += " --nometrics"
-        else
-            software.executeCommand = software.executeCommand.replaceAll(" --nometrics", "")
+        if (software.executeCommand) {
+            if (nometrics && !software.executeCommand?.contains("--nometrics"))
+                software.executeCommand += " --nometrics"
+            else
+                software.executeCommand = software.executeCommand?.replaceAll(" --nometrics", "")
 
-        if (noexport && !software.executeCommand.contains("--noexport"))
-            software.executeCommand += " --noexport"
-        else
-            software.executeCommand = software.executeCommand.replaceAll(" --noexport", "")
+            if (noexport && !software.executeCommand?.contains("--noexport"))
+                software.executeCommand += " --noexport"
+            else
+                software.executeCommand = software.executeCommand?.replaceAll(" --noexport", "")
+        }
 
         software.save(flush: true)
     }
