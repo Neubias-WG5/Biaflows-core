@@ -258,7 +258,7 @@ var ApplicationView = Backbone.View.extend({
         });
 
         $("#a-info-video-multiview").click(function () {
-            var body = "<div style=\"position: relative; padding-bottom: 56.25%; height: 0;\"><iframe src=\"https://www.useloom.com/embed/a1c294119c2149dbaaeed53b28a7965b\" frameborder=\"0\" webkitallowfullscreen mozallowfullscreen allowfullscreen style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%;\"></iframe></div>";
+            var body = "<div style=\"position: relative; padding-bottom: 56.25%; height: 0;\"><iframe src=\"https://www.useloom.com/embed/20206099418f444eb2cb0534e9a84a0a\" frameborder=\"0\" webkitallowfullscreen mozallowfullscreen allowfullscreen style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%;\"></iframe></div>";
 
             var modal = new CustomModal({
                 idModal: "video-multiview-modal",
