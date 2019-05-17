@@ -22,7 +22,10 @@ import be.cytomine.spring.CustomAjaxAwareAuthenticationEntryPoint
 import be.cytomine.spring.CustomSavedRequestAwareAuthenticationSuccessHandler
 import be.cytomine.web.CytomineMultipartHttpServletRequest
 import grails.plugin.springsecurity.SpringSecurityUtils
+import grails.plugin.springsecurity.web.authentication.AjaxAwareAuthenticationSuccessHandler
+import grails.util.Holders
 import org.springframework.cache.ehcache.EhCacheFactoryBean
+import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler
 
 //import grails.plugin.springsecurity.SpringSecurityUtils
 // Place your Spring DSL code here
@@ -49,6 +52,12 @@ beans = {
     config = SpringSecurityUtils.securityConfig
 
 
+    authenticationSuccessHandler(AjaxAwareAuthenticationSuccessHandler) {
+        requestCache = ref('requestCache')
+        alwaysUseDefaultTargetUrl = true
+        ajaxSuccessUrl = Holders.getGrailsApplication().config.grails.UIURL?: '/'
+    }
+
     successRedirectHandler(CustomSavedRequestAwareAuthenticationSuccessHandler) {
         alwaysUseDefaultTargetUrl = false
         //defaultTargetUrl = '/'
@@ -62,6 +71,11 @@ beans = {
         portMapper = ref('portMapper')
         portResolver = ref('portResolver')
     }
+
+    logoutSuccessHandler(SimpleUrlLogoutSuccessHandler) {
+        defaultTargetUrl = Holders.getGrailsApplication().config.grails.UIURL?: '/'
+    }
+
 
     if(config.ldap.active){
         initialDirContextFactory(org.springframework.security.ldap.DefaultSpringSecurityContextSource,
