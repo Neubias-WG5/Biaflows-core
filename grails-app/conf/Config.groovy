@@ -298,7 +298,7 @@ grails.plugins.restapidoc.defaultErrorPut = [
 // set per-environment serverURL stem for creating absolute links
 environments {
     production {
-        grails.UIURL = "http://localhost"
+        grails.UIURL = null
         grails.serverURL = ""
         grails.uploadURL = ""
         grails.retrievalServerURL = []

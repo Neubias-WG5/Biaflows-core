@@ -70,7 +70,7 @@ beans = {
     }
 
     logoutSuccessHandler(SimpleUrlLogoutSuccessHandler) {
-        defaultTargetUrl = Holders.getGrailsApplication().config.grails.UIURL?: '/'
+        defaultTargetUrl = Holders.getGrailsApplication().config.grails.UIURL?: Holders.getGrailsApplication().config.grails.serverURL ?: '/'
     }
 
 
