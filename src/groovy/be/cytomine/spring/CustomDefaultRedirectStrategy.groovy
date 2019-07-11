@@ -24,7 +24,7 @@ public class CustomDefaultRedirectStrategy implements RedirectStrategy {
         if(Holders.getGrailsApplication().config.grails.serverURL.contains("https")
             && redirectUrl.contains(Holders.getGrailsApplication().config.grails.serverURL.replace("https://",""))){
             redirectUrl = "https://" + redirectUrl
-        } else {
+        } else if(redirectUrl.contains(Holders.getGrailsApplication().config.grails.serverURL.replace("http://",""))){
             redirectUrl = "http://" + redirectUrl
         }
 
