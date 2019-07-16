@@ -50,13 +50,61 @@ var UserDashboardView = Backbone.View.extend({
         $("#userdashboard").css("display","inline");
         self.el = $("#userdashboard");
 
-        self.initWelcomeMessage();
+        // self.initWelcomeMessage();
         self.initStats(tpStat);
-        self.initLastAction();
+        // self.initLastAction();
         self.initGotoProject();
-        self.initGotoImage();
-        self.initLastOpenedImage(tplImg);
-        self.initLastOpenProject(tplProj);
+        // self.initGotoImage();
+        // self.initLastOpenedImage(tplImg);
+        // self.initLastOpenProject(tplProj);
+
+        $("#a-info-video-benchmarking-dashboard").click(function () {
+            var body = "<div style=\"position: relative; padding-bottom: 56.25%; height: 0;\"><iframe src=\"https://www.useloom.com/embed/433762f568f949f794248327f770220f\" frameborder=\"0\" webkitallowfullscreen mozallowfullscreen allowfullscreen style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%;\"></iframe></div>";
+
+            var modal = new CustomModal({
+                idModal: "video-benchmarking-modal-dashboard",
+                header: "<i class=\"fab fa-youtube\"></i> Screencast: How to use BIAFLOWS",
+                body: body,
+                wide: true
+            });
+
+            modal.render();
+            $("#video-benchmarking-modal-dashboard").modal();
+            $(".modal-footer").hide();
+            return false;
+        });
+
+        $("#a-info-video-multidim-dashboard").click(function () {
+            var body = "<div style=\"position: relative; padding-bottom: 56.25%; height: 0;\"><iframe src=\"https://www.useloom.com/embed/84b22ce550464b1b9a805200561059b6\" frameborder=\"0\" webkitallowfullscreen mozallowfullscreen allowfullscreen style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%;\"></iframe></div>";
+
+            var modal = new CustomModal({
+                idModal: "video-multidim-modal-dashboard",
+                header: "<i class=\"fab fa-youtube\"></i> Screencast: Viewing multidimensional images",
+                body: body,
+                wide: true
+            });
+
+            modal.render();
+            $("#video-multidim-modal-dashboard").modal();
+            $(".modal-footer").hide();
+            return false;
+        });
+
+        $("#a-info-video-multiview-dashboard").click(function () {
+            var body = "<div style=\"position: relative; padding-bottom: 56.25%; height: 0;\"><iframe src=\"https://www.useloom.com/embed/20206099418f444eb2cb0534e9a84a0a\" frameborder=\"0\" webkitallowfullscreen mozallowfullscreen allowfullscreen style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%;\"></iframe></div>";
+
+            var modal = new CustomModal({
+                idModal: "video-multiview-modal-dashboard",
+                header: "<i class=\"fab fa-youtube\"></i> Screencast: Visually comparing results from multiple workflows",
+                body: body,
+                wide: true
+            });
+
+            modal.render();
+            $("#video-multiview-modal-dashboard").modal();
+            $(".modal-footer").hide();
+            return false;
+        });
 
         return this;
     },

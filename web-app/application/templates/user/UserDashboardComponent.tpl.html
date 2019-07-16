@@ -1,40 +1,135 @@
 <div id="userdashboard">
     <div class="container-fluid">
-        <div id="communicationRow" class="row equal dashboard-row">
-            <div class="col-sm-2 dashboard-col-header">Communication&nbsp;»</div>
-            <div class="col-sm-10 dashboard-col">
-                <div class="well" style="margin-bottom: 0; background: none;">
-                    <div id="welcomeMessage"></div>
+        <div class="jumbotron">
+            <div class="container">
+                <div class=col-md-12>
+                    <h1><span style="color: #fe7f7f;">BIA</span>FLOWS</h1>
+                    <p>A <span style="color: #fe7f7f;">b</span>io <span style="color: #fe7f7f;">i</span>mage <span style="color: #fe7f7f;">a</span>nalysis workflows benchmarking platform.</p>
+                    <p><span style="color: #fe7f7f;">BIA</span>FLOWS aims to help diffusing reproducible automated image analysis workflows and safeguard research based on their results by ensuring the highest performance standards.</p>
                 </div>
             </div>
         </div>
-        <div class="row equal dashboard-row">
-            <div class="col-sm-2 dashboard-col-header">Shortcuts&nbsp;»</div>
-            <div class="col-sm-5 dashboard-col dashboard-border-right">
-                <div class="form-group">
-                    <label for="goToProjectUser">Go to project&nbsp;»</label>
-                    <div id="dashboard-project-typeahead">
-                        <input type="text" id="goToProjectUser" class="form-control typeahead" />
-                    </div>
+
+        <div class="row">
+
+        </div>
+
+
+
+        <div class="container marketing">
+
+            <div class="row featurette">
+                <div class="col-md-5">
+                    <h2 class="featurette-heading">How to use <span style="color: #fe7f7f;">BIA</span>FLOWS <a href="#" id="a-info-video-benchmarking-dashboard"><i class="fab fa-youtube"></i></a></h2>
+                    <ul class="lead" style="list-style-type: decimal">
+                        <li style="">Select BIA problems (<a href="#project">Projects</a>)</li>
+                        <li style="">Explore image datasets held in this project (Explore &gt; Images) <a href="#" id="a-info-video-multidim-dashboard"><i class="fab fa-youtube"></i></a></li>
+                        <li style="">Select workflow to run on all image datasets (Explore &gt; Jobs)</li>
+                        <li style="">Set workflow functional parameters (dialog box, requires user account with run rights!)</li>
+                        <li style="">Visually check results from past workflow runs (Explore &gt; Images) <a href="#" id="a-info-video-multiview-dashboard"><i class="fab fa-youtube"></i></a></li>
+                        <li style="">Explore benchmarking metrics results (Explore &gt; Benchmarking)</li>
+                    </ul>
+                </div>
+                <div class="col-md-7">
+                    <img class="featurette-image img-responsive center-block" src="images/screenshots.png">
                 </div>
             </div>
-            <div class="col-sm-5 dashboard-col">
-                <div class="form-group">
-                    <label for="goToImageUser">Go to image&nbsp;»</label>
-                    <div id="dashboard-image-typeahead">
-                        <input type="text" id="goToImageUser" class="form-control typeahead" />
-                    </div>
+
+            <hr class="featurette-divider">
+
+            <div class="row featurette">
+                <div class="col-md-12">
+                    <h2 class="featurette-heading"><i class="glyphicon glyphicon-list-alt" /> Datasets <span class="text-muted">(or Projects)</span></h2>
+                    <p class="lead">Discover our <span id="userStatsDashboard"></span> microscopy image datasets in the <a href="#project"><i class="glyphicon glyphicon-list-alt" /> Projects section</a>, or directly find one:</p>
+                                    <div class="form-group">
+                                        <div id="dashboard-project-typeahead">
+                                            <input type="text" id="goToProjectUser" class="form-control typeahead" />
+                                        </div>
+                                    </div>
                 </div>
             </div>
+
+            <hr class="featurette-divider">
+
+            <div class="row featurette">
+                <div class="col-md-12">
+                    <h2 class="featurette-heading"><i class="fas fa-flask"></i> Workflows <span class="text-muted">(or Software)</span></h2>
+                    <p class="lead">All workflows integrated in the platform are browsable from the <a href="#software"><i class="fas fa-flask"></i> Software section</a> (and linked to their <a href="https://github.com/Neubias-WG5">GitHub repository</a> from this page).</p>
+                </div>
+            </div>
+
+            <hr class="featurette-divider">
+
+            <div class="row featurette">
+                <div class="col-md-12">
+                    <h2 class="featurette-heading"><i class="fas fa-question-circle"></i> Need more help ?</h2>
+                    <p class="lead">Check our <a href="doc" target="_blank">user guide</a> or our screen casts !</p>
+                </div>
+            </div>
+            <!-- /END THE FEATURETTES -->
+            <!-- Three columns of text below the carousel -->
+            <div class="row">
+                <div class="col-lg-4">
+                    <div style="position: relative; padding-bottom: 56.25%; height: 0;"><iframe src="https://www.loom.com/embed/433762f568f949f794248327f770220f" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+                    <h2>Navigating <span style="color: #fe7f7f;">BIA</span>FLOWS</h2>
+
+                </div><!-- /.col-lg-4 -->
+                <div class="col-lg-4">
+                    <div style="position: relative; padding-bottom: 56.25%; height: 0;"><iframe src="https://www.loom.com/embed/84b22ce550464b1b9a805200561059b6" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+                    <h2>Viewing multidimensional images</h2>
+
+                </div><!-- /.col-lg-4 -->
+                <div class="col-lg-4">
+                    <div style="position: relative; padding-bottom: 56.25%; height: 0;"><iframe src="https://www.loom.com/embed/20206099418f444eb2cb0534e9a84a0a" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+                    <h2>Visually comparing results from multiple workflows</h2>
+
+                </div><!-- /.col-lg-4 -->
+            </div><!-- /.row -->
         </div>
-        <div id="userStatsDashboard" class="row equal dashboard-row">
-            <div class="alert alert-info"><i class="icon-refresh"/> Loading...</div>
-        </div>
-        <div id="lastOpenImage" class="row equal dashboard-row">
-            <div class="alert alert-info"><i class="icon-refresh"/> Loading...</div>
-        </div>
-        <div id="userDashboardLastProject" class="row equal dashboard-row">
-            <div class="alert alert-info"><i class="icon-refresh"/> Loading...</div>
-        </div>
+
+        <footer class="footer" style="width: 100%; height: 60px; background-color: #fff; text-align: center; padding-top: 6px;">
+            <div class="container">
+                <p class="text-muted">
+                    <span style="color: #fe7f7f;">BIA</span>FLOWS is supported by <br>
+                    <a href="http://eubias.org/NEUBIAS/" target="_blank"><img src="static/images/neubias_logo_sm.png" style="height: 48px; margin-left: 2px; margin-right: 2px;"></a>
+                    <a href="https://www.cost.eu/COST_Actions/ca/CA15124?" target="_blank"><img src="static/images/costeu_logo_sm.png" style="height: 22px; margin-left: 2px; margin-right: 2px;"></a><br>
+                    and built on top of <br>
+                    <a href="https://cytomine.org" target="_blank"><img src="static/images/cyto_org_logo.png" style="height: 22px; margin-left: 2px; margin-right: 2px;"></a>
+                </p>
+            </div>
+        </footer>
+
+
+<!--        <div id="communicationRow" class="row equal dashboard-row">-->
+<!--            <div class="col-sm-2 dashboard-col-header">Communication&nbsp;»</div>-->
+<!--            <div class="col-sm-10 dashboard-col">-->
+<!--                <div class="well" style="margin-bottom: 0; background: none;">-->
+<!--                    <div id="welcomeMessage"></div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <div class="row equal dashboard-row">-->
+<!--            <div class="col-sm-2 dashboard-col-header">Shortcuts&nbsp;»</div>-->
+<!--            <div class="col-sm-5 dashboard-col dashboard-border-right">-->
+
+<!--            </div>-->
+<!--            <div class="col-sm-5 dashboard-col">-->
+<!--                <div class="form-group">-->
+<!--                    <label for="goToImageUser">Go to image&nbsp;»</label>-->
+<!--                    <div id="dashboard-image-typeahead">-->
+<!--                        <input type="text" id="goToImageUser" class="form-control typeahead" />-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <div id="userStatsDashboard" class="row equal dashboard-row">-->
+<!--            <div class="alert alert-info"><i class="icon-refresh"/> Loading...</div>-->
+<!--        </div>-->
+<!--        <div id="lastOpenImage" class="row equal dashboard-row">-->
+<!--            <div class="alert alert-info"><i class="icon-refresh"/> Loading...</div>-->
+<!--        </div>-->
+<!--        <div id="userDashboardLastProject" class="row equal dashboard-row">-->
+<!--            <div class="alert alert-info"><i class="icon-refresh"/> Loading...</div>-->
+<!--        </div>-->
     </div>
 </div>

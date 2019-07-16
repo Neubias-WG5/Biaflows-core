@@ -1058,3 +1058,31 @@ ul.dynatree-container a.btn-danger:hover{
     text-align: center;
     padding-top: 6px;
 }
+
+.marketing .col-lg-4 {
+    margin-bottom: 20px;
+    text-align: center;
+}
+.marketing h2 {
+    font-weight: normal;
+}
+.marketing .col-lg-4 p {
+    margin-right: 10px;
+    margin-left: 10px;
+    font-size: 14px;
+}
+
+.marketing {
+    margin-top: 20px;
+}
+
+.featurette-divider {
+    margin: 40px 0; /* Space out the Bootstrap <hr> more */
+}
+
+/* Thin out the marketing headings */
+.featurette-heading {
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -1px;
+}

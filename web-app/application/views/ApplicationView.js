@@ -209,7 +209,7 @@ var ApplicationView = Backbone.View.extend({
 
                     var modal = new CustomModal({
                         idModal: "about" + "DialogModal",
-                        header: "<i class=\"glyphicon glyphicon-info-sign\"/> About BIAFLOWS",
+                        header: "<i class=\"glyphicon glyphicon-info-sign\"/> About <span style=\"color: #fe7f7f;\">BIA</span>FLOWS",
                         body: body,
                         wide: true
                     });
@@ -225,12 +225,12 @@ var ApplicationView = Backbone.View.extend({
             return false;
         });
 
-        $("#a-info-video-benchmarking").click(function () {
+        $(".a-info-video-benchmarking").click(function () {
             var body = "<div style=\"position: relative; padding-bottom: 56.25%; height: 0;\"><iframe src=\"https://www.useloom.com/embed/433762f568f949f794248327f770220f\" frameborder=\"0\" webkitallowfullscreen mozallowfullscreen allowfullscreen style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%;\"></iframe></div>";
 
             var modal = new CustomModal({
                 idModal: "video-benchmarking-modal",
-                header: "<i class=\"fas fa-file-video\"></i> Screencast: Benchmarking",
+                header: "<i class=\"fab fa-youtube\"></i> Screencast: How to use BIAFLOWS",
                 body: body,
                 wide: true
             });
@@ -241,12 +241,12 @@ var ApplicationView = Backbone.View.extend({
             return false;
         });
 
-        $("#a-info-video-multidim").click(function () {
+        $(".a-info-video-multidim").click(function () {
             var body = "<div style=\"position: relative; padding-bottom: 56.25%; height: 0;\"><iframe src=\"https://www.useloom.com/embed/84b22ce550464b1b9a805200561059b6\" frameborder=\"0\" webkitallowfullscreen mozallowfullscreen allowfullscreen style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%;\"></iframe></div>";
 
             var modal = new CustomModal({
                 idModal: "video-multidim-modal",
-                header: "<i class=\"fas fa-file-video\"></i> Screencast: Multidimensional images",
+                header: "<i class=\"fab fa-youtube\"></i> Screencast: Viewing multidimensional images",
                 body: body,
                 wide: true
             });
@@ -257,12 +257,12 @@ var ApplicationView = Backbone.View.extend({
             return false;
         });
 
-        $("#a-info-video-multiview").click(function () {
+        $(".a-info-video-multiview").click(function () {
             var body = "<div style=\"position: relative; padding-bottom: 56.25%; height: 0;\"><iframe src=\"https://www.useloom.com/embed/20206099418f444eb2cb0534e9a84a0a\" frameborder=\"0\" webkitallowfullscreen mozallowfullscreen allowfullscreen style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%;\"></iframe></div>";
 
             var modal = new CustomModal({
                 idModal: "video-multiview-modal",
-                header: "<i class=\"fas fa-file-video\"></i> Screencast: Multiple viewers",
+                header: "<i class=\"fab fa-youtube\"></i> Screencast: Visually comparing results from multiple workflows",
                 body: body,
                 wide: true
             });
