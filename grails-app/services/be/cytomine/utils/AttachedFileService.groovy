@@ -1,7 +1,7 @@
 package be.cytomine.utils
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -21,16 +21,12 @@ import be.cytomine.command.DeleteCommand
 import be.cytomine.command.Transaction
 import be.cytomine.security.SecUser
 
-import static org.springframework.security.acls.domain.BasePermission.READ
-
 class AttachedFileService extends ModelService {
 
     static transactional = true
-    def springSecurityService
     def transactionService
     def commandService
     def cytomineService
-    def securityACLService
 
     def currentDomain() {
         return AttachedFile
@@ -40,46 +36,22 @@ class AttachedFileService extends ModelService {
      * List all description, Only for admin
      */
     def list() {
-        securityACLService.checkAdmin(cytomineService.currentUser)
         return AttachedFile.list()
     }
 
     def list(Long domainIdent,String domainClassName) {
-        if(domainClassName.contains("AbstractImage")) {
-//            securityACLService.checkAtLeastOne(domainIdent,domainClassName,"containers",READ)
-        } else {
-            securityACLService.check(domainIdent,domainClassName,"container",READ)
-        }
         return AttachedFile.findAllByDomainIdentAndDomainClassName(domainIdent,domainClassName)
     }
 
 
     def read(def id) {
-        AttachedFile file = AttachedFile.read(id)
-        if(file) {
-            if(file.domainClassName.contains("AbstractImage")) {
-//                securityACLService.checkAtLeastOne(file.domainIdent, file.domainClassName, "containers", READ)
-            } else if (file.domainClassName.equals("be.cytomine.processing.Software") || file.domainClassName.equals("be.cytomine.processing.SoftwareParameter")) {
-                securityACLService.checkGuest(cytomineService.currentUser)
-            }
-            else {
-                securityACLService.check(file.domainIdent,file.domainClassName,"container",READ)
-            }
-        }
-        file
+        AttachedFile.read(id)
     }
 
-    def add(String filename,byte[] data,Long domainIdent,String domainClassName, String name) {
-        //securityACLService.checkAtLeastOne(domainIdent,domainClassName,"containers",READ)
-        if(domainClassName.contains("AbstractImage")) {
-//            securityACLService.checkAtLeastOne(domainIdent, domainClassName, "containers", READ)
-        } else {
-            securityACLService.check(domainIdent,domainClassName,"container",READ)
-        }
+    def add(String filename,byte[] data,Long domainIdent,String domainClassName) {
         AttachedFile file = new AttachedFile()
         file.domainIdent =  domainIdent
         file.domainClassName = domainClassName
-        file.name = name
         file.filename = filename
         file.data = data
         saveDomain(file)
@@ -95,12 +67,6 @@ class AttachedFileService extends ModelService {
      * @return Response structure (code, old domain,..)
      */
     def delete(AttachedFile domain, Transaction transaction = null, Task task = null, boolean printMessage = true) {
-        //securityACLService.checkAtLeastOne(domain.domainIdent, domain.domainClassName, "containers", WRITE)
-        if(domain.domainClassName.contains("AbstractImage")) {
-            securityACLService.checkAtLeastOne(domain.domainIdent, domain.domainClassName, "containers", READ)
-        } else {
-            securityACLService.check(domain.domainIdent,domain.domainClassName,"container",READ)
-        }
         SecUser currentUser = cytomineService.getCurrentUser()
         Command c = new DeleteCommand(user: currentUser,transaction:transaction)
         return executeCommand(c,domain,null)

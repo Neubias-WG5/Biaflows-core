@@ -1,7 +1,7 @@
 package be.cytomine.ontology
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import be.cytomine.command.AddCommand
 import be.cytomine.command.Command
 import be.cytomine.command.DeleteCommand
 import be.cytomine.command.Transaction
+import be.cytomine.project.Project
 import be.cytomine.security.SecUser
 import be.cytomine.security.User
 import be.cytomine.utils.ModelService
@@ -47,6 +48,13 @@ class AnnotationTermService extends ModelService {
         AnnotationTerm.findAllByUserAnnotation(userAnnotation)
     }
 
+    def list(Project project) {
+        return AnnotationTerm.withCriteria{
+            createAlias('userAnnotation', 'ua')
+            eq('ua.project', project)
+        }
+    }
+
     def listNotUser(UserAnnotation userAnnotation, User user) {
         securityACLService.check(userAnnotation.container(),READ)
         AnnotationTerm.findAllByUserAnnotationAndUserNotEqual(userAnnotation, user)
@@ -67,7 +75,6 @@ class AnnotationTermService extends ModelService {
      * @return Response structure (created domain data,..)
      */
     def add(def json) {
-        securityACLService.check(json.userannotation,UserAnnotation,"container",READ)
         SecUser currentUser = cytomineService.getCurrentUser()
         SecUser creator = SecUser.read(json.user)
         if (!creator)
@@ -85,7 +92,8 @@ class AnnotationTermService extends ModelService {
      */
     def delete(AnnotationTerm domain, Transaction transaction = null, Task task = null, boolean printMessage = true) {
         SecUser currentUser = cytomineService.getCurrentUser()
-        securityACLService.checkIsCreator(domain,currentUser)
+        securityACLService.check(domain.userAnnotation.id, UserAnnotation, "container", READ)
+        securityACLService.checkFullOrRestrictedForOwner(domain, domain.userAnnotation.user)
         Command c = new DeleteCommand(user: currentUser,transaction:transaction)
         return executeCommand(c,domain,null)
     }

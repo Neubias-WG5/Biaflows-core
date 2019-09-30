@@ -4,7 +4,7 @@ import be.cytomine.image.ImageInstance
 import be.cytomine.project.Project
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import be.cytomine.test.Infos
 import be.cytomine.test.http.ImageConsultationAPI
 import be.cytomine.test.http.ImageInstanceAPI
 import grails.converters.JSON
+import org.codehaus.groovy.grails.web.json.JSONObject
 
 class ImageConsultationTests {
 
@@ -126,5 +127,22 @@ class ImageConsultationTests {
         assert 200 == result.code
         json = JSON.parse(result.data)
         assert json.collection.size() == 2
+    }
+
+    void testCountAnnotationByProject() {
+        def result = ImageConsultationAPI.countByProject(BasicInstanceBuilder.getProject().id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+        assert json.total >= 0
+    }
+
+    void testCountAnnotationByProjectWithDates() {
+        Date startDate = new Date()
+        def result = ImageConsultationAPI.countByProject(BasicInstanceBuilder.getProject().id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, startDate.getTime(), startDate.getTime() - 1000)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+        assert json.total >= 0
     }
 }

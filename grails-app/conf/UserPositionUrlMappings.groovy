@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -23,12 +23,17 @@
 class UserPositionUrlMappings {
 
     static mappings = {
-        "/api/imageinstance/$id/position.$format" (controller : "restUserPosition") {
+        "/api/imageinstance/$image/position.$format" (controller : "restUserPosition") {
             action = [POST:"add"]
         }
         "/api/imageinstance/$id/position/$user.$format" (controller : "restUserPosition") {
             action = [GET:"lastPositionByUser"]
         }
+
+        "/api/sliceinstance/$slice/position.$format" (controller : "restUserPosition") {
+            action = [POST:"add"]
+        }
+
         "/api/imageinstance/$image/positions.$format" (controller : "restUserPosition") {
             action = [GET:"list"]
         }

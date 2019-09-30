@@ -1,9 +1,7 @@
 package be.cytomine.api.utils
 
-import be.cytomine.Exception.WrongArgumentException
-
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -19,10 +17,20 @@ import be.cytomine.Exception.WrongArgumentException
 */
 
 import be.cytomine.api.RestController
+import be.cytomine.image.AbstractImage
+import be.cytomine.project.Project
+import be.cytomine.AnnotationDomain
+import be.cytomine.CytomineDomain
+import be.cytomine.Exception.WrongArgumentException
+import be.cytomine.utils.AttachedFile
 import grails.converters.JSON
 import org.restapidoc.annotation.*
 import org.restapidoc.pojo.RestApiParamType
 import org.springframework.web.multipart.support.AbstractMultipartHttpServletRequest
+
+import static org.springframework.security.acls.domain.BasePermission.DELETE
+import static org.springframework.security.acls.domain.BasePermission.READ
+import static org.springframework.security.acls.domain.BasePermission.WRITE
 
 /**
  * Controller for a description (big text data/with html format) on a specific domain
@@ -31,10 +39,13 @@ import org.springframework.web.multipart.support.AbstractMultipartHttpServletReq
 class RestAttachedFileController extends RestController {
 
     def springSecurityService
+    def securityACLService
+    def cytomineService
     def attachedFileService
 
     @RestApiMethod(description="List all attached file available", listing=true)
     def list() {
+        securityACLService.checkAdmin(cytomineService.currentUser)
         responseSuccess(attachedFileService.list())
     }
 
@@ -46,6 +57,14 @@ class RestAttachedFileController extends RestController {
     def listByDomain() {
         Long domainIdent = params.long("domainIdent")
         String domainClassName = params.get("domainClassName")
+        if(domainClassName.contains("AbstractImage")) {
+            securityACLService.checkAtLeastOne(domainIdent,domainClassName,"containers",READ)
+        } else if(domainClassName.contains("AnnotationDomain")) {
+            AnnotationDomain annotation = AnnotationDomain.getAnnotationDomain(domainIdent)
+            securityACLService.check(domainIdent,annotation.getClass().name,"container",READ)
+        } else {
+            securityACLService.check(domainIdent,domainClassName,"container",READ)
+        }
         responseSuccess(attachedFileService.list(domainIdent,domainClassName))
     }
 
@@ -54,8 +73,13 @@ class RestAttachedFileController extends RestController {
         @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The attached file id")
     ])
     def show() {
-        def file = attachedFileService.read(params.get('id'))
+        AttachedFile file = attachedFileService.read(params.get('id'))
         if(file) {
+            if(file.domainClassName.contains("AbstractImage")) {
+                securityACLService.checkAtLeastOne(file.domainIdent, file.domainClassName, "containers", READ)
+            } else {
+                securityACLService.check(file.domainIdent,file.domainClassName,"container",READ)
+            }
             responseSuccess(file)
         } else {
             responseNotFound("AttachedFile",params.get('id'))
@@ -89,17 +113,27 @@ class RestAttachedFileController extends RestController {
         log.info "Upload attached file"
         Long domainIdent = params.long("domainIdent")
         String domainClassName = params.get("domainClassName")
-        String name = params.get("name")
-        log.info name
         if(request instanceof AbstractMultipartHttpServletRequest) {
             def f = ((AbstractMultipartHttpServletRequest) request).getFile('files[]')
 
+            if(domainClassName == null) domainClassName = ((AbstractMultipartHttpServletRequest) request).getParameter('domainClassName')
+            if(domainIdent == null) domainIdent = Long.parseLong(((AbstractMultipartHttpServletRequest) request).getParameter('domainIdent'))
 
-            String filename = f.originalFilename
+            String filename = ((AbstractMultipartHttpServletRequest) request).getParameter('filename')
+            if(!filename) filename = f.originalFilename
+
             log.info "Upload $filename for domain $domainClassName $domainIdent"
             log.info "File size = ${f.size}"
 
-            def result = attachedFileService.add(filename,f.getBytes(),domainIdent,domainClassName, name)
+            CytomineDomain recipientDomain = Class.forName(domainClassName, false, Thread.currentThread().contextClassLoader).read(domainIdent)
+            if(recipientDomain instanceof AbstractImage) {
+                securityACLService.checkAtLeastOne(domainIdent, domainClassName, "containers", READ)
+            } else if(recipientDomain instanceof Project || !recipientDomain.container() instanceof Project) {
+                securityACLService.check(domainIdent,domainClassName,"container",WRITE)
+            } else {
+                securityACLService.checkFullOrRestrictedForOwner(domainIdent,domainClassName, "user")
+            }
+            def result = attachedFileService.add(filename,f.getBytes(),domainIdent,domainClassName)
             responseSuccess(result)
         } else {
             responseError(new WrongArgumentException("No File attached"))
@@ -119,7 +153,15 @@ class RestAttachedFileController extends RestController {
         String filename = upload.getOriginalFilename()
         log.info "Upload $filename for domain $domainClassName $domainIdent"
 
-        def result = attachedFileService.add(filename,upload.getBytes(),domainIdent,domainClassName, filename)
+        CytomineDomain recipientDomain = Class.forName(domainClassName, false, Thread.currentThread().contextClassLoader).read(domainIdent)
+        if(recipientDomain instanceof AbstractImage) {
+            securityACLService.checkAtLeastOne(domainIdent, domainClassName, "containers", READ)
+        } else if(recipientDomain instanceof Project || !recipientDomain.container() instanceof Project) {
+            securityACLService.check(domainIdent,domainClassName,"container",WRITE)
+        } else {
+            securityACLService.checkFullOrRestrictedForOwner(domainIdent,domainClassName)
+        }
+        def result = attachedFileService.add(filename,upload.getBytes(),domainIdent,domainClassName)
 
         responseSuccess(result)
 
@@ -130,6 +172,16 @@ class RestAttachedFileController extends RestController {
             @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH,description = "The attached file id")
     ])
     def delete() {
+        AttachedFile domain = attachedFileService.read(params.id)
+        CytomineDomain recipientDomain = domain.retrieveCytomineDomain()
+        if(recipientDomain instanceof AbstractImage) {
+            securityACLService.checkAtLeastOne(domain.domainIdent, domain.domainClassName, "containers", READ)
+        } else if(recipientDomain instanceof Project || !recipientDomain.container() instanceof Project) {
+            securityACLService.check(domain.domainIdent,domain.domainClassName,"container",DELETE)
+        } else {
+            securityACLService.checkFullOrRestrictedForOwner(domain.domainIdent,domain.domainClassName, "user")
+        }
+
         delete(attachedFileService, JSON.parse("{id : $params.id}"),null)
     }
 }

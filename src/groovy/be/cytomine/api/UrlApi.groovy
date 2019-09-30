@@ -1,7 +1,9 @@
 package be.cytomine.api
 
+import be.cytomine.image.AbstractImage
+
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -34,188 +36,114 @@ class UrlApi {
         return "${serverUrl()}/api/$type/${id}.json"
     }
 
-    static def getCropURL(Long idImage, def parameters, def format="png") {
-        String url = "${serverUrl()}/api/abstractimage/$idImage/crop.$format"
-        String query = parameters.collect { key, value ->
-            if (value instanceof String)
-                value = URLEncoder.encode(value, "UTF-8")
-            "$key=$value"
-        }.join("&")
-        return "$url?$query"
-    }
-
-    static def getMaskURL(Long idImage, def parameters, def format="png") {
-        String url = "${serverUrl()}/api/abstractimage/$idImage/mask.$format"
-        String query = parameters.collect { key, value ->
-            if (value instanceof String)
-                value = URLEncoder.encode(value, "UTF-8")
-            "$key=$value"
-        }.join("&")
-        return "$url?$query"
-    }
-
-    /**
-     * Return cytomine url to get an image metadata
-     * @param url Cytomine base url
-     * @param idImage Image id
-     * @return full cytomine url
-     */
-    static def getMetadataURLWithImageId(Long idImage) {
-        return "${serverUrl()}/api/abstractimage/$idImage/metadata.json"
-    }
-
-    /**
-     * Return cytomine url to get a user crop annotation
-     * @param url Cytomine base url
-     * @param idAnnotation Annotation id
-     * @return full cytomine url
-     */
-    static def getUserAnnotationCropWithAnnotationId(Long idAnnotation, def format="jpg") {
+    static def getUserAnnotationCropWithAnnotationId(Long idAnnotation, def format="png") {
         return "${serverUrl()}/api/userannotation/$idAnnotation/crop.$format"
     }
 
-    /**
-     * Return cytomine url to get a user crop annotation
-     * @param url Cytomine base url
-     * @param idAnnotation Annotation id
-     * @param maxWidthOrHeight Max size for the downloaded picture
-     * @return full cytomine url
-     */
-    static def getUserAnnotationCropWithAnnotationIdWithMaxWithOrHeight(Long idAnnotation, int maxWidthOrHeight, def format="png") {
-        return "${serverUrl()}/api/userannotation/$idAnnotation/crop.$format?maxSize=$maxWidthOrHeight"
+    static def getUserAnnotationCropWithAnnotationIdWithMaxSize(Long idAnnotation, int maxSize = 256, def format="png") {
+        return "${serverUrl()}/api/userannotation/$idAnnotation/crop.$format?maxSize=$maxSize"
     }
 
-    /**
-     * Return cytomine url to get a roi crop annotation
-     * @param url Cytomine base url
-     * @param idAnnotation Annotation id
-     * @return full cytomine url
-     */
-    static def getROIAnnotationCropWithAnnotationId(Long idAnnotation, def format="jpg") {
+    static def getROIAnnotationCropWithAnnotationId(Long idAnnotation, def format="png") {
         return "${serverUrl()}/api/roiannotation/$idAnnotation/crop.$format"
     }
 
-    /**
-     * Return cytomine url to get a roi crop annotation
-     * @param url Cytomine base url
-     * @param idAnnotation Annotation id
-     * @param maxWidthOrHeight Max size for the downloaded picture
-     * @return full cytomine url
-     */
-    static def getROIAnnotationCropWithAnnotationIdWithMaxWithOrHeight(Long idAnnotation, int maxWidthOrHeight, def format="png") {
-        return "${serverUrl()}/api/roiannotation/$idAnnotation/crop.$format?maxSize=$maxWidthOrHeight"
+    static def getROIAnnotationCropWithAnnotationIdWithMaxSize(Long idAnnotation, int maxSize = 256, def format="png") {
+        return "${serverUrl()}/api/roiannotation/$idAnnotation/crop.$format?maxSize=$maxSize"
     }
 
-    /**
-     * Return cytomine url to get an algo crop annotation
-     * @param url Cytomine base url
-     * @param idAnnotation Annotation id
-     * @return full cytomine url
-     */
     static def getAlgoAnnotationCropWithAnnotationId(Long idAnnotation, def format="png") {
         return "${serverUrl()}/api/algoannotation/$idAnnotation/crop.$format"
+    }
+
+    static def getAlgoAnnotationCropWithAnnotationIdWithMaxSize(Long idAnnotation, int maxsize = 256, def format="png") {
+        return "${serverUrl()}/api/algoannotation/$idAnnotation/crop.$format?maxSize=$maxsize"
+    }
+
+    static def getReviewedAnnotationCropWithAnnotationId(Long idAnnotation, def format="png") {
+        return "${serverUrl()}/api/reviewedannotation/$idAnnotation/crop.$format"
+    }
+
+    static def getReviewedAnnotationCropWithAnnotationIdWithMaxSize(Long idAnnotation, int maxSize = 256, def format="png") {
+        return "${serverUrl()}/api/reviewedannotation/$idAnnotation/crop.$format?maxSize=$maxSize"
     }
 
     static def getAnnotationCropWithAnnotationId(Long idAnnotation, def maxSize = null, def format="png") {
         return "${serverUrl()}/api/annotation/$idAnnotation/crop.$format" + (maxSize? "?maxSize=$maxSize" :"")
     }
 
-    static def getAssociatedImage(Long idAbstractImage, String label, def maxSize = null, def format="png") {
+    static def getCompleteAnnotationCropDrawedWithAnnotationId(Long idAnnotation, def maxSize = null) {
+        String params = (maxSize ? "maxSize=$maxSize&" : "") + "draw=true&complete=true"
+        return "${serverUrl()}/api/annotation/$idAnnotation/crop.png?" + params
+    }
+
+    static def getAssociatedImage(Long idAbstractImage, String label, String contentType = null, def maxSize = null, def format="png") {
+        def formatsWithMacro = [
+                "openslide/ndpi", "openslide/vms", "openslide/mrxs", "openslide/svs", "openslide/scn", "ventana/bif", "ventana/tif", "philips/tif"
+        ]
+        if(label == "macro" && contentType && !formatsWithMacro.contains(contentType)) {
+            return null
+        }
         String size = maxSize ? "?maxWidth=$maxSize" : "";
-        return "${serverUrl()}/api/abstractimage/$idAbstractImage/associated/$label" + ".$format$size"
+        return "${serverUrl()}/api/abstractimage/$idAbstractImage/associated/$label.$format$size"
     }
 
-    static def getThumbImage(Long idAbstractImage, def maxSize, def format="png") {
-        return "${serverUrl()}/api/abstractimage/$idAbstractImage/thumb.$format?maxSize=$maxSize"
+    static def getAssociatedImageInstance(Long id, String label, String contentType = null, def maxSize = null, def format="png") {
+        def formatsWithMacro = [
+                "openslide/ndpi", "openslide/vms", "openslide/mrxs", "openslide/svs", "openslide/scn", "ventana/bif", "ventana/tif", "philips/tif"
+        ]
+        if(label == "macro" && contentType && !formatsWithMacro.contains(contentType)) {
+            return null
+        }
+        String size = maxSize ? "?maxWidth=$maxSize" : "";
+        return "${serverUrl()}/api/imageinstance/$id/associated/$label.$format$size"
     }
 
-    static def getThumbMultiDimImage(Long idImageGroup, def maxSize) {
-        return "${serverUrl()}/api/imagegroup/$idImageGroup/thumb.png?maxSize=$maxSize"
-    }
-
-    /**
-     * Return cytomine url to get a small crop annotation
-     * @param url Cytomine base url
-     * @param idAnnotation Annotation id
-     * @return full cytomine url
-     */
-    static def getAnnotationMinCropWithAnnotationId(Long idAnnotation, def format="png") {
-        return "${serverUrl()}/api/annotation/$idAnnotation/crop.$format?maxSize=256"
-    }
-    static def getAnnotationMinCropWithAnnotationIdOld(Long idAnnotation) {
-        return "${serverUrl()}/api/annotation/$idAnnotation/cropMin.jpg"
-    }
-
-    /**
-     * Return cytomine url to get an algo crop annotation
-     * @param url Cytomine base url
-     * @param idAnnotation Annotation id
-     * @param maxWidthOrHeight Max size for the downloaded picture
-     * @return full cytomine url
-     */
-    static def getAlgoAnnotationCropWithAnnotationIdWithMaxWithOrHeight(Long idAnnotation, int maxWidthOrHeight, def format="png") {
-        return "${serverUrl()}/api/algoannotation/$idAnnotation/crop.$format?maxSize=$maxWidthOrHeight"
-    }
-
-    /**
-     * Return cytomine url to get an reviewed crop annotation
-     * @param url Cytomine base url
-     * @param idAnnotation Annotation id
-     * @return full cytomine url
-     */
-    static def getReviewedAnnotationCropWithAnnotationId(Long idAnnotation, def format="jpg") {
-        return "${serverUrl()}/api/reviewedannotation/$idAnnotation/crop.$format"
-    }
-
-    /**
-     * Return cytomine url to get a reviewed crop annotation
-     * @param url Cytomine base url
-     * @param idAnnotation Annotation id
-     * @param maxWidthOrHeight Max size for the downloaded picture
-     * @return full cytomine url
-     */
-    static def getReviewedAnnotationCropWithAnnotationIdWithMaxWithOrHeight(Long idAnnotation, int maxWidthOrHeight, def format="jpg") {
-        return "${serverUrl()}/api/reviewedannotation/$idAnnotation/crop.$format?maxSize=$maxWidthOrHeight"
-    }
-
-    /**
-     * Return cytomine url to access to an annotation with the UI client
-     * @param url Cytomine base url
-     * @param idProject Project id
-     * @param idImage Image id
-     * @param idAnnotation Annotation id
-     * @return full cytomine url
-     */
-    static def getAnnotationURL(Long idProject, Long idImage, Long idAnnotation) {
-        return  "${serverUrl()}/#tabs-image-$idProject-$idImage-$idAnnotation"
-    }
-
-    /**
-     * Return cytomine url to access to an image with the UI client
-     * @param url Cytomine base url
-     * @param idProject Project id
-     * @param idImage Image id
-     * @return full cytomine url
-     */
-    static def getBrowseImageInstanceURL(Long idProject, Long idImage) {
-        return  "${serverUrl()}/#tabs-image-$idProject-$idImage-"
-    }
-
-    static def getDashboardURL(Long idProject) {
-        return  "${serverUrl()}/#tabs-dashboard-$idProject"
-    }
-
-    /**
-     * Return cytomine url to access an image thumb
-     * @param url  Cytomine base url
-     * @param idImage Image id
-     * @return full cytomine url
-     */
-    static def getAbstractImageThumbURL(Long idImage, def format="png") {
+    static def getAbstractImageThumbUrl(Long idImage, def format="png") {
         return  "${serverUrl()}/api/abstractimage/$idImage/thumb.$format"
     }
 
+    static def getImageInstanceThumbUrl(Long idImage, def format="png") {
+        return  "${serverUrl()}/api/imageinstance/$idImage/thumb.$format"
+    }
+
+    static def getAbstractImageThumbUrlWithMaxSize(Long idAbstractImage, def maxSize = 256, def format="png") {
+        return "${serverUrl()}/api/abstractimage/$idAbstractImage/thumb.$format?maxSize=$maxSize"
+    }
+
+    static def getImageInstanceThumbUrlWithMaxSize(Long idImage, def maxSize = 256, def format="png") {
+        return "${serverUrl()}/api/imageinstance/$idImage/thumb.$format?maxSize=$maxSize"
+    }
+
+    static def getAbstractSliceThumbUrl(Long idSlice, def format="png") {
+        return "${serverUrl()}/api/abstractslice/$idSlice/thumb.$format"
+    }
+
+    static def getSliceInstanceThumbUrl(Long idSlice, def format="png") {
+        return "${serverUrl()}/api/sliceinstance/$idSlice/thumb.$format"
+    }
+
+    static def getImageGroupThumbUrlWithMaxSize(Long idImageGroup, def maxSize = 256, def format="png") {
+        return "${serverUrl()}/api/imagegroup/$idImageGroup/thumb.$format?maxSize=$maxSize"
+    }
+
+    static def getAnnotationURL(Long idProject, Long idImage, Long idAnnotation) {
+        return  "${UIUrl()}/#/project/$idProject/image/$idImage/annotation/$idAnnotation"
+    }
+
+    static def getBrowseImageInstanceURL(Long idProject, Long idImage) {
+        return  "${UIUrl()}/#/project/$idProject/image/$idImage"
+    }
+
+    static def getDashboardURL(Long idProject) {
+        return  "${UIUrl()}/#/project/$idProject"
+    }
+
     static def serverUrl() {
-        Holders.getGrailsApplication().config.grails.serverURL
+        Holders.getGrailsApplication().config.grails.serverURL.replace("https", "http")
+    }
+
+    static def UIUrl() {
+        return Holders.getGrailsApplication().config.grails.UIURL?:serverUrl()
     }
 }

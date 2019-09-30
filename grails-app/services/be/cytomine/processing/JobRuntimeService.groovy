@@ -109,7 +109,7 @@ class JobRuntimeService {
 
         def sp = softwareParameters.find { ["HOST", "CYTOMINEHOST"].contains(it.name.toUpperCase().replace('_', '')) }
         if (sp) {
-            jobParameterService.add(JSON.parse(new JobParameter(value: Holders.getGrailsApplication().config.grails.serverURL, job: job, softwareParameter: sp).encodeAsJSON()))
+            jobParameterService.add(JSON.parse(new JobParameter(value: Holders.getGrailsApplication().config.grails.serverURL.replace("https", "http"), job: job, softwareParameter: sp).encodeAsJSON()))
         }
 
         sp = softwareParameters.find { ["PUBLICKEY", "CYTOMINEPUBLICKEY"].contains(it.name.toUpperCase().replace('_', '')) }

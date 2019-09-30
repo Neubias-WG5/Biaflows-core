@@ -1,7 +1,7 @@
 package be.cytomine.security
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -40,11 +40,8 @@ class User extends SecUser {
 
     String color //deprecated
 
-    @RestApiObjectField(description = "The skype account of the user")
-    String skypeAccount
-
-    @RestApiObjectField(description = "The SIP account of the user")
-    String sipAccount
+    @RestApiObjectField(description = "The language of the user")
+    Language language
 
     @RestApiObjectFields(params=[
         @RestApiObjectField(apiFieldName = "admin", description = "(ONLY VISIBLE WHEN DOING GET /api/user/id.format service) True if the user is ADMIN ",allowedType = "boolean",useForCreation = false),
@@ -54,8 +51,7 @@ class User extends SecUser {
     static constraints = {
         firstname blank: false
         lastname blank: false
-        skypeAccount(nullable: true, blank:false)
-        sipAccount(nullable: true, blank:false)
+        language(nullable: true)
         email(blank: false, email: true)
         color(blank: false, nullable: true)
     }
@@ -68,6 +64,9 @@ class User extends SecUser {
 
     def beforeInsert() {
         super.beforeInsert()
+        if (!language) {
+            language = Language.ENGLISH
+        }
     }
 
     def beforeUpdate() {
@@ -107,8 +106,7 @@ class User extends SecUser {
         domain.lastname = JSONUtils.getJSONAttrStr(json,'lastname')
         domain.email = JSONUtils.getJSONAttrStr(json,'email')
         domain.color = JSONUtils.getJSONAttrStr(json,'color')
-        domain.skypeAccount = JSONUtils.getJSONAttrStr(json,'skypeAccount')
-        domain.sipAccount = JSONUtils.getJSONAttrStr(json,'sipAccount')
+        domain.language = Language.findByCode(JSONUtils.getJSONAttrStr(json,'language') ?: "EN")
         if (json.password && domain.password != null) {
             domain.newPassword = JSONUtils.getJSONAttrStr(json,'password') //user is updated
         } else if (json.password) {
@@ -134,7 +132,7 @@ class User extends SecUser {
         returnArray['firstname'] = domain?.firstname
         returnArray['lastname'] = domain?.lastname
         returnArray['email'] = domain?.email
-        returnArray['sipAccount'] = domain?.sipAccount
+        returnArray['language'] = domain?.language.toString()
         if (!(domain?.springSecurityService?.principal instanceof String) && domain?.id == domain?.springSecurityService?.currentUser?.id) {
             returnArray['publicKey'] = domain?.publicKey
             returnArray['privateKey'] = domain?.privateKey
@@ -145,5 +143,36 @@ class User extends SecUser {
         returnArray
     }
 
+
+    static enum Language {
+        // see https://fr.wikipedia.org/wiki/Liste_des_codes_ISO_639-1
+        ARABIC("AR"),
+        GERMAN("DE"),
+        GREEK("EL"),
+        ENGLISH("EN"),
+        FRENCH("FR"),
+        DUTCH("NL")
+
+        private final String code
+
+        Language(String code) {this.code = code}
+
+        private static final Map<String,Language> map;
+
+        static {
+            map = new HashMap<String,Language>();
+            for (Language l : Language.values()) {
+                map.put(l.code, l);
+            }
+        }
+        public static Language findByCode(String c) {
+            return map.get(c);
+        }
+
+        @Override
+        String toString(){
+            return this.code
+        }
+    }
 
 }

@@ -1,7 +1,7 @@
 package be.cytomine.processing
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package be.cytomine.processing
 */
 
 import be.cytomine.Exception.CytomineException
+import be.cytomine.Exception.InvalidRequestException
 import be.cytomine.command.*
 import be.cytomine.security.SecUser
 import be.cytomine.utils.ModelService
@@ -62,6 +63,8 @@ class SoftwareParameterService extends ModelService {
      * @return Response structure (created domain data,..)
      */
     def add(def json) throws CytomineException {
+       if(!json.software) throw new InvalidRequestException("software not set")
+
         securityACLService.check(json.software, Software, READ)
         SecUser currentUser = cytomineService.getCurrentUser()
         json.user = currentUser.id

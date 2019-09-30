@@ -1,7 +1,16 @@
 package be.cytomine.api.social
 
+import be.cytomine.Exception.CytomineException
+import be.cytomine.api.RestController
+import org.restapidoc.annotation.RestApiMethod
+import org.restapidoc.annotation.RestApiParam
+import org.restapidoc.annotation.RestApiParams
+import org.restapidoc.pojo.RestApiParamType
+import be.cytomine.project.Project
+import static org.springframework.security.acls.domain.BasePermission.READ
+
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -32,6 +41,8 @@ import org.restapidoc.pojo.RestApiParamType
 class RestAnnotationActionController extends RestController {
 
     def annotationActionService
+    def projectService
+    def securityACLService
     def imageInstanceService
     def secUserService
 
@@ -60,9 +71,28 @@ class RestAnnotationActionController extends RestController {
         ImageInstance image = imageInstanceService.read(params.image)
         User user = secUserService.read(params.user)
         if(params.user != null && user == null) throw new ObjectNotFoundException("Invalid user")
-
         Long afterThan = params.long("afterThan")
         Long beforeThan = params.long("beforeThan")
         responseSuccess(annotationActionService.list(image, user, afterThan, beforeThan))
     }
+        
+        @RestApiMethod(description="Get the number of annotation actions in the specified project")
+    @RestApiParams(params=[
+            @RestApiParam(name="project", type="long", paramType = RestApiParamType.PATH, description = "The identifier of the project"),
+            @RestApiParam(name="startDate", type="long", paramType = RestApiParamType.QUERY, description = "Only actions after this date will be counted (optional)"),
+            @RestApiParam(name="endDate", type="long", paramType = RestApiParamType.QUERY, description = "Only actions before this date will be counted (optional)"),
+            @RestApiParam(name="type", type="string", paramType = RestApiParamType.QUERY, description = "(Optional) If specified, only annotation action of this type will be taken into account"),
+    ])
+    def countByProject() {
+        Project project = projectService.read(params.project)
+        securityACLService.check(project, READ)
+
+        Long startDate = params.long("startDate")
+        Long endDate = params.long("endDate")
+
+        responseSuccess(annotationActionService.countByProject(project, startDate, endDate, params.type))
+    }
+
+
+   
 }

@@ -1,7 +1,7 @@
 package be.cytomine.perf
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -27,7 +27,8 @@ import org.codehaus.groovy.grails.web.json.JSONObject
  * Created by hoyoux on 11.04.16.
  */
 class UserPositionPerformanceTests {
-    void testPerfPosition() {
+
+    void testPerfPositionListLastByImage() {
 
         def users = [];
         users << [login : Infos.SUPERADMINLOGIN, password : Infos.SUPERADMINPASSWORD]
@@ -69,17 +70,56 @@ class UserPositionPerformanceTests {
         println "max : "+times.max()+" ms"
         println "avg : "+times.sum()/times.size()+" ms"
 
-        //OLD (createCriteria)
-        //251 ms moyenne (max 538) pour 100 user avec chacun 1 position
-        //255 ms moyenne (max 498) pour 100 user avec chacun 10 position
-        //293 ms moyenne (max 581) pour 100 user avec chacun 100 position
-        //311 ms moyenne (max 837) pour 200 user avec chacun 100 position
+        //Current
+        //mean : 35 ms , max 1335) for 100 user with 1 position each
+        //mean : 23.87 ms , max 165) for 100 user with 10 position each
+        //mean : 20 ms , max 111) for 100 user with 100 position each
+        //mean : 24.48 ms , max 128 for 200 user with 100 position each
 
-        //NEW (mongo aggregation request)
-        //35 ms moyenne (max 1335) pour 100 user avec chacun 1 position
-        //23.87 ms moyenne (max 165) pour 100 user avec chacun 10 position
-        //20 ms moyenne (max 111) pour 100 user avec chacun 100 position
-        //24.48 ms moyenne (max 128) pour 200 user avec chacun 100 position
+    }
 
+
+    void testPerfPositionListOnlineWithPositions() {
+
+        def users = [];
+        //users << [login : Infos.SUPERADMINLOGIN, password : Infos.SUPERADMINPASSWORD]
+        def image1 = BasicInstanceBuilder.getImageInstance()
+        def project = image1.project
+        def image2 = BasicInstanceBuilder.getImageInstanceNotExist(project, true)
+
+        def result;
+        (1..100).each {
+            User userToAdd = BasicInstanceBuilder.getUserNotExist(true)
+            users << userToAdd
+        }
+
+
+        def image;
+        (1..100).each {
+
+            users.each { user ->
+                BasicInstanceBuilder.getPersistentUserPosition(image1, user, true)
+                BasicInstanceBuilder.getPersistentUserPosition(image2, user, true)
+            }
+        }
+
+        def times = []
+        long begin;
+        long end;
+        (1..100).each {
+            begin = System.currentTimeMillis()
+            result = UserAPI.listOnline(project.id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+            end = System.currentTimeMillis()
+
+            times << (end-begin)
+            assert 200 == result.code
+        }
+        println "times"
+        println "max : "+times.max()+" ms"
+        println "avg : "+times.sum()/times.size()+" ms"
+
+        //Current
+        //max : 614 ms
+        //avg : 53.62 ms
     }
 }

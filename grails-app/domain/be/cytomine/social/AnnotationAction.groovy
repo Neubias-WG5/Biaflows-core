@@ -1,7 +1,7 @@
 package be.cytomine.social
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package be.cytomine.social
 
 import be.cytomine.CytomineDomain
 import be.cytomine.image.ImageInstance
+import be.cytomine.image.SliceInstance
 import be.cytomine.project.Project
 import be.cytomine.security.SecUser
 import org.restapidoc.annotation.RestApiObject
@@ -41,6 +42,9 @@ class AnnotationAction extends CytomineDomain {
     @RestApiObjectField(description = "The image which contains the annotation")
     ImageInstance image
 
+    @RestApiObjectField(description = "The slice which contains the annotation")
+    SliceInstance slice
+
     @RestApiObjectField(description = "The project which contains the annotation")
     Project project
 
@@ -59,6 +63,7 @@ class AnnotationAction extends CytomineDomain {
     static constraints = {
         annotationIdent (nullable:false)
         action (nullable: false, blank: false)
+        slice nullable: true
     }
 
     static mapping = {
@@ -77,6 +82,7 @@ class AnnotationAction extends CytomineDomain {
         returnArray.created = domain?.created
         returnArray.user = domain?.user?.id
         returnArray.image = domain?.image?.id
+        returnArray.slice = domain?.slice?.id
         returnArray.project = domain?.project?.id
         returnArray.action = domain?.action
         returnArray.annotationIdent = domain?.annotationIdent

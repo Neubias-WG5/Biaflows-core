@@ -167,23 +167,25 @@
                         <br/>
                     </fieldset>
 
-                    <fieldset title="Step 4" style="margin: auto;height: 300px;">
-                        <legend>Retrieval info</legend>
-                        <div id="retrievalGroup">
-                            <div class="alert alert-info">
-                                Retrieval is the system that can provide "suggested terms" for an annotation.
-                                You can choose which project will be used to create the learning set.
+                    <% if(retrieval_enabled == 'true'){ %>
+                        <fieldset title="Step 4" style="margin: auto;height: 300px;">
+                            <legend>Retrieval info</legend>
+                            <div id="retrievalGroup">
+                                <div class="alert alert-info">
+                                    Retrieval is the system that can provide "suggested terms" for an annotation.
+                                    You can choose which project will be used to create the learning set.
+                                </div>
+                                <input type="radio" id="retrievalProjectAll" name="retrievalProjectGroup" value="all" checked>
+                                Enable retrieval search on all projects (with the same ontology)<br> <br>
+                                <input type="radio" id="retrievalProjectSome" name="retrievalProjectGroup" value="some">
+                                Enable retrieval search for selected projects <br>
+                                <select multiple="multiple" id="retrievalproject" style="width:500px;display:none;"></select><br>
+                                <input type="radio" id="retrievalProjectNone" name="retrievalProjectGroup" value="none">
+                                Disable retrieval search <br>
                             </div>
-                            <input type="radio" id="retrievalProjectAll" name="retrievalProjectGroup" value="all" checked>
-                            Enable retrieval search on all projects (with the same ontology)<br> <br>
-                            <input type="radio" id="retrievalProjectSome" name="retrievalProjectGroup" value="some">
-                            Enable retrieval search for selected projects <br>
-                            <select multiple="multiple" id="retrievalproject" style="width:500px;display:none;"></select><br>
-                            <input type="radio" id="retrievalProjectNone" name="retrievalProjectGroup" value="none">
-                            Disable retrieval search <br>
-                        </div>
-                        <br>
-                    </fieldset>
+                            <br>
+                        </fieldset>
+                    <%}%>
 
                     <input type="submit" class="finish" style="display:none;"/>
                     <!--<div class="control-group">-->

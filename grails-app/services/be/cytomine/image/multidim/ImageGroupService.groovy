@@ -1,7 +1,7 @@
 package be.cytomine.image.multidim
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ class ImageGroupService extends ModelService {
     def securityACLService
     def abstractImageService
     def imageGroupHDF5Service
+    def imageServerService
 
     def currentDomain() {
         return ImageGroup
@@ -164,7 +165,7 @@ class ImageGroupService extends ModelService {
         def zMean = characteristics.zStack[(int) Math.floor(characteristics.zStack.size() / 2)]
         def sequence = imageSequenceService.get(imageGroup, characteristics.channel[0], zMean, characteristics.slice[0], characteristics.time[0])
 
-        return abstractImageService.thumb(sequence.image.baseImage.id, maxSize)
+        return imageServerService.thumb(sequence.image.baseImage, [maxSize:maxSize])
     }
 
     def downloadURI(Long id) {

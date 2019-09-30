@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -90,6 +90,16 @@ class UserUrlMappings {
         "/api/project/$id/usersActivity.$format"(controller: "restUser"){
             action = [GET:"listUsersWithLastActivity"]
         }
+
+
+        "/api/storage/$id/user.$format"(controller: "restUser"){
+            action = [GET: "showUserByStorage"]
+        }
+        "/api/storage/$id/user/$idUser.$format"(controller: "restUser"){
+            action = [DELETE:"deleteUserFromStorage",POST:"addUserToStorage"]
+        }
+
+
         "/api/ldap/user.$format"(controller:"restUser"){
             action = [POST:"addFromLDAP"]
         }
@@ -112,6 +122,14 @@ class UserUrlMappings {
 
         "/api/user/$id/lock"(controller:"restUser"){
             action = [POST:"lock", DELETE:"unlock"]
+        }
+        //To normalize. TODO The entrypoint without format will be removed
+        "/api/user/$id/lock.$format"(controller:"restUser"){
+            action = [POST:"lock", DELETE:"unlock"]
+        }
+
+        "/api/user/security_check.json"(controller:"restUser"){
+            action = [GET:"checkPassword", POST:"checkPassword"]
         }
 
         "/api/user/$id/password.$format"(controller:"restUser"){

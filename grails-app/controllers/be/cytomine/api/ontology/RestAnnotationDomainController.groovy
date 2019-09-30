@@ -1,7 +1,7 @@
 package be.cytomine.api.ontology
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -66,8 +66,8 @@ class RestAnnotationDomainController extends RestController {
     def exportService
     def annotationListingService
     def simplifyGeometryService
-    def imageProcessingService
     def currentRoleServiceProxy
+    def imageServerService
 
     def currentDomainName() {
         return "generic annotation" //needed because not RestAbstractImageController...
@@ -79,52 +79,93 @@ class RestAnnotationDomainController extends RestController {
     @RestApiMethod(description="Search service for all annotation type. By default All fields are not visible (optim), you need to select fields using show/hideXXX query parameters.", listing = true)
     @RestApiResponseObject(objectIdentifier = "[annotation listing]")
     @RestApiParams(params=[
-        @RestApiParam(name="showDefault", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show 'basic', 'meta', and 'term' properties group. See showBasic/Meta/... for more information (default: true ONLY IF NO OTHER show/hideXXX are set)"),
-        @RestApiParam(name="showBasic", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show basic properties group (id, class...)"),
-        @RestApiParam(name="showMeta", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show meta properties group (urls, image id, project id,...)"),
-        @RestApiParam(name="showWKT", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show the location WKT properties. This may slow down the request!."),
-        @RestApiParam(name="showGIS", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show the form GIS field (area, centroid,...). This may slow down the request!."),
-        @RestApiParam(name="showTerm", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show the term properties (id, user who add the term,...). This may slow down the request."),
-        @RestApiParam(name="showAlgo", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show the algo details (job,...). This may slow down the request."),
-        @RestApiParam(name="showUser", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show the annotation user details (username,...). This may slow down the request."),
-        @RestApiParam(name="showImage", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show the annotation image details (filename,...). This may slow down the request."),
-        @RestApiParam(name="hideBasic", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide basic properties group (id, class...)"),
-        @RestApiParam(name="hideMeta", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide meta properties group (urls, image id, project id,...)"),
-        @RestApiParam(name="hideWKT", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide the location WKT properties. This may slow down the request!."),
-        @RestApiParam(name="hideGIS", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide the form GIS field (area, centroid,...). This may slow down the request!."),
-        @RestApiParam(name="hideTerm", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide the term properties (id, user who add the term,...). This may slow down the request."),
-        @RestApiParam(name="hideAlgo", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide the algo details (job,...). This may slow down the request."),
-        @RestApiParam(name="hideUser", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide the annotation user details (username,...). This may slow down the request."),
-        @RestApiParam(name="hideImage", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide the annotation image details (filename,...). This may slow down the request."),
-        @RestApiParam(name="project", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for this project id"),
-        @RestApiParam(name="job", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for this job id"),
-        @RestApiParam(name="user", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for this user id"),
-        @RestApiParam(name="jobForTermAlgo", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation link with a term added by this job id"),
-        @RestApiParam(name="term", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation link with this term id"),
-        @RestApiParam(name="image", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for this image id"),
-        @RestApiParam(name="suggestedTerm", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation suggested by for this term by a job"),
-        @RestApiParam(name="userForTermAlgo", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only user annotation link with a term added by this job id"),
-        @RestApiParam(name="kmeansValue", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Only used for GUI "),
-        @RestApiParam(name="users", type="list", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for these users id"),
-        @RestApiParam(name="images", type="list", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for these images id"),
-        @RestApiParam(name="terms", type="list", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for these terms id"),
-        @RestApiParam(name="notReviewedOnly", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) Only get annotation not reviewed"),
-        @RestApiParam(name="noTerm", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) Only get annotation with no term"),
-        @RestApiParam(name="noAlgoTerm", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) Only get annotation with no term from a job"),
-        @RestApiParam(name="multipleTerm", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Only get annotation with multiple terms"),
-        @RestApiParam(name="kmeans", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) Enable or not kmeans (only for GUI)"),
-        @RestApiParam(name="bbox", type="string", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotations having intersection with the bbox (WKT)"),
-        @RestApiParam(name="bboxAnnotation", type="Long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotations having intersection with this annotation"),
-        @RestApiParam(name="baseAnnotation", type="Long", paramType = RestApiParamType.QUERY, description = "(Optional) The base annotation for spatial request (annotation id or wkt location)"),
-        @RestApiParam(name="maxDistanceBaseAnnotation", type="Long", paramType = RestApiParamType.QUERY, description = "(Optional) Only get annotation inside the max distance")
 
+            @RestApiParam(name="showDefault", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show 'basic', 'meta', and 'term' properties group. See showBasic/Meta/... for more information (default: true ONLY IF NO OTHER show/hideXXX are set)"),
 
+            @RestApiParam(name="showBasic", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show basic properties group (id, class...)"),
+            @RestApiParam(name="hideBasic", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide basic properties group (id, class...)"),
 
+            @RestApiParam(name="showMeta", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show meta properties group (urls, image id, project id,...)"),
+            @RestApiParam(name="hideMeta", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide meta properties group (urls, image id, project id,...)"),
+
+            @RestApiParam(name="showWKT", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show the location WKT properties."),
+            @RestApiParam(name="hideWKT", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide the location WKT properties."),
+
+            @RestApiParam(name="showGIS", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show the form GIS field (area, centroid,...). This may slow down the request!."),
+            @RestApiParam(name="hideGIS", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide the form GIS field (area, centroid,...). This may slow down the request!."),
+
+            @RestApiParam(name="showTerm", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show the term properties (id, user who add the term,...). This may slow down the request."),
+            @RestApiParam(name="hideTerm", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide the term properties (id, user who add the term,...). This may slow down the request."),
+
+            @RestApiParam(name="showAlgo", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show the algo details (job,...). This may slow down the request."),
+            @RestApiParam(name="hideAlgo", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide the algo details (job,...). This may slow down the request."),
+
+            @RestApiParam(name="showUser", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show the annotation user details (username,...). This may slow down the request."),
+            @RestApiParam(name="hideUser", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide the annotation user details (username,...). This may slow down the request."),
+
+            @RestApiParam(name="showImage", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show the annotation image details (filename,...). This may slow down the request."),
+            @RestApiParam(name="hideImage", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide the annotation image details (filename,...). This may slow down the request."),
+
+            @RestApiParam(name="showSlice", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show the annotation slice details (c,z,t,...). This may slow down the request."),
+            @RestApiParam(name="hideSlice", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide the annotation slice details (c,z,t,...). This may slow down the request."),
+
+            @RestApiParam(name="showTrack", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, show the annotation track details. This may slow down the request."),
+            @RestApiParam(name="hideTrack", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) If true, hide the annotation track details. This may slow down the request."),
+
+            @RestApiParam(name="project", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for this project id"),
+
+            @RestApiParam(name="job", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for this job id"),
+            @RestApiParam(name="user", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for this user id"),
+            @RestApiParam(name="users", type="list", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for these users id"),
+
+            @RestApiParam(name="term", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation link with this term id"),
+            @RestApiParam(name="terms", type="list", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for these terms id"),
+            @RestApiParam(name="noTerm", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) Only get annotation with no term"),
+            @RestApiParam(name="noAlgoTerm", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) Only get annotation with no term from a job"),
+            @RestApiParam(name="multipleTerm", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Only get annotation with multiple terms"),
+
+            @RestApiParam(name="image", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for this image id"),
+            @RestApiParam(name="images", type="list", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for these images id"),
+            @RestApiParam(name="slice", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for this slice id"),
+            @RestApiParam(name="slices", type="list", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for these slices id"),
+
+            @RestApiParam(name="track", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for this track id"),
+            @RestApiParam(name="tracks", type="list", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation for these tracks id"),
+            @RestApiParam(name="afterSlice", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Only to be used with track(s), return only annotation in the track(s) after the given slice"),
+            @RestApiParam(name="beforeSlice", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Only to be used with track(s), return only annotation in the track(s) before the given slice"),
+            @RestApiParam(name="sliceDirection", type="long", paramType = RestApiParamType.QUERY, description = "Only to be used with beforeSlice, afterSlice or aroundSlide and mandatory in this case. Give the dimension to follow in the image. Accepted values: C,Z,T"),
+
+            @RestApiParam(name="suggestedTerm", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation suggested by for this term by a job"),
+            @RestApiParam(name="suggestedTerms", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation suggested by for these terms by a job"),
+
+            @RestApiParam(name="userForTerm", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only user annotation link with a term added by this user id"),
+            @RestApiParam(name="userForTermAlgo", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only user annotation link with a term added by this job id"),
+            @RestApiParam(name="jobForTermAlgo", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation link with a term added by this job id"),
+
+            @RestApiParam(name="reviewed", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) Get only reviewed annotations"),
+            @RestApiParam(name="reviewUsers", type="list", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotation reviewed by these users"),
+            @RestApiParam(name="notReviewedOnly", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) Only get annotation not reviewed"),
+
+            @RestApiParam(name="kmeans", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional) Enable or not kmeans (only for GUI)"),
+            @RestApiParam(name="kmeansValue", type="long", paramType = RestApiParamType.QUERY, description = "(Optional) Only used for GUI "),
+            @RestApiParam(name="bbox", type="string", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotations having intersection with the bbox (WKT)"),
+            @RestApiParam(name="bboxAnnotation", type="Long", paramType = RestApiParamType.QUERY, description = "(Optional) Get only annotations having intersection with this annotation"),
+
+            @RestApiParam(name="baseAnnotation", type="Long", paramType = RestApiParamType.QUERY, description = "(Optional) The base annotation for spatial request (annotation id or wkt location)"),
+            @RestApiParam(name="maxDistanceBaseAnnotation", type="Long", paramType = RestApiParamType.QUERY, description = "(Optional) Only get annotation inside the max distance"),
+
+            @RestApiParam(name="afterThan", type="Long", paramType = RestApiParamType.QUERY, description = "(Optional) Annotations created before this date will not be returned"),
+            @RestApiParam(name="beforeThan", type="Long", paramType = RestApiParamType.QUERY, description = "(Optional) Annotations created after this date will not be returned"),
     ])
     def search() {
+
+        for(def parameter : request.JSON){
+            if(!params.containsKey(parameter.key)) params.put(parameter.key, parameter.value)
+        }
+
          try {
              def data = doSearch(params).result
-                 responseSuccess(data)
+             responseSuccess(data)
         } catch (CytomineException e) {
             log.error(e)
             response([success: false, errors: e.msg], e.code)
@@ -146,60 +187,58 @@ class RestAnnotationDomainController extends RestController {
      * This work for all kinds of annotations
      */
 
-    @RestApiMethod(description="Get annotation crop  (image area that frame annotation). This work for all kinds of annotations.")
-    @RestApiResponseObject(objectIdentifier =  "file")
+    @RestApiMethod(description="Get a crop of an annotation (image area framing annotation). It works for all kinds of annotation but slower than a direct call to a specific kind of annotation.", extensions=["png", "jpg", "tiff"])
     @RestApiParams(params=[
-        @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH,description = "The annotation id"),
-        @RestApiParam(name="maxSize", type="int", paramType = RestApiParamType.PATH,description = "Maximum size of the crop image (w and h)"),
-        @RestApiParam(name="zoom", type="int", paramType = RestApiParamType.PATH,description = "Zoom level"),
-        @RestApiParam(name="draw", type="boolean", paramType = RestApiParamType.PATH,description = "Draw annotation form border on the image")
+            @RestApiParam(name="id", type="long", paramType=RestApiParamType.PATH, description="The annotation id"),
+            @RestApiParam(name="type", type="String", paramType=RestApiParamType.QUERY, description="Type of crop. Allowed values are 'crop' (default behavior if not set), 'draw' (the shape is drawn in the crop), 'mask' (annotation binary mask), 'alphaMask (part of crop outside annotation is transparent, requires png format)", required=false),
+            @RestApiParam(name="draw", type="boolean", paramType=RestApiParamType.QUERY, description="Equivalent to set type='draw'", required=false),
+            @RestApiParam(name="mask", type="boolean", paramType=RestApiParamType.QUERY, description="Equivalent to set type='mask'", required=false),
+            @RestApiParam(name="alphaMask", type="boolean", paramType=RestApiParamType.QUERY, description="Equivalent to set type='alphaMask'", required=false),
+            @RestApiParam(name="maxSize", type="int", paramType=RestApiParamType.QUERY, description="Maximum crop size in width and height", required = false),
+            @RestApiParam(name="zoom", type="int", paramType=RestApiParamType.QUERY, description="Zoom level in which crop is extracted. Ignored if maxSize is set.", required = false),
+            @RestApiParam(name="increaseArea", type="double", paramType=RestApiParamType.QUERY, description="Increase crop area by multiplying original crop size by this factor.", required = false),
+            @RestApiParam(name="complete", type="boolean", paramType = RestApiParamType.QUERY,description = "Do not simplify the annotation shape.", required=false),
+            @RestApiParam(name="colormap", type="String", paramType = RestApiParamType.QUERY, description = "The absolute path of a colormap file", required=false),
+            @RestApiParam(name="inverse", type="int", paramType = RestApiParamType.QUERY, description = "True if colors have to be inversed", required=false),
+            @RestApiParam(name="contrast", type="float", paramType = RestApiParamType.QUERY, description = "Multiply pixels by contrast", required=false),
+            @RestApiParam(name="gamma", type="float", paramType = RestApiParamType.QUERY, description = "Apply gamma correction", required=false),
+            @RestApiParam(name="bits", type="int", paramType = RestApiParamType.QUERY, description = "Output bit depth per channel", required=false)
     ])
+    @RestApiResponseObject(objectIdentifier ="image (bytes)")
     def crop () {
-        try {
-            def annotation = AnnotationDomain.getAnnotationDomain(params.long("id"))
-            redirect (url : annotation.toCropURL(params))
-        } catch (CytomineException e) {
-            log.error("add error:" + e.msg)
-            log.error(e)
-            response([success: false, errors: e.msg], e.code)
+        AnnotationDomain annotation = AnnotationDomain.getAnnotationDomain(params.long('id'))
+        if(!annotation) {
+            responseNotFound("Annotation",params.id)
+        } else if(annotation instanceof UserAnnotation) {
+            forward(controller: "restUserAnnotation", action: "crop")
+        } else if(annotation instanceof AlgoAnnotation) {
+            forward(controller: "restAlgoAnnotation", action: "crop")
+        } else if(annotation instanceof ReviewedAnnotation) {
+            forward(controller: "restReviewedAnnotation", action: "crop")
+        } else if(annotation instanceof RoiAnnotation) {
+            forward(controller: "restRoiAnnotation", action: "crop")
         }
     }
 
-    def abstractImageService
     def cropParameters() {
         def annotation = AnnotationDomain.getAnnotationDomain(params.long("id"))
-        def parameters = annotation.toCropParams(params)
-        AbstractImage abstractImage = abstractImageService.read(parameters.id)
-        parameters.remove("id")
-        parameters.fif = abstractImage.absolutePath//URLEncoder.encode(abstractImage.absolutePath, "UTF-8")
-        parameters.mimeType = abstractImage.mimeType
-        parameters.resolution = abstractImage.resolution
-
-        responseSuccess(parameters)
+        if (annotation) {
+            params.location = annotation.location
+            def result = imageServerService.crop(annotation.image.baseImage, params, false, true)
+            result.parameters.location = result.parameters.location.toString()
+            responseSuccess(result)
+        }
     }
 
-    /**
-     * Get annotation crop (image area that frame annotation)
-     * This work for all kinds of annotations
-     */
-
+    @Deprecated
     @RestApiMethod(description="Get annotation crop with minimal size (256*256max)  (image area that frame annotation). This work for all kinds of annotations.")
     @RestApiResponseObject(objectIdentifier =  "file")
     @RestApiParams(params=[
         @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH,description = "The annotation id"),
-        @RestApiParam(name="zoom", type="int", paramType = RestApiParamType.PATH,description = "Zoom level"),
-        @RestApiParam(name="draw", type="boolean", paramType = RestApiParamType.PATH,description = "Draw annotation form border on the image")
     ])
     def cropMin () {
-        try {
-            params.maxSize = 256
-            def annotation = AnnotationDomain.getAnnotationDomain(params.long("id"))
-            redirect (url : annotation.toCropURL(params))
-        } catch (CytomineException e) {
-            log.error("add error:" + e.msg)
-            log.error(e)
-            response([success: false, errors: e.msg], e.code)
-        }
+        params.maxSize = 256
+        forward(action: "crop")
     }
 
     private doSearch(def params) {
@@ -209,19 +248,23 @@ class RestAnnotationDomainController extends RestController {
         if(isReviewedAnnotationAsked(params)) {
             al = new ReviewedAnnotationListing()
             result = createRequest(al, params)
-        } else if(isRoiAnnotationAsked(params)) {
+        }
+        else if(isRoiAnnotationAsked(params)) {
             al = new RoiAnnotationListing()
             result = createRequest(al, params)
-        } else if(isAlgoAnnotationAsked(params)) {
+        }
+        else if(isAlgoAnnotationAsked(params)) {
             al = new AlgoAnnotationListing()
             result.addAll(createRequest(al, params))
+
+            //if algo, we look for user_annotation JOIN algo_annotation_term  too
             params.suggestedTerm = params.term
             params.term = null
-            params.usersForTermAlgo = params.users
-            params.users = null
-            al = new UserAnnotationListing() //if algo, we look for user_annotation JOIN algo_annotation_term  too
+            params.usersForTermAlgo = null
+            al = new UserAnnotationListing()
             result.addAll(createRequest(al, params))
-        } else {
+        }
+        else {
             al = new UserAnnotationListing()
             result = createRequest(al, params)
         }
@@ -323,11 +366,8 @@ class RestAnnotationDomainController extends RestController {
            def idUsers = params.get('users')
             if(idUsers) {
                 def ids= idUsers.replace("_",",").split(",").collect{Long.parseLong(it)}
-                def user = SecUser.read(ids.first())
-                if(!user) {
-                    throw new ObjectNotFoundException("User $user not exist!")
-                }
-                return !ids.isEmpty() && user.algo()
+
+                return (UserJob.countByIdInList(ids) > 0)
             }
         }
         //if no other filter, just take user annotation
@@ -340,72 +380,127 @@ class RestAnnotationDomainController extends RestController {
     private def createRequest(AnnotationListing al, def params) {
 
         al.columnToPrint = paramsService.getPropertyGroupToShow(params)
+        
+        // Project
         al.project = params.getLong('project')
-        al.user = params.getLong('user')
-        if(params.getLong("job")) {
-            al.user = UserJob.findByJob(Job.read(params.getLong("job")))?.id
-        }
-        if(params.getLong("jobForTermAlgo")) {
-            al.userForTermAlgo = UserJob.findByJob(Job.read(params.getLong("jobForTermAlgo")))?.id
-        }
-
-        al.term = params.getLong('term')
+        
+        // Images
         al.image = params.getLong('image')
-        al.suggestedTerm = params.getLong('suggestedTerm')
-        al.userForTermAlgo = params.getLong('userForTermAlgo')
+        def images = params.get('images')
+        if(images) {
+            al.images = params.get('images').replace("_",",").split(",").collect{Long.parseLong(it)}
+        }
+        
+        // Slices
+        al.slice = params.getLong('slice')
+        def slices = params.get('slices')
+        if(slices) {
+            al.slices = params.get('slices').replace("_",",").split(",").collect{Long.parseLong(it)}
+        }
 
-        al.kmeansValue = params.getLong('kmeansValue')
-        al.excludedAnnotation = params.getLong('excludedAnnotation')
+        // Tracks
+        al.track = params.getLong('track')
+        def tracks = params.get('tracks')
+        if(tracks) {
+            al.tracks = params.get('tracks').replace("_",",").split(",").collect{Long.parseLong(it)}
+        }
 
+        if (al.track || al.tracks) {
+            al.beforeSlice = params.getLong('beforeSlice')
+            al.afterSlice = params.getLong('afterSlice')
+            al.sliceDimension = params.sliceDimension
+        }
+
+        // Users
+        al.user = params.getLong('user')
         def users = params.get('users')
         if(users) {
             al.users = params.get('users').replace("_",",").split(",").collect{Long.parseLong(it)}
         }
 
-        def images = params.get('images')
-        if(images) {
-            al.images = params.get('images').replace("_",",").split(",").collect{Long.parseLong(it)}
-        }
-
-        def terms = params.get('terms')
-        if(terms) {
-            al.terms = params.get('terms').replace("_",",").split(",").collect{Long.parseLong(it)}
-        }
-
+        // Users for term
+        //TODO user for term ?
         def usersForTerm = params.get('usersForTerm')
         if(usersForTerm) {
             al.usersForTerm = params.get('usersForTerm').split(",").collect{Long.parseLong(it)}
         }
 
-        def suggestedTerms = params.get('suggestedTerms')
-        if(suggestedTerms) {
-            al.suggestedTerms = params.get('suggestedTerms').split(",").collect{Long.parseLong(it)}
-        }
-
+        // Users for term algo
+        al.userForTermAlgo = params.getLong('userForTermAlgo')
         def usersForTermAlgo = params.get('usersForTermAlgo')
         if(usersForTermAlgo) {
             al.usersForTermAlgo = params.get('usersForTermAlgo').split(",").collect{Long.parseLong(it)}
         }
 
-        al.notReviewedOnly = params.getBoolean('notReviewedOnly')
+        // Jobs
+        if(params.getLong("job")) {
+            al.user = UserJob.findByJob(Job.read(params.getLong("job")))?.id
+        }
+
+        // Jobs for term algo
+        if(params.getLong("jobForTermAlgo")) {
+            al.userForTermAlgo = UserJob.findByJob(Job.read(params.getLong("jobForTermAlgo")))?.id
+        }
+
+        // Terms
+        al.term = params.getLong('term')
+        def terms = params.get('terms')
+        if(terms) {
+            al.terms = params.get('terms').replace("_",",").split(",").collect{Long.parseLong(it)}
+        }
+
+        // Suggested terms
+        al.suggestedTerm = params.getLong('suggestedTerm')
+        def suggestedTerms = params.get('suggestedTerms')
+        if(suggestedTerms) {
+            al.suggestedTerms = params.get('suggestedTerms').split(",").collect{Long.parseLong(it)}
+        }
+
+        // Boolean for terms
         al.noTerm = params.getBoolean('noTerm')
         al.noAlgoTerm = params.getBoolean('noAlgoTerm')
         al.multipleTerm = params.getBoolean('multipleTerm')
-        al.kmeans = params.getBoolean('kmeans')
 
+        // Review
+        al.notReviewedOnly = params.getBoolean('notReviewedOnly')
+
+        // Review users
+        // TODO: reviewUser ?
+        def reviewUsers = params.get('reviewUsers')
+        if(reviewUsers) {
+            al.reviewUsers = reviewUsers.replace("_",",").split(",").collect{Long.parseLong(it)}
+        }
+
+        // Kmeans
+        al.kmeans = params.getBoolean('kmeans')
+        al.kmeansValue = params.getLong('kmeansValue')
+
+        // BBOX
         if(params.get('bbox')) {
             al.bbox = GeometryUtils.createBoundingBox(params.get('bbox')).toText()
         }
-
         if(params.get('bboxAnnotation')) {
             al.bboxAnnotation = AnnotationDomain.getAnnotationDomain(params.getLong('bboxAnnotation')).wktLocation
         }
+
+        // Base annotation
         if(params.get('baseAnnotation')) {
             al.baseAnnotation = params.baseAnnotation
         }
         if(params.get('maxDistanceBaseAnnotation')) {
             al.maxDistanceBaseAnnotation = params.getLong('maxDistanceBaseAnnotation')
         }
+
+        // Date
+        if(params.afterThan) {
+            al.afterThan = new Date(params.long('afterThan'))
+        }
+        if(params.beforeThan) {
+            al.beforeThan = new Date(params.long('beforeThan'))
+        }
+
+        al.excludedAnnotation = params.getLong('excludedAnnotation') // TODO ?
+
         annotationListingService.listGeneric(al)
     }
 
@@ -420,7 +515,9 @@ class RestAnnotationDomainController extends RestController {
         @RestApiParam(name="terms", type="list", paramType = RestApiParamType.QUERY,description = "The annotation terms id (if empty: all terms)"),
         @RestApiParam(name="users", type="list", paramType = RestApiParamType.QUERY,description = "The annotation users id (if empty: all users). If reviewed flag is false then if first user is software, get algo annotation otherwise if first user is human, get user annotation. "),
         @RestApiParam(name="images", type="list", paramType = RestApiParamType.QUERY,description = "The annotation images id (if empty: all images)"),
-        @RestApiParam(name="format", type="string", paramType = RestApiParamType.QUERY,description = "The report format (pdf, xls,...)")
+        @RestApiParam(name="afterThan", type="Long", paramType = RestApiParamType.QUERY, description = "(Optional) Annotations created before this date will not be returned"),
+        @RestApiParam(name="beforeThan", type="Long", paramType = RestApiParamType.QUERY, description = "(Optional) Annotations created after this date will not be returned"),
+        @RestApiParam(name="format", type="string", paramType = RestApiParamType.QUERY,description = "The report format (pdf, xls,...)"),
     ])
     def downloadDocumentByProject() {
 
@@ -684,7 +781,7 @@ class RestAnnotationDomainController extends RestController {
             AnnotationDomain annotation = AnnotationDomain.getAnnotationDomain(idAnnotation)
 
             //apply simplify
-            def result = simplifyGeometryService.simplifyPolygon(annotation.location.toText(),minPoint,maxPoint)
+            def result = simplifyGeometryService.simplifyPolygon(annotation.location,minPoint,maxPoint)
             annotation.location = result.geometry
             annotation.geometryCompression = result.rate
             userAnnotationService.saveDomain(annotation)  //saveDomain is same method in algo/reviewedannotationservice
@@ -828,27 +925,39 @@ class RestAnnotationDomainController extends RestController {
         @RestApiParam(name="JSON POST DATA: review", type="boolean", paramType = RestApiParamType.QUERY,description = "Only get reviewed annotation"),
         @RestApiParam(name="JSON POST DATA: image", type="long", paramType = RestApiParamType.QUERY,description = "The image id"),
         @RestApiParam(name="JSON POST DATA: remove", type="boolean", paramType = RestApiParamType.QUERY,description = "Add or remove Y"),
-        @RestApiParam(name="JSON POST DATA: layers", type="list", paramType = RestApiParamType.QUERY,description = "List of layers id")
+        @RestApiParam(name="JSON POST DATA: layers", type="list", paramType = RestApiParamType.QUERY,description = "List of layers id"),
+        @RestApiParam(name="JSON POST DATA: annotation", type="long", paramType = RestApiParamType.QUERY,description = "The annotation to correct (if specified, only this annotation will be changed; image and layers parameters will be ignored)")
     ])
     def addCorrection() {
         def json = request.JSON
         String location = json.location
         boolean review = json.review
-        long idImage = json.image
+        Long idImage = json.image
         boolean remove = json.remove
         def layers = json.layers
+        Long idAnnotation = json.annotation
         try {
             List<Long> idsReviewedAnnotation = []
             List<Long> idsUserAnnotation = []
 
-            //if review mode, priority is done to reviewed annotation correction
-            if (review) {
-                idsReviewedAnnotation = findAnnotationIdThatTouch(location, layers,idImage, "reviewed_annotation")
+            if(idAnnotation) {
+                if(review) {
+                    idsReviewedAnnotation = [idAnnotation]
+                }
+                else {
+                    idsUserAnnotation = [idAnnotation]
+                }
             }
+            else {
+                //if review mode, priority is done to reviewed annotation correction
+                if (review) {
+                    idsReviewedAnnotation = findAnnotationIdThatTouch(location, layers, idImage, "reviewed_annotation")
+                }
 
-            //there is no reviewed intersect annotation or user is not in review mode
-            if (idsReviewedAnnotation.isEmpty()) {
-                idsUserAnnotation = findAnnotationIdThatTouch(location, layers, idImage, "user_annotation")
+                //there is no reviewed intersect annotation or user is not in review mode
+                if (idsReviewedAnnotation.isEmpty()) {
+                    idsUserAnnotation = findAnnotationIdThatTouch(location, layers, idImage, "user_annotation")
+                }
             }
 
             log.info "idsReviewedAnnotation=$idsReviewedAnnotation"
@@ -860,9 +969,9 @@ class RestAnnotationDomainController extends RestController {
             }
 
             if (idsUserAnnotation.isEmpty()) {
-                responseResult(doCorrectReviewedAnnotation(idsReviewedAnnotation,location, remove))
+                responseResult(doCorrectReviewedAnnotation(idsReviewedAnnotation, location, remove))
             } else {
-                responseResult(doCorrectUserAnnotation(idsUserAnnotation,location, remove))
+                responseResult(doCorrectUserAnnotation(idsUserAnnotation, location, remove))
             }
 
         } catch (CytomineException e) {
@@ -1035,13 +1144,16 @@ class RestAnnotationDomainController extends RestController {
         }
 
         def result
+        def oldLocation = based.location
         if (remove) {
             //diff will be made
             //-remove the new geometry from the based annotation location
             //-remove the new geometry from all other annotation location
             based.location = based.location.difference(newGeometry)
             if (based.location.getNumPoints() < 2) throw new WrongArgumentException("You cannot delete an annotation with substract! Use reject or delete tool.")
-            result = reviewedAnnotationService.update(based,JSON.parse(based.encodeAsJSON()))
+            def json = JSON.parse(based.encodeAsJSON())
+            based.location = oldLocation
+            result = reviewedAnnotationService.update(based,json)
             allAnnotationWithSameTerm.eachWithIndex { other, i ->
                 other.location = other.location.difference(newGeometry)
                 reviewedAnnotationService.update(other,JSON.parse(other.encodeAsJSON()))
@@ -1055,7 +1167,10 @@ class RestAnnotationDomainController extends RestController {
                 based.location = based.location.union(other.location)
                 reviewedAnnotationService.delete(other)
             }
-            result = reviewedAnnotationService.update(based,JSON.parse(based.encodeAsJSON()))
+            def json = JSON.parse(based.encodeAsJSON())
+            based.location = oldLocation
+
+            result = reviewedAnnotationService.update(based,json)
         }
         return result
     }
@@ -1083,6 +1198,7 @@ class RestAnnotationDomainController extends RestController {
         }
 
         def result
+        def oldLocation = based.location
         if (remove) {
             log.info "doCorrectUserAnnotation : remove"
             //diff will be made
@@ -1090,7 +1206,10 @@ class RestAnnotationDomainController extends RestController {
             //-remove the new geometry from all other annotation location
             based.location = based.location.difference(newGeometry)
             if (based.location.getNumPoints() < 2) throw new WrongArgumentException("You cannot delete an annotation with substract! Use reject or delete tool.")
-            result = userAnnotationService.update(based,JSON.parse(based.encodeAsJSON()))
+
+            def json = JSON.parse(based.encodeAsJSON())
+            based.location = oldLocation
+            result = userAnnotationService.update(based,json)
             allAnnotationWithSameTerm.eachWithIndex { other, i ->
                 other.location = other.location.difference(newGeometry)
                 userAnnotationService.update(other,JSON.parse(other.encodeAsJSON()))
@@ -1105,7 +1224,11 @@ class RestAnnotationDomainController extends RestController {
                 based.location = based.location.union(other.location)
                 userAnnotationService.delete(other)
             }
-            result = userAnnotationService.update(based,JSON.parse(based.encodeAsJSON()))
+
+            def json = JSON.parse(based.encodeAsJSON())
+            based.location = oldLocation
+
+            result = userAnnotationService.update(based,json)
         }
         return result
     }

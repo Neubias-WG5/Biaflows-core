@@ -1,7 +1,7 @@
 package be.cytomine.api.processing
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ class RestSoftwareController extends RestController {
         boolean executableOnly = params.boolean('executableOnly', false)
         boolean lastReleaseOnly = params.boolean('lastReleaseOnly', false)
         String sort = params.sort ?: 'id'
-        if (!['id', 'name', 'fullName', 'softwareVersion', 'created']) sort = 'id'
+        if (!['id', 'name', 'fullName', 'softwareVersion', 'created'].contains(sort)) sort = 'id'
         String order = params.order ?: 'desc'
         if (!['asc', 'desc'].contains(order)) order = 'desc'
         String search = params.search

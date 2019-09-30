@@ -1,7 +1,7 @@
 package cytomine.web
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ class RequestFilters {
                 if(actionName.equals("ping")) return
                 if(actionName.equals("listOnlineFriendsWithPosition")) return
                 if(actionName.equals("listOnlineUsersByImage")) return
-                if(controllerName.equals("restAnnotationIndex") && actionName.equals("listByImage")) return
+                if(controllerName.equals("restAnnotationIndex") && actionName.equals("listBySlice")) return
 
                 if(controllerName.equals("restUserPosition") && actionName.equals("add")) return
                 request.currentTime = System.currentTimeMillis()
@@ -53,7 +53,7 @@ class RequestFilters {
                 if(actionName.equals("listOnlineFriendsWithPosition")) return
                 if(actionName.equals("listOnlineUsersByImage")) return
                 if(controllerName.equals("restUserPosition") && actionName.equals("add")) return
-                if(controllerName.equals("restAnnotationIndex") && actionName.equals("listByImage")) return
+                if(controllerName.equals("restAnnotationIndex") && actionName.equals("listBySlice")) return
 
                 log.info controllerName+"."+actionName + " Request took ${System.currentTimeMillis()-request.currentTime}ms"
             }

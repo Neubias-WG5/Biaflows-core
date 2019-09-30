@@ -1,7 +1,5 @@
-package be.cytomine.image.server
-
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,26 +14,15 @@ package be.cytomine.image.server
 * limitations under the License.
 */
 
-import be.cytomine.CytomineDomain
+class ImageServerUrlMappings {
 
-/**
- * Server that provide images data
- */
-class ImageServer extends CytomineDomain {
-
-    String name
-    String url
-    String service
-    String className
-    Boolean available
-
-    static constraints = {
-        name blank: false
-        url blank: false
-        available nullable: false
+    static mappings = {
+        "/api/imageserver.$format"(controller: "restImageServer") {
+            action = [GET: "list"]
+        }
+        "/api/imageserver/$id.$format"(controller: "restImageServer") {
+            action = [GET: "show"]
+        }
     }
 
-    def getBaseUrl() {
-        return url + service
-    }
 }

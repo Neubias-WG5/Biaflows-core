@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2017. Authors: see NOTICE file.
+ * Copyright (c) 2009-2019. Authors: see NOTICE file.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ var AddProjectDialog = Backbone.View.extend({
     },
     doLayout: function (projectAddDialogTpl, ontologiesChoicesRadioTpl, disciplinesChoicesRadioTpl) {
         var self = this;
-        var dialog = _.template(projectAddDialogTpl, {});
+        var dialog = _.template(projectAddDialogTpl, {retrieval_enabled : window.app.configurations.retrieval_enabled});
         $("#editproject").replaceWith("");
         $("#addproject").replaceWith("");
         $(self.el).append(dialog);

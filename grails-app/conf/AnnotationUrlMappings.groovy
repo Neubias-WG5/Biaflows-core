@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -24,19 +24,10 @@ class AnnotationUrlMappings {
 
     static mappings = {
 
-//        /**
-//         * Annotation search
-//         */
-//        "/api/annotation/search.$format"(controller:"restAnnotationDomain"){
-//            action = []
-//        }
-
         /**
          * Annotation generic
          */
-        "/api/annotation/method/union.$format"(controller:"restAnnotationDomain"){
-            action = [PUT:"union", GET:"union"]
-        }
+
         "/api/annotation.$format"(controller:"restAnnotationDomain"){
             action = [GET: "search",POST:"add"]
         }
@@ -66,6 +57,14 @@ class AnnotationUrlMappings {
         }
 
         /**
+         * Annotation search
+         */
+        "/api/annotation/search.$format"(controller:"restAnnotationDomain"){
+            action = [GET: "search",POST:"search"]
+        }
+
+
+        /**
          * User Annotation
          */
         "/api/userannotation.$format"(controller:"restUserAnnotation"){
@@ -76,6 +75,9 @@ class AnnotationUrlMappings {
         }
         "/api/user/$id/userannotation/count.$format"(controller:"restUserAnnotation"){
             action = [GET: "countByUser"]
+        }
+        "/api/project/$project/userannotation/count.$format"(controller:"restUserAnnotation"){
+            action = [GET: "countByProject"]
         }
         "/api/userannotation/$id/crop.$format"(controller: "restUserAnnotation"){
             action = [GET:"crop"]
@@ -95,6 +97,9 @@ class AnnotationUrlMappings {
         "/api/user/$id/reviewedannotation/count.$format"(controller:"restReviewedAnnotation"){
             action = [GET: "countByUser"]
         }
+        "/api/project/$project/reviewedannotation/count.$format"(controller:"restReviewedAnnotation"){
+            action = [GET: "countByProject"]
+        }
         "/api/reviewedannotation/$id/crop.$format"(controller: "restReviewedAnnotation"){
             action = [GET:"crop"]
         }
@@ -108,9 +113,10 @@ class AnnotationUrlMappings {
         /**
          * Algo Annotation
          */
-        "/api/algoannotation/method/union.$format"(controller:"restAlgoAnnotation"){
-            action = [PUT:"union", GET:"union"]
+        "/api/project/$project/algoannotation/count.$format"(controller:"restAlgoAnnotation"){
+            action = [GET: "countByProject"]
         }
+
         "/api/algoannotation.$format"(controller:"restAlgoAnnotation"){
             action = [GET: "list",POST:"add"]
         }
@@ -222,6 +228,8 @@ class AnnotationUrlMappings {
             action = [GET:"list"]
         }
 
-
+        "/api/project/$project/annotationaction/count.$format"(controller: "restAnnotationAction"){
+            action = [GET:"countByProject"]
+        }
     }
 }

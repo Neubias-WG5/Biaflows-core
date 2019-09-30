@@ -210,6 +210,7 @@ body {
     <script type="text/javascript" src="application/models/SlideModel.js" ></script>
     <script type="text/javascript" src="application/models/StatsModel.js" ></script>
     <script type="text/javascript" src="application/models/CommandModel.js" ></script>
+    <script type="text/javascript" src="application/models/ConfigurationModel.js" ></script>
     <script type="text/javascript" src="application/models/RelationModel.js" ></script>
     <script type="text/javascript" src="application/models/SearchModel.js" ></script>
     <script type="text/javascript" src="application/models/SecRoleModel.js" ></script>

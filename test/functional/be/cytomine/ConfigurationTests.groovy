@@ -1,7 +1,7 @@
 package be.cytomine
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -103,6 +103,28 @@ class ConfigurationTests {
 
         result = ConfigurationAPI.show(key, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
+    }
+
+    //TEST ADD
+    void testConfigurationAddNotCorrect() {
+        def configToAdd = BasicInstanceBuilder.getConfigurationNotExist()
+
+        configToAdd.key =""
+        def result = ConfigurationAPI.create(configToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 400 == result.code
+
+        configToAdd.key =" "
+        result = ConfigurationAPI.create(configToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 400 == result.code
+
+        configToAdd.key ="test.test"
+        result = ConfigurationAPI.create(configToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 400 == result.code
+
+        configToAdd.key = BasicInstanceBuilder.getConfiguration().key
+        result = ConfigurationAPI.create(configToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 400 == result.code
+
     }
 
     //TEST UPDATE

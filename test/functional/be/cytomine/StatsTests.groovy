@@ -1,7 +1,7 @@
 package be.cytomine
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -59,8 +59,6 @@ class StatsTests  {
         result = TermAPI.create(termToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
 
-
-
         def annotationToAdd = BasicInstanceBuilder.getUserAnnotationNotExist(project)
         Term term2 = BasicInstanceBuilder.getTermNotExist()
         term2.ontology = project.ontology
@@ -72,10 +70,6 @@ class StatsTests  {
         result = UserAnnotationAPI.create(annotationWithTerm.toString(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
 
-
-
-
-
         result = StatsAPI.statTerm(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
         json = JSON.parse(result.data)
@@ -86,6 +80,15 @@ class StatsTests  {
 
         result = StatsAPI.statTerm(-1, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 404 == result.code
+    }
+
+    void testStatTermWithParams() {
+        Project project = BasicInstanceBuilder.getProject()
+        Long startTime = new Date().getTime()
+        def result = StatsAPI.statTerm(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, startTime, startTime - 1000)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
     }
 
     void testStatUser() {
@@ -115,9 +118,9 @@ class StatsTests  {
     }
 
 
-    void testStatsTermslide() {
+    void testStatsTermSlide() {
         Project project = BasicInstanceBuilder.getProject()
-        def result;
+        def result
 
         result = StatsAPI.statTermSlide(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
@@ -126,13 +129,10 @@ class StatsTests  {
 
         int total = json.collection.size()
 
-        // we add a terme with an annotation
-
+        // we add a term with an annotation
         Term termToAdd = BasicInstanceBuilder.getTermNotExist()
         result = TermAPI.create(termToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
-
-
 
         def annotationToAdd = BasicInstanceBuilder.getUserAnnotationNotExist(project)
         Term term2 = BasicInstanceBuilder.getTermNotExist()
@@ -146,20 +146,23 @@ class StatsTests  {
         assert 200 == result.code
 
 
-
-
         result = StatsAPI.statTermSlide(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
         json = JSON.parse(result.data)
         assert json.collection instanceof JSONArray
-
         assert json.collection.size() == total+1
-
 
         result = StatsAPI.statTermSlide(-1, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 404 == result.code
 
+        // test with dates parameters
+        Long startTime = new Date().getTime()
+        result = StatsAPI.statTermSlide(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, startTime, startTime + 1000)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
     }
+
 
     void testStatsUserAnnotation() {
         Project project = BasicInstanceBuilder.getProjectNotExist(true)
@@ -173,13 +176,11 @@ class StatsTests  {
 
         int total = json.collection.find{it.key == admin.firstname + " " + admin.lastname}.terms.size()
 
-        // we add a terme with an annotation
+        // we add a term with an annotation
 
         Term termToAdd = BasicInstanceBuilder.getTermNotExist()
         result = TermAPI.create(termToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
-
-
 
         def annotationToAdd = BasicInstanceBuilder.getUserAnnotationNotExist(project)
         Term term2 = BasicInstanceBuilder.getTermNotExist()
@@ -191,9 +192,6 @@ class StatsTests  {
 
         result = UserAnnotationAPI.create(annotationWithTerm.toString(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
-
-
-
 
 
         result = StatsAPI.statUserAnnotations(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
@@ -233,14 +231,114 @@ class StatsTests  {
         result = StatsAPI.statUser(-1, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 404 == result.code
 
-
+        // test with dates parameters
+        Long startTime = new Date().getTime()
+        result = StatsAPI.statTermSlide(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, startTime, startTime + 1000)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
     }
 
-    void testStatsEvolution() {
+    void testStatsUserAnnotationEvolution() {
         Project project = BasicInstanceBuilder.getProject()
-        def result;
+        def result = StatsAPI.statAnnotationEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+    }
 
-        result = StatsAPI.statAnnotationEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+    void testStatsUserAnnotationEvolutionWithParams() {
+        Project project = BasicInstanceBuilder.getProject()
+        Term term = BasicInstanceBuilder.getTermNotExist(project.ontology, true)
+        Date startDate = new Date()
+        def result = StatsAPI.statAnnotationEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, startDate.getTime(), startDate.getTime() - 1000, term.id)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+    }
+
+    void testStatsAlgoAnnotationEvolution() {
+        Project project = BasicInstanceBuilder.getProject()
+        def result = StatsAPI.statAlgoAnnotationEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+    }
+
+    void testStatsAlgoAnnotationEvolutionWithParams() {
+        Project project = BasicInstanceBuilder.getProject()
+        Term term = BasicInstanceBuilder.getTermNotExist(project.ontology, true)
+        Date startDate = new Date()
+        def result = StatsAPI.statAlgoAnnotationEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, startDate.getTime(), startDate.getTime() - 1000, term.id)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+    }
+
+    void testStatsReviewedAnnotationEvolution() {
+        Project project = BasicInstanceBuilder.getProject()
+        def result = StatsAPI.statReviewedAnnotationEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+    }
+
+    void testStatsReviewedAnnotationEvolutionWithParams() {
+        Project project = BasicInstanceBuilder.getProject()
+        Term term = BasicInstanceBuilder.getTermNotExist(project.ontology, true)
+        Date startDate = new Date()
+        def result = StatsAPI.statReviewedAnnotationEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, startDate.getTime(), startDate.getTime() - 1000, term.id)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+    }
+
+    void testStatsAnnotationActionEvolution() {
+        Project project = BasicInstanceBuilder.getProject()
+        def result = StatsAPI.statAnnotationActionEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+    }
+
+    void testStatsAnnotationActionEvolutionWithParams() {
+        Project project = BasicInstanceBuilder.getProject()
+        Date startDate = new Date()
+        def result = StatsAPI.statAnnotationActionEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, startDate.getTime(), startDate.getTime() - 1000)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+    }
+
+    void testStatsConnectionEvolution() {
+        Project project = BasicInstanceBuilder.getProject()
+        def result = StatsAPI.statProjectConnectionEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+    }
+
+    void testStatsConnectionEvolutionWithParams() {
+        Project project = BasicInstanceBuilder.getProject()
+        Date startDate = new Date()
+        def result = StatsAPI.statProjectConnectionEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, startDate.getTime(), startDate.getTime() - 1000)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+    }
+
+    void testStatsImageConsultationEvolution() {
+        Project project = BasicInstanceBuilder.getProject()
+        def result = StatsAPI.statImageConsultationEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+    }
+
+    void testStatsImageConsultationEvolutionWithParams() {
+        Project project = BasicInstanceBuilder.getProject()
+        Date startDate = new Date()
+        def result = StatsAPI.statImageConsultationEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, startDate.getTime(), startDate.getTime() - 1000)
         assert 200 == result.code
         def json = JSON.parse(result.data)
         assert json.collection instanceof JSONArray

@@ -1,7 +1,7 @@
 package be.cytomine.api.image.multidim
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ class RestImageGroupController extends RestController {
         response.setHeader("max-age", "86400")
         int maxSize = params.int('maxSize',  512)
         imageGroupService.thumb(params.long('id'), maxSize)
-        responseBufferedImage(imageGroupService.thumb(params.long('id'), maxSize))
+        responseByteArray(imageGroupService.thumb(params.long('id'), maxSize))
     }
 
     /**

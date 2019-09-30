@@ -1,7 +1,7 @@
 package be.cytomine.ontology
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -21,9 +21,11 @@ import be.cytomine.Exception.AlreadyExistException
 import be.cytomine.Exception.WrongArgumentException
 import be.cytomine.api.UrlApi
 import be.cytomine.image.ImageInstance
+import be.cytomine.image.SliceInstance
 import be.cytomine.project.Project
 import be.cytomine.security.SecUser
 import be.cytomine.utils.JSONUtils
+import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.WKTReader
 import org.restapidoc.annotation.RestApiObject
 import org.restapidoc.annotation.RestApiObjectField
@@ -35,10 +37,6 @@ import org.restapidoc.annotation.RestApiObjectFields
  */
 @RestApiObject(name = "Reviewed annotation", description = "A reviewed annotation is an user/algo-annotation validated by a user. When a user validate an user/algoannotation, we copy all data from the validated annotation to create the review annotation")
 class ReviewedAnnotation extends AnnotationDomain implements Serializable {
-
-//    returnArray['terms'] = domain?.termsId()
-//    returnArray['term'] = returnArray['terms']
-
 
     /**
      * Annotation that has been reviewed (just keep a link)
@@ -68,39 +66,39 @@ class ReviewedAnnotation extends AnnotationDomain implements Serializable {
     @RestApiObjectField(description = "User that review the based annotation", useForCreation = true, mandatory = false, defaultValue = "current user")
     SecUser reviewUser
 
-    static hasMany = [ terms: Term ]
+    static hasMany = [terms: Term]
 
-    @RestApiObjectFields(params=[
-        @RestApiObjectField(apiFieldName = "terms", description = "List of term id mapped with this annotation",allowedType = "list",useForCreation = true, mandatory=false),
-        @RestApiObjectField(apiFieldName = "cropURL", description = "URL to get the annotation crop",allowedType = "string",useForCreation = false),
-        @RestApiObjectField(apiFieldName = "smallCropURL", description = "URL to get a small annotation crop (<256px)",allowedType = "string",useForCreation = false),
-        @RestApiObjectField(apiFieldName = "url", description = "URL to go to the annotation on the image",allowedType = "string",useForCreation = false),
-        @RestApiObjectField(apiFieldName = "imageURL", description = "URL to go to the image",allowedType = "string",useForCreation = false),
-        @RestApiObjectField(apiFieldName = "reviewed", description = "Always true",allowedType = "boolean",useForCreation = false)
+    @RestApiObjectFields(params = [
+            @RestApiObjectField(apiFieldName = "terms", description = "List of term id mapped with this annotation", allowedType = "list", useForCreation = true, mandatory = false),
+            @RestApiObjectField(apiFieldName = "cropURL", description = "URL to get the annotation crop", allowedType = "string", useForCreation = false),
+            @RestApiObjectField(apiFieldName = "smallCropURL", description = "URL to get a small annotation crop (<256px)", allowedType = "string", useForCreation = false),
+            @RestApiObjectField(apiFieldName = "url", description = "URL to go to the annotation on the image", allowedType = "string", useForCreation = false),
+            @RestApiObjectField(apiFieldName = "imageURL", description = "URL to go to the image", allowedType = "string", useForCreation = false),
+            @RestApiObjectField(apiFieldName = "reviewed", description = "Always true", allowedType = "boolean", useForCreation = false)
     ])
     static constraints = {
     }
 
     static mapping = {
-          id generator: "assigned"
-          columns {
-              location type: org.hibernate.spatial.GeometryType
-          }
+        id generator: "assigned"
+        columns {
+            location type: org.hibernate.spatial.GeometryType
+        }
         terms fetch: 'join'
         wktLocation(type: 'text')
         sort "id"
 
-     }
+    }
 
-    public String toString() {
-         return "ReviewedAnnotation" + " " + parentClassName + ":" + parentIdent + " with term " + terms + " from userjob " + user + " and  project " + project
+    String toString() {
+        return "ReviewedAnnotation" + " " + parentClassName + ":" + parentIdent + " with term " + terms + " from userjob " + user + " and  project " + project
     }
 
     /**
      * Set link to the annotation that has been reviewed
      * @param annotation Annotation that is reviewed
      */
-    public void putParentAnnotation(AnnotationDomain annotation) {
+    void putParentAnnotation(AnnotationDomain annotation) {
         parentClassName = annotation.class.getName()
         parentIdent = annotation.id
     }
@@ -109,13 +107,10 @@ class ReviewedAnnotation extends AnnotationDomain implements Serializable {
      * Get the annotation that has been reviewed
      * @return Annotation
      */
-    public AnnotationDomain retrieveParentAnnotation() {
+    AnnotationDomain retrieveParentAnnotation() {
         Class.forName(parentClassName, false, Thread.currentThread().contextClassLoader).read(parentIdent)
     }
 
-    def getCropUrl() {
-        UrlApi.getReviewedAnnotationCropWithAnnotationId(id)
-    }
 
     /**
      * Get all terms map with annotation
@@ -131,16 +126,16 @@ class ReviewedAnnotation extends AnnotationDomain implements Serializable {
      * @return Terms id
      */
     def termsId() {
-         terms().collect{it.id}
-     }
+        terms().collect { it.id }
+    }
 
-     def beforeInsert() {
-         super.beforeInsert()
-     }
+    def beforeInsert() {
+        super.beforeInsert()
+    }
 
-     def beforeUpdate() {
-         super.beforeUpdate()
-     }
+    def beforeUpdate() {
+        super.beforeUpdate()
+    }
 
     boolean isAlgoAnnotation() {
         return false
@@ -163,73 +158,80 @@ class ReviewedAnnotation extends AnnotationDomain implements Serializable {
      * @param domain Domain that must be filled
      * @param json JSON containing data
      * @return Domain with json data filled
-     */     
-     static ReviewedAnnotation insertDataIntoDomain(def json,def domain=new ReviewedAnnotation()) {
-         try {
-             domain.id = JSONUtils.getJSONAttrLong(json,'id',null)
-             domain.geometryCompression = JSONUtils.getJSONAttrDouble(json, 'geometryCompression', 0)
-             domain.created = JSONUtils.getJSONAttrDate(json, 'created')
-             domain.updated = JSONUtils.getJSONAttrDate(json, 'updated')
-             domain.location = new WKTReader().read(json.location)
+     */
+    static ReviewedAnnotation insertDataIntoDomain(def json, def domain = new ReviewedAnnotation()) {
+        domain.id = JSONUtils.getJSONAttrLong(json, 'id', null)
+        domain.created = JSONUtils.getJSONAttrDate(json, 'created')
+        domain.updated = JSONUtils.getJSONAttrDate(json, 'updated')
 
-             domain.image = JSONUtils.getJSONAttrDomain(json, "image", new ImageInstance(), true)
-             domain.project = JSONUtils.getJSONAttrDomain(json, "project", new Project(), true)
-             domain.user = JSONUtils.getJSONAttrDomain(json, "user", new SecUser(), true)
-             domain.reviewUser = JSONUtils.getJSONAttrDomain(json, "reviewUser", new SecUser(), true)
+        domain.slice = JSONUtils.getJSONAttrDomain(json, "slice", new SliceInstance(), true)
+        domain.image = JSONUtils.getJSONAttrDomain(json, "image", new ImageInstance(), true)
+        domain.project = JSONUtils.getJSONAttrDomain(json, "project", new Project(), true)
+        domain.user = JSONUtils.getJSONAttrDomain(json, "user", new SecUser(), true)
+        domain.reviewUser = JSONUtils.getJSONAttrDomain(json, "reviewUser", new SecUser(), true)
 
-             Long annotationParentId = JSONUtils.getJSONAttrLong(json, 'parentIdent', -1)
-             if (annotationParentId == -1) {
-                 annotationParentId = JSONUtils.getJSONAttrLong(json, 'annotation', -1)
-             }
-             try {
-                 AnnotationDomain annotation = AnnotationDomain.getAnnotationDomain(annotationParentId)
-                 domain.parentClassName = annotation.class.getName()
-                 domain.parentIdent = annotation.id
-             } catch(Exception e) {
-                //parent is deleted...
-              }
+        domain.status = JSONUtils.getJSONAttrInteger(json, 'status', 0)
+        domain.geometryCompression = JSONUtils.getJSONAttrDouble(json, 'geometryCompression', 0)
 
-             domain.status = JSONUtils.getJSONAttrInteger(json, 'status', 0)
+        if (json.location && json.location instanceof Geometry) {
+            domain.location = json.location
+        }
+        else {
+            try {
+                domain.location = new WKTReader().read(json.location)
+            }
+            catch (com.vividsolutions.jts.io.ParseException ex) {
+                throw new WrongArgumentException(ex.toString())
+            }
+        }
 
+        if (!domain.location) {
+            throw new WrongArgumentException("Geo is null: 0 points")
+        }
 
-             if(domain.terms) {
-                 //remove all review term
-                 domain.terms.clear()
-             }
+        if (domain.location.getNumPoints() < 1) {
+            throw new WrongArgumentException("Geometry is empty:" + domain.location.getNumPoints() + " points")
+        }
 
-             if (json.terms == null || json.terms.equals("null")) {
-                 throw new WrongArgumentException("Term list was not found")
-             }
+        /* Parent annotation */
+        Long annotationParentId = JSONUtils.getJSONAttrLong(json, 'parentIdent', -1)
+        if (annotationParentId == -1) {
+            annotationParentId = JSONUtils.getJSONAttrLong(json, 'annotation', -1)
+        }
+        try {
+            AnnotationDomain annotation = AnnotationDomain.getAnnotationDomain(annotationParentId)
+            domain.parentClassName = annotation.class.getName()
+            domain.parentIdent = annotation.id
+        } catch (Exception ignored) {
+            //parent is deleted...
+        }
 
-             json.terms.each {
-                 Term term = Term.read(it)
-                 if(term.ontology!=domain.project.ontology) {
-                     throw new WrongArgumentException("Term ${term} from ontology ${term.ontology} is not in ontology from the annotation project (${domain.project.ontology}")
-                 }
+        /* Terms of reviewed annotation */
+        if (json.terms == null || json.terms.equals("null")) {
+            throw new WrongArgumentException("Term list was not found")
+        }
 
-                 domain.addToTerms(term)
+        if (domain.terms) {
+            domain.terms.clear() //remove all review term
+        }
 
-             }
+        json.terms.each {
+            Term term = Term.read(it)
+            if (term.ontology != domain.project.ontology) {
+                throw new WrongArgumentException("Term ${term} from ontology ${term.ontology} is not in ontology from the annotation project (${domain.project.ontology}")
+            }
+            domain.addToTerms(term)
+        }
 
-             if (!domain.location) {
-                 throw new WrongArgumentException("Geo is null: 0 points")
-             }
-             if (domain.location.getNumPoints() < 1) {
-                 throw new WrongArgumentException("Geometry is empty:" + domain.location.getNumPoints() + " points")
-             }
-
-         } catch (com.vividsolutions.jts.io.ParseException ex) {
-             throw new WrongArgumentException(ex.toString())
-         }
-         return domain;
-     }
+        return domain
+    }
 
     /**
      * Define fields available for JSON response
      * @param domain Domain source for json value
      * @return Map with fields (keys) and their values
      */
-    static def getDataFromDomain(def domain) {
+    static def getDataFromDomain(ReviewedAnnotation domain) {
         def returnArray = AnnotationDomain.getDataFromDomain(domain)
         ImageInstance imageinstance = domain?.image
         returnArray['parentIdent'] = domain?.parentIdent
@@ -239,9 +241,9 @@ class ReviewedAnnotation extends AnnotationDomain implements Serializable {
         returnArray['terms'] = domain?.termsId()
         returnArray['term'] = returnArray['terms']
         returnArray['cropURL'] = UrlApi.getReviewedAnnotationCropWithAnnotationId(domain?.id)
-        returnArray['smallCropURL'] = UrlApi.getReviewedAnnotationCropWithAnnotationIdWithMaxWithOrHeight(domain?.id, 256)
+        returnArray['smallCropURL'] = UrlApi.getReviewedAnnotationCropWithAnnotationIdWithMaxSize(domain?.id, 256)
         returnArray['url'] = UrlApi.getReviewedAnnotationCropWithAnnotationId(domain?.id)
-        returnArray['imageURL'] = UrlApi.getAnnotationURL(imageinstance?.project?.id, imageinstance?.id, domain?.id)
+        returnArray['imageURL'] = UrlApi.getAnnotationURL(imageinstance?.project?.id, imageinstance?.id, domain?.id) // TODO: slice
         returnArray['reviewed'] = true
         return returnArray
     }
@@ -251,10 +253,10 @@ class ReviewedAnnotation extends AnnotationDomain implements Serializable {
      */
     void checkAlreadyExist() {
         ReviewedAnnotation.withNewSession {
-                ReviewedAnnotation reviewed = ReviewedAnnotation.findByParentIdent(parentIdent)
-                if(reviewed!=null && (reviewed.id!=id))  {
-                    throw new AlreadyExistException("This annotation is already reviewed!")
-                }
+            ReviewedAnnotation reviewed = ReviewedAnnotation.findByParentIdent(parentIdent)
+            if (reviewed != null && (reviewed.id != id)) {
+                throw new AlreadyExistException("This annotation is already reviewed!")
+            }
         }
     }
 
@@ -265,8 +267,7 @@ class ReviewedAnnotation extends AnnotationDomain implements Serializable {
      * You need to override userDomainCreator() in domain class
      * @return Domain user
      */
-    public SecUser userDomainCreator() {
-        return reviewUser;
+    SecUser userDomainCreator() {
+        return reviewUser
     }
-
 }

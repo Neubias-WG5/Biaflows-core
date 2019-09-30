@@ -1,7 +1,7 @@
 package be.cytomine.Exception;
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@ package be.cytomine.Exception;
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
+import java.util.LinkedHashMap;
 
 /**
  * User: lrollus
@@ -30,7 +32,10 @@ public class ForbiddenException extends CytomineException {
      * @param message Message
      */
     public ForbiddenException(String message) {
-             super(message,403);
+        this(message, new LinkedHashMap<Object, Object> ());
+    }
+    public ForbiddenException(String message, LinkedHashMap<Object, Object> values) {
+        super(message,403, values);
     }
 
 }

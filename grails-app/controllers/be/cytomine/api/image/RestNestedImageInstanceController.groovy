@@ -1,7 +1,7 @@
 package be.cytomine.api.image
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.restapidoc.pojo.RestApiParamType
 @RestApi(name = "Image | nested image services", description = "Methods for managing a nested image, a sub-image of an existing image instance")
 class RestNestedImageInstanceController extends RestController {
 
-    def imageProcessingService
     def nestedImageInstanceService
     def imageInstanceService
     def projectService

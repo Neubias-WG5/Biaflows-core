@@ -25,8 +25,6 @@ cd /var/lib/tomcat7/  && sed -i "/basePath/c\   \"basePath\": $CORE_URL," restap
 
 bash /tmp/addHosts.sh
 
-mv /tmp/setenv.sh /usr/share/tomcat7/bin/
-
 service tomcat7 start
 
 echo "/var/log/tomcat7/catalina.out {"   > /etc/logrotate.d/tomcat7

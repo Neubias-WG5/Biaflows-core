@@ -2,6 +2,7 @@ package be.cytomine.social
 
 import be.cytomine.AnnotationDomain
 import be.cytomine.image.ImageInstance
+import be.cytomine.project.Project
 import be.cytomine.security.SecUser
 import be.cytomine.security.User
 import be.cytomine.utils.JSONUtils
@@ -29,6 +30,7 @@ class AnnotationActionService extends ModelService {
         AnnotationAction action = new AnnotationAction()
         action.user = user
         action.image = image
+        action.slice = annotation.slice
         action.project = image.project
         action.created = new Date()
         action.action = JSONUtils.getJSONAttrStr(json,"action",true)
@@ -48,5 +50,25 @@ class AnnotationActionService extends ModelService {
             if(afterThan) gte("created", new Date(afterThan))
             if(beforeThan) lte("created", new Date(beforeThan))
         }
+    }
+
+    def countByProject(Project project, Long startDate = null, Long endDate = null, String type = null) {
+        def result = AnnotationAction.createCriteria().get {
+            eq("project", project)
+            if(startDate) {
+                gt("created", new Date(startDate))
+            }
+            if(endDate) {
+                lt("created", new Date(endDate))
+            }
+            if(type) {
+                eq("action", type)
+            }
+            projections {
+                rowCount()
+            }
+        }
+
+        return [total: result]
     }
 }

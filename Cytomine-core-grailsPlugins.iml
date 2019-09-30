@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module version="4">
+<module type="JAVA_MODULE" version="4">
   <component name="FacetManager">
     <facet type="Spring" name="Spring">
       <configuration />
@@ -7,6 +7,17 @@
     <facet type="web" name="GrailsWeb">
       <configuration>
         <webroots>
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/database-migration-1.3.8/grails-app/views" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/spring-security-appinfo-2.0-RC2/grails-app/views" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/export-1.6/web-app" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/quartz-monitor-0.3-RC3/web-app" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/quartz-monitor-0.3-RC3/grails-app/views" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/plugin-config-0.2.0/web-app" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/rest-api-doc-0.6/web-app" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/rest-api-doc-0.6/grails-app/views" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/resources-1.2.8/web-app" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/mail-1.0.7/grails-app/views" relative="/" />
+          <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/spring-security-core-2.0-RC4/grails-app/views" relative="/" />
           <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/mail-1.0.7/grails-app/views" relative="/" />
           <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/plugin-config-0.2.0/web-app" relative="/" />
           <root url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/quartz-monitor-0.3-RC3/web-app" relative="/" />
@@ -29,7 +40,8 @@
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
     <content url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/asset-pipeline-1.9.6">
       <sourceFolder url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/asset-pipeline-1.9.6/src/groovy" isTestSource="false" />
       <sourceFolder url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/asset-pipeline-1.9.6/grails-app/controllers" isTestSource="false" />
@@ -128,12 +140,12 @@
     <content url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/webxml-1.4.1">
       <sourceFolder url="file://$USER_HOME$/.grails/2.4.4/projects/cytomine/plugins/webxml-1.4.1/src/groovy" isTestSource="false" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="PROVIDED" name="groovy-2.4.15" level="application" />
     <orderEntry type="module-library" exported="">
       <library name="Grails User Library (Cytomine-core-grailsPlugins)">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/javax/mail/javax.mail-api/1.5.1/javax.mail-api-1.5.1.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/javax/activation/activation/1.1/activation-1.1.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/c3p0/c3p0/0.9.1.1/c3p0-0.9.1.1.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/quartz-scheduler/quartz/2.2.1/quartz-2.2.1.jar!/" />
@@ -167,6 +179,8 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/springframework/data/spring-data-commons/1.7.3.RELEASE/spring-data-commons-1.7.3.RELEASE.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/springframework/data/spring-data-mongodb/1.4.3.RELEASE/spring-data-mongodb-1.4.3.RELEASE.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/grails/grails-datastore-gorm-mongodb/3.0.2.RELEASE/grails-datastore-gorm-mongodb-3.0.2.RELEASE.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/github/jai-imageio/jai-imageio-core/1.4.0/jai-imageio-core-1.4.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/joda-time/joda-time/2.10.1/joda-time-2.10.1.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/json/json/20141113/json-20141113.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/commons-io/commons-io/2.4/commons-io-2.4.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/aspectj/aspectjweaver/1.7.4/aspectjweaver-1.7.4.jar!/" />
@@ -247,6 +261,7 @@
           <root url="jar://$USER_HOME$/.sdkman/candidates/grails/2.4.4/lib/org.slf4j/jcl-over-slf4j/jars/jcl-over-slf4j-1.7.5.jar!/" />
           <root url="jar://$USER_HOME$/.sdkman/candidates/grails/2.4.4/dist/grails-plugin-rest-2.4.4.jar!/" />
           <root url="jar://$USER_HOME$/.sdkman/candidates/grails/2.4.4/lib/org.codehaus.groovy/groovy-all/jars/groovy-all-2.3.7.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/javax/mail/javax.mail-api/1.5.1/javax.mail-api-1.5.1.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/com/fasterxml/classmate/1.0.0/classmate-1.0.0.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/jboss/logging/jboss-logging/3.1.1.GA/jboss-logging-3.1.1.GA.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/hibernate/hibernate-validator/5.0.3.Final/hibernate-validator-5.0.3.Final.jar!/" />
@@ -297,6 +312,8 @@
           <root url="jar://$MAVEN_REPOSITORY$/xalan/xalan/2.7.1/xalan-2.7.1.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/mortbay/jetty/jetty-util/6.1.14/jetty-util-6.1.14.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/mortbay/jetty/jetty/6.1.14/jetty-6.1.14.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/mortbay/jetty/servlet-api-2.5/6.1.14/servlet-api-2.5-6.1.14.jar!/" />
+          <root url="jar://$USER_HOME$/.sdkman/candidates/grails/2.4.4/lib/org.codehaus.gant/gant_groovy1.8/jars/gant_groovy1.8-1.9.6.jar!/" />
           <root url="jar://$USER_HOME$/.sdkman/candidates/grails/2.4.4/lib/org.fusesource.jansi/jansi/jars/jansi-1.11.jar!/" />
           <root url="jar://$USER_HOME$/.sdkman/candidates/grails/2.4.4/lib/org.codehaus.gant/gant_groovy1.8/jars/gant_groovy1.8-1.9.6.jar!/" />
           <root url="jar://$USER_HOME$/.sdkman/candidates/grails/2.4.4/lib/jline/jline/jars/jline-2.12.jar!/" />

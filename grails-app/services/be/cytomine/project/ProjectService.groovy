@@ -1,7 +1,7 @@
 package be.cytomine.project
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package be.cytomine.project
 */
 
 import be.cytomine.Exception.CytomineException
+import be.cytomine.Exception.ForbiddenException
 import be.cytomine.Exception.ObjectNotFoundException
 import be.cytomine.Exception.WrongArgumentException
 import be.cytomine.command.*
@@ -55,6 +56,7 @@ class ProjectService extends ModelService {
     def jobService
     def transactionService
     def algoAnnotationService
+    def annotationTermService
     def algoAnnotationTermService
     def imageInstanceService
     def reviewedAnnotationService
@@ -147,7 +149,7 @@ class ProjectService extends ModelService {
                             "from AclObjectIdentity as aclObjectId, AclEntry as aclEntry, AclSid as aclSid, Project as project "+
                             "where aclObjectId.objectId = project.id " +
                             "and aclEntry.aclObjectIdentity = aclObjectId.id "+
-                            "and aclEntry.sid = aclSid.id and aclSid.sid like '"+user.username+"' and project.deleted is null")
+                            "and aclEntry.sid = aclSid.id and aclSid.sid like '"+user.humanUsername()+"' and project.deleted is null")
         } else {
             Project.findAllByDeletedIsNull()
         }
@@ -198,8 +200,16 @@ class ProjectService extends ModelService {
             select += ", d.data as description "
             from += "LEFT OUTER JOIN description d ON d.domain_ident = p.id "
         }
+        if(extended.withCurrentUserRoles) {
+            SecUser currentUser = cytomineService.currentUser // cannot use user param because it is set to null if user connected as admin
+            select += ", (admin_project.id IS NOT NULL) AS is_admin, (repr.id IS NOT NULL) AS is_representative "
+            from += "LEFT OUTER JOIN admin_project " +
+                    "ON admin_project.id = p.id AND admin_project.user_id = $currentUser.id " +
+                    "LEFT OUTER JOIN project_representative_user repr " +
+                    "ON repr.project_id = p.id AND repr.user_id = $currentUser.id "
+        }
 
-        request = select + from+where
+        request = select + from + where
 
         def sql = new Sql(dataSource)
         def data = []
@@ -231,6 +241,9 @@ class ProjectService extends ModelService {
             }
             if (extended.withDescription) {
                 line.putAt("description", map.description ?: "")
+            }
+            if(extended.withCurrentUserRoles) {
+                line.putAt("currentUserRoles", [admin: map.isAdmin, representative: map.isRepresentative])
             }
             data << line
 
@@ -298,7 +311,11 @@ class ProjectService extends ModelService {
         SecUser currentUser = cytomineService.getCurrentUser()
 
         securityACLService.checkUser(currentUser)
-        securityACLService.check(json.ontology,Ontology, READ)
+
+        if(json.ontology && !json.ontology instanceof JSONObject.Null) {
+            securityACLService.check(json.ontology,Ontology, READ)
+        }
+
         taskService.updateTask(task,10,"Check retrieval consistency")
         checkRetrievalConsistency(json)
         def result = executeCommand(new AddCommand(user: currentUser),null,json)
@@ -352,6 +369,37 @@ class ProjectService extends ModelService {
         taskService.updateTask(task,5,"Start editing project ${project.name}")
         SecUser currentUser = cytomineService.getCurrentUser()
         securityACLService.check(project.container(),WRITE)
+
+        if(project.ontology?.id != jsonNewData.ontology){
+            boolean deleteTerms = jsonNewData.forceOntologyUpdate
+            long associatedTermsCount
+            long userAssociatedTermsCount = 0L
+            long algoAssociatedTermsCount = 0L
+            long reviewedAssociatedTermsCount = 0L
+            if(!deleteTerms) userAssociatedTermsCount += annotationTermService.list(project).size()
+            algoAssociatedTermsCount += algoAnnotationTermService.list(project).size()
+            reviewedAssociatedTermsCount += ReviewedAnnotation.countByProjectAndTermsIsNotNull(project)
+            associatedTermsCount = userAssociatedTermsCount + algoAssociatedTermsCount + reviewedAssociatedTermsCount
+
+            if(associatedTermsCount > 0){
+                String message = "This project has $associatedTermsCount associated terms: "
+                if(!deleteTerms) message += "$userAssociatedTermsCount from project members, "
+                message += "$algoAssociatedTermsCount from jobs and "
+                message += "$reviewedAssociatedTermsCount reviewed. "
+                message += "The ontology cannot be updated."
+                throw new ForbiddenException(message, [
+                        userAssociatedTermsCount: userAssociatedTermsCount,
+                        algoAssociatedTermsCount: algoAssociatedTermsCount,
+                        reviewedAssociatedTermsCount: reviewedAssociatedTermsCount
+                ])
+            }
+            if(deleteTerms) {
+                for(def at : annotationTermService.list(project)){
+                    annotationTermService.delete(at)
+                }
+            }
+        }
+
         def result = executeCommand(new EditCommand(user: currentUser),project, jsonNewData)
 
         project = Project.read(result?.data?.project?.id)
@@ -451,7 +499,7 @@ class ProjectService extends ModelService {
     def getActiveProjects(){
 
         def db = mongo.getDB(noSQLCollectionService.getDatabaseName())
-        def xSecondAgo = Utils.getDatePlusSecond(-120)
+        def xSecondAgo = Utils.getDateMinusSecond(120)
 
         def result;
         def match = [$match : [ created : [$gte : xSecondAgo]]];
@@ -467,14 +515,14 @@ class ProjectService extends ModelService {
     def getActiveProjectsWithNumberOfUsers() {
         def db = mongo.getDB(noSQLCollectionService.getDatabaseName())
 
-        def xSecondAgo = Utils.getDatePlusSecond(-120)
+        def xSecondAgo = Utils.getDateMinusSecond(120)
         def match = [$match : [ created : [$gte : xSecondAgo]]];
 
         def group1 = [$group : [_id : [project : '$project', user : '$user']]]
         def group2 = [$group : [_id : '$_id.project', "users" :[$sum:1]]]
         def result;
 
-        result = db.persistentProjectConnection.aggregate(
+        result = db.persistentConnection.aggregate(
                 match,
                 group1,
                 group2

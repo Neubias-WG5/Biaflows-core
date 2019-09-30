@@ -1,7 +1,7 @@
 package be.cytomine.ontology
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import be.cytomine.utils.ModelService
 import be.cytomine.utils.Task
 import com.vividsolutions.jts.geom.Geometry
 import groovy.sql.Sql
+import grails.converters.JSON
 
 import static org.springframework.security.acls.domain.BasePermission.READ
 import static org.springframework.security.acls.domain.BasePermission.WRITE
@@ -199,6 +200,15 @@ class PropertyService extends ModelService {
             Property defaultColor = new Property(domainClassName: property.domainClassName, domainIdent: property.domainIdent, key:"CUSTOM_ANNOTATION_DEFAULT_COLOR", value: color);
             create(defaultColor,false)
         }
+    }
+
+    def addProperty(def domainClassName, def domainIdent, def key, def value, SecUser user, Transaction transaction) {
+        def json = JSON.parse("""{
+                "domainClassName": "${domainClassName}", 
+                "domainIdent": "${domainIdent}", 
+                "key": "$key", 
+                "value": "$value" }""")
+        return executeCommand(new AddCommand(user: user, transaction: transaction), null, json)
     }
 
     /**

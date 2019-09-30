@@ -23,7 +23,7 @@
                             </p>
 
                                 <!-- social & contact -->
-                        <g:render template="/mail/social" model="[]"/>
+                        <g:render template="/mail/social" model="[website :website, mailFrom: mailFrom, phoneNumber:phoneNumber]"/>
 
                         </td>
                     </tr>

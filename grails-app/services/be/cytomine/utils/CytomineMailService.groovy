@@ -1,7 +1,7 @@
 package be.cytomine.utils
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import javax.mail.internet.MimeMessage
 
 class CytomineMailService {
 
-    static final String NO_REPLY_EMAIL = "no-reply@gmail.com"
+    static final String NO_REPLY_EMAIL = "no-reply@cytomine.org"
 
     static transactional = false
 
@@ -45,8 +45,9 @@ class CytomineMailService {
         props.put("mail.smtp.starttls.enable","true");
         props.put("mail.smtp.starttls.required","true");
         props.put("mail.smtp.host",Holders.getGrailsApplication().config.grails.notification.smtp.host);
-        props.put("mail.smtp.auth", "true" );
         props.put("mail.smtp.port",Holders.getGrailsApplication().config.grails.notification.smtp.port);
+        props.put("mail.smtp.auth", "true" );
+        props.put("mail.transport.protocol", "smtp");
 
         //Create Mail Sender
         def sender = new JavaMailSenderImpl()

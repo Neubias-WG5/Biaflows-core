@@ -1,7 +1,7 @@
 package be.cytomine.image.server
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -20,7 +20,8 @@ import be.cytomine.command.*
 import be.cytomine.security.SecUser
 import be.cytomine.utils.ModelService
 import be.cytomine.utils.Task
-import org.springframework.security.acls.domain.BasePermission
+import grails.plugin.springsecurity.SpringSecurityUtils
+import org.codehaus.groovy.grails.web.json.JSONObject
 
 import static org.springframework.security.acls.domain.BasePermission.*
 
@@ -31,6 +32,7 @@ class StorageService extends ModelService {
     def permissionService
     def securityACLService
     def springSecurityService
+    def currentRoleServiceProxy
 
     static transactional = true
 
@@ -39,8 +41,11 @@ class StorageService extends ModelService {
     }
 
     def list() {
-        def list = securityACLService.getStorageList(cytomineService.currentUser)
-        list.sort{it.name}
+        return securityACLService.getStorageList(cytomineService.currentUser, true)
+    }
+
+    def list(SecUser user) {
+        return securityACLService.getStorageList(user, false)
     }
 
     def read(def id) {
@@ -59,8 +64,22 @@ class StorageService extends ModelService {
     def add(def json) {
         SecUser currentUser = cytomineService.getCurrentUser()
         securityACLService.checkUser(currentUser)
+        json.user = (currentRoleServiceProxy.isAdminByNow(currentUser)) ? json.user : currentUser.id
         Command c = new AddCommand(user: currentUser)
         executeCommand(c,null,json)
+    }
+
+    def afterAdd(Storage domain, def response) {
+        log.info("Add permission on $domain to ${domain.user.username}")
+        if(!domain.hasACLPermission(READ)) {
+            permissionService.addPermission(domain, domain.user.username, READ)
+        }
+        if(!domain.hasACLPermission(WRITE)) {
+            permissionService.addPermission(domain, domain.user.username, WRITE)
+        }
+        if(!domain.hasACLPermission(ADMINISTRATION)) {
+            permissionService.addPermission(domain, domain.user.username, ADMINISTRATION)
+        }
     }
 
     /**
@@ -70,7 +89,7 @@ class StorageService extends ModelService {
      * @return  Response structure (new domain data, old domain data..)
      */
     def update(Storage storage,def jsonNewData) {
-        securityACLService.check(storage,WRITE)
+        securityACLService.check(storage, ADMINISTRATION)
         SecUser currentUser = cytomineService.getCurrentUser()
         Command c = new EditCommand(user: currentUser)
         executeCommand(c,storage,jsonNewData)
@@ -83,78 +102,25 @@ class StorageService extends ModelService {
      * @return Response structure (created domain data,..)
      */
     def delete(Storage storage, Transaction transaction = null, Task task = null, boolean printMessage = true) {
-        securityACLService.check(storage.container(),WRITE)
+        securityACLService.check(storage.container(), ADMINISTRATION)
         SecUser currentUser = cytomineService.getCurrentUser()
         Command c = new DeleteCommand(user: currentUser,transaction:transaction)
         return executeCommand(c,storage,null)
     }
 
-    def afterAdd(Storage domain, def response) {
-        log.info("Add permission on " + domain + " to " + springSecurityService.authentication.name)
-        if(!domain.hasACLPermission(READ)) {
-            log.info("force to put it in list")
-            permissionService.addPermission(domain, cytomineService.currentUser.username, BasePermission.READ)
-        }
-        if(!domain.hasACLPermission(ADMINISTRATION)) {
-            log.info("force to put it in list")
-            permissionService.addPermission(domain, cytomineService.currentUser.username, BasePermission.ADMINISTRATION)
-        }
-        for (imageServer in ImageServer.findAll()) {
-            imageServer.save(failOnError: true)
-            ImageServerStorage imageServerStorage = new ImageServerStorage(imageServer : imageServer, storage : domain)
-            imageServerStorage.save(flush : true)
-        }
+    def deleteDependentUploadedFile(Storage storage, Transaction transaction, Task task = null) {
+        // TODO: do we want to allow this ?
     }
 
     def getStringParamsI18n(def domain) {
         return [domain.id, domain.name]
     }
 
-    def imageServerStorageService
-    void deleteDependentImageServerStorage(Storage storage, Transaction transaction, Task task = null){
-        ImageServerStorage.findAllByStorage(storage).each {
-            imageServerStorageService.delete(it,transaction,task)
-        }
-    }
-    def storageAbstractImageService
-    void  deleteDependentStorageAbstractImage(Storage storage, Transaction transaction, Task task = null) {
-        StorageAbstractImage.findAllByStorage(storage).each {
-            storageAbstractImageService.delete(it, transaction, task)
-        }
-    }
-
-
-    def initUserStorage(SecUser user) {  //:to do => use command instead of domains
-        String storage_base_path = grailsApplication.config.storage_path
-        String remotePath;
-        if(storage_base_path.charAt(storage_base_path.length()-1) == File.separator) {
-            remotePath = [storage_base_path, user.id.toString()].join("")
-        } else {
-            remotePath = [storage_base_path, user.id.toString()].join(File.separator)
-        }
-
+    def initUserStorage(SecUser user) {
         log.info ("create storage for $user.username")
-        Storage storage = new Storage(
-                name: "$user.username storage",
-                basePath: remotePath,
-                user: user
-        )
-
-        if (storage.validate()) {
-            storage.save()
-            permissionService.addPermission(storage,user.username,BasePermission.ADMINISTRATION)
-
-            for (imageServer in ImageServer.findAll()) {
-                imageServer.save(failOnError: true)
-                ImageServerStorage imageServerStorage = new ImageServerStorage(imageServer : imageServer, storage : storage)
-                imageServerStorage.save(flush : true)
-            }
-        } else {
-            storage.errors.each {
-                log.error it
-            }
-        }
-
+        SpringSecurityUtils.doWithAuth(user.username, {
+            Command c = new AddCommand(user: user)
+            executeCommand(c,null, new JSONObject([name: "$user.username storage", user: user.id]))
+        })
     }
-
 }

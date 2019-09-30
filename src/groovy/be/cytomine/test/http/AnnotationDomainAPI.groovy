@@ -1,7 +1,7 @@
 package be.cytomine.test.http
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -69,6 +69,22 @@ class AnnotationDomainAPI extends DomainAPI {
         return doGET(URL, username, password)
     }
 
+    static def listByImageAndUsers(Long idImage,List<Long> idUsers, boolean includeAlgo, String username, String password) {
+        String URL = Infos.CYTOMINEURL+"api/annotation.json?users="+ idUsers.join(",") +"&image="+idImage+"&includeAlgo=$includeAlgo"
+        return doGET(URL, username, password)
+    }
+
+    static def listByImagesAndUsersByPOST(List<Long>  idImages,List<Long> idUsers, boolean includeAlgo, String username, String password) {
+        String URL = Infos.CYTOMINEURL+"api/annotation/search.json"
+        def parameters = [:]
+        parameters["users"] = idUsers.join(",")
+        parameters["images"] = idImages.join(",")
+        parameters["includeAlgo"] = includeAlgo
+        String data = (parameters as JSON).toString()
+
+        return doPOST(URL, data, username, password)
+    }
+
     static def listByProjectAndUsersWithoutTerm(Long id,Long idUser, Long idImage,String username, String password) {
         String URL = Infos.CYTOMINEURL+"api/annotation.json?project=$id&noTerm=true&users=$idUser"+ (idImage? "&image="+idImage:"")
         return doGET(URL, username, password)
@@ -79,6 +95,12 @@ class AnnotationDomainAPI extends DomainAPI {
         return doGET(URL, username, password)
     }
 
+    static def listByProjectAndDates(String username, String password, Long idProject, Long afterThan=null, Long beforeThan=null) {
+        String URL = Infos.CYTOMINEURL+"api/annotation.json?project=$idProject" +
+                (afterThan ? "&afterThan=$afterThan" : "") +
+                (beforeThan ? "&beforeThan=$beforeThan" : "")
+        return doGET(URL, username, password)
+    }
 
     static def downloadDocumentByProject(Long idProject,Long idUser, Long idTerm, Long idImageInstance, String username, String password) {
         String URL = Infos.CYTOMINEURL+"api/project/"+ idProject +"/annotation/download?users=" +idUser + "&terms=" + idTerm +"&images=" + idImageInstance + "&format=pdf"
@@ -113,7 +135,7 @@ class AnnotationDomainAPI extends DomainAPI {
         return doPUT(URL,"",username,password)
     }
 
-    static def correctAnnotation(def id, def data,String username, String password) {
+    static def correctAnnotation(def id, def data, String username, String password) {
         String URL = Infos.CYTOMINEURL + "api/annotationcorrection.json"
         return doPOST(URL,data,username,password)
     }

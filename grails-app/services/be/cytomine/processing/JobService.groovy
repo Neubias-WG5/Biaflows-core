@@ -1,7 +1,9 @@
 package be.cytomine.processing
 
+import be.cytomine.Exception.InvalidRequestException
+
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -26,6 +28,7 @@ import be.cytomine.security.User
 import be.cytomine.security.UserJob
 import be.cytomine.sql.AlgoAnnotationListing
 import be.cytomine.sql.ReviewedAnnotationListing
+import be.cytomine.utils.AttachedFile
 import be.cytomine.utils.ModelService
 import be.cytomine.utils.Task
 import groovy.sql.Sql
@@ -107,6 +110,8 @@ class JobService extends ModelService {
      * @return Response structure (created domain data,..)
      */
     def add(def json) {
+        if(!json.project) throw new InvalidRequestException("software not set")
+
         securityACLService.check(json.project,Project, READ)
         securityACLService.checkisNotReadOnly(json.project,Project)
         SecUser currentUser = cytomineService.getCurrentUser()
@@ -168,6 +173,23 @@ class JobService extends ModelService {
 
     def getStringParamsI18n(def domain) {
         return [domain.id, domain.software.name]
+    }
+
+    def getLog(Job job) {
+        def log = AttachedFile.findByDomainClassNameAndDomainIdentAndFilename("be.cytomine.processing.Job", job.id, "log.out")
+
+        if (!log) {
+            return null
+        }
+        def ret = AttachedFile.getDataFromDomain(log)
+        ret['data'] = new String(log.data);
+        return ret
+    }
+
+    def markAsFavorite(Job job, boolean favorite) {
+        new Sql(dataSource).executeUpdate("UPDATE job SET favorite = ${favorite} WHERE id = ${job.id}");
+        job.favorite = favorite
+        return job
     }
 
     List<UserJob> getAllLastUserJob(Project project, Software software) {

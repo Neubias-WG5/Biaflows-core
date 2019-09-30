@@ -1,7 +1,7 @@
 package be.cytomine.test.http
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -44,5 +44,12 @@ class ProjectConnectionAPI extends DomainAPI {
         String URL = Infos.CYTOMINEURL + "/api/project/$idProject/userconnection.json"
         def result = doPOST(URL,json,username,password)
         return result
+    }
+
+    static def countByProject(Long idProject, String username, String password, Long startDate=null, Long endDate=null) {
+        String URL = Infos.CYTOMINEURL + "/api/project/$idProject/userconnection/count.json?" +
+                (startDate ? "&startDate=$startDate" : "") +
+                (endDate ? "&endDate=$endDate" : "")
+        return doGET(URL, username, password)
     }
 }

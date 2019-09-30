@@ -1,7 +1,7 @@
 package be.cytomine.ontology
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -49,6 +49,10 @@ class AlgoAnnotationTermService extends ModelService {
         AlgoAnnotationTerm.findAllByAnnotationIdent(annotation.id)
     }
 
+    def list(Project project) {
+        return AlgoAnnotationTerm.findAllByProject(project)
+    }
+
     def count(Job job) {
         securityACLService.check(job.container(),READ)
         long total = 0
@@ -81,18 +85,23 @@ class AlgoAnnotationTermService extends ModelService {
         } catch(Exception e) {
             annotation = AnnotationDomain.getAnnotationDomain(json.annotationIdent)
         }
+
         securityACLService.check(annotation.project,READ)
         SecUser currentUser = cytomineService.getCurrentUser()
         SecUser creator = SecUser.read(json.user)
         if (!creator)
             json.user = currentUser.id
 
+        json.annotationIdent = annotation.id
+        json.annotationClassName = annotation.getClass().getName()
+
         Command command = new AddCommand(user: currentUser)
         return executeCommand(command,null,json)
     }
 
-    def addAlgoAnnotationTerm(Long annotationID, Long idTerm, Long idUser, SecUser currentUser, Transaction transaction){
-        def json = JSON.parse("{annotationIdent: $annotationID, term: $idTerm,user: $idUser}")
+    def addAlgoAnnotationTerm(AnnotationDomain annotation, Long idTerm, Long idUser, SecUser currentUser, Transaction transaction){
+        def json = JSON.parse("{annotationClassName: ${annotation.getClass().getName()}, " +
+                "annotationIdent: ${annotation.id}, term: $idTerm, user: $idUser}")
         return executeCommand(new AddCommand(user: currentUser, transaction: transaction), null,json)
     }
 

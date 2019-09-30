@@ -1,7 +1,7 @@
 package be.cytomine.test.http
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -46,8 +46,11 @@ class AttachedFileAPI extends DomainAPI {
     }
 
     static def upload(String domainClassName, Long domainIdent, File file, String username, String password) {
+        upload(null, domainClassName, domainIdent, file, username, password)
+    }
+    static def upload(String filename, String domainClassName, Long domainIdent, File file, String username, String password) {
         String URL = Infos.CYTOMINEURL + "api/attachedfile.json?domainClassName=$domainClassName&domainIdent=$domainIdent"
-        return doPOSTUpload(URL,file,username,password)
+        return doPOSTUpload(URL,file,filename, username,password)
     }
 
     static def delete(Long id, String username, String password) {

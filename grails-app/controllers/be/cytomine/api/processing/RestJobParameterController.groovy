@@ -1,7 +1,9 @@
 package be.cytomine.api.processing
 
+import be.cytomine.Exception.InvalidRequestException
+
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -85,6 +87,7 @@ class RestJobParameterController extends RestController {
         @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The job parameter id")
     ])
     def add() {
+        if(!request.JSON.job) throw new InvalidRequestException("job not set")
         add(jobParameterService, request.JSON)
     }
 

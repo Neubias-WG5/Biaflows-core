@@ -3,9 +3,11 @@ package be.cytomine.utils.bootstrap
 import be.cytomine.image.AbstractImage
 import be.cytomine.image.multidim.ImageGroup
 import be.cytomine.image.multidim.ImageSequence
+import be.cytomine.image.Mime
+import be.cytomine.middleware.ImageServer
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -26,12 +28,12 @@ import be.cytomine.image.UploadedFile
 import be.cytomine.middleware.AmqpQueue
 import be.cytomine.ontology.Property
 import be.cytomine.processing.ImageFilter
-import be.cytomine.processing.ImagingServer
 import be.cytomine.project.Project
 import be.cytomine.security.SecRole
 import be.cytomine.security.SecUser
 import be.cytomine.security.SecUserSecRole
 import be.cytomine.security.User
+import be.cytomine.utils.Configuration
 import be.cytomine.utils.Version
 import grails.converters.JSON
 import grails.plugin.springsecurity.SpringSecurityUtils
@@ -69,8 +71,8 @@ class BootstrapOldVersionService {
         def methods = this.metaClass.methods*.name.sort().unique()
         Version version = Version.getLastVersion()
 
-        methods.each { method ->
-            if (method.startsWith("init")) {
+        if(!version.major){
+            methods.findAll { it =~ "init[0-9]" }.each { method ->
                 Long methodDate = Long.parseLong(method.replace("init", ""))
                 if (methodDate > version.number) {
                     log.info "Run code for version > $methodDate"
@@ -79,9 +81,207 @@ class BootstrapOldVersionService {
                     log.info "Skip code for $methodDate"
                 }
             }
+
+            version.major = 0
+            version.minor = 0
+            version.patch = 0
+        }
+        methods.findAll { it.startsWith("initv") }.each { method ->
+
+            method = method.substring("initv".size())
+
+            Short major = Short.parseShort(method.split("_")[0])
+            Short minor = Short.parseShort(method.split("_")[1])
+            Short patch = Short.parseShort(method.split("_")[2])
+
+            if(major > version.major || (major == version.major && minor > version.minor)
+                    || (major == version.major && minor == version.minor && patch > version.patch)) {
+                log.info "Run code for v${method.replace("_",".")} update"
+                this."initv$method"()
+            } else {
+                log.info "Skip code for initv$method"
+            }
+
+        }
+        Version.setCurrentVersion(Long.parseLong(grailsApplication.metadata.'app.versionDate'), grailsApplication.metadata.'app.version')
+    }
+
+    void initv1_3_3() {
+        log.info "20190204"
+
+        boolean exists = new Sql(dataSource).rows("SELECT column_name " +
+                "FROM information_schema.columns " +
+                "WHERE table_name='job' and column_name='favorite';").size() == 1;
+        if (!exists) {
+            new Sql(dataSource).executeUpdate("ALTER TABLE job ADD COLUMN favorite boolean NOT NULL DEFAULT false;")
+        }
+    }
+
+    void initv1_3_2() {
+        log.info "1.3.2"
+        new Sql(dataSource).executeUpdate("ALTER TABLE project ALTER COLUMN ontology_id DROP NOT NULL;")
+
+        new Sql(dataSource).executeUpdate("UPDATE sec_user SET language = 'ENGLISH';")
+        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user ALTER COLUMN language SET DEFAULT 'ENGLISH';")
+        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user ALTER COLUMN language SET NOT NULL;")
+        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user DROP COLUMN IF EXISTS skype_account;")
+        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user DROP COLUMN IF EXISTS sipAccount;")
+
+        new Sql(dataSource).executeUpdate("DROP VIEW user_image;")
+        tableService.initTable()
+    }
+
+    void initv1_3_1() {
+        log.info "1.3.1"
+        new Sql(dataSource).executeUpdate("ALTER TABLE storage DROP COLUMN IF EXISTS base_path;")
+        new Sql(dataSource).executeUpdate("ALTER TABLE image_server DROP COLUMN IF EXISTS service;")
+        new Sql(dataSource).executeUpdate("ALTER TABLE image_server DROP COLUMN IF EXISTS class_name;")
+        new Sql(dataSource).executeUpdate("ALTER TABLE abstract_image DROP COLUMN IF EXISTS path;")
+        new Sql(dataSource).executeUpdate("ALTER TABLE uploaded_file DROP COLUMN IF EXISTS image_id;")
+        new Sql(dataSource).executeUpdate("ALTER TABLE uploaded_file DROP COLUMN IF EXISTS path;")
+        new Sql(dataSource).executeUpdate("ALTER TABLE uploaded_file DROP COLUMN IF EXISTS converted;")
+        new Sql(dataSource).executeUpdate("ALTER TABLE uploaded_file DROP COLUMN IF EXISTS storages;")
+        new Sql(dataSource).executeUpdate("ALTER TABLE abstract_image DROP COLUMN IF EXISTS mime_id;")
+
+        def sql = new Sql(dataSource)
+        sql.eachRow("select constraint_name from information_schema.table_constraints where table_name = 'abstract_image' and constraint_type = 'UNIQUE'") {
+            log.info it.constraint_name
+            sql.executeUpdate("ALTER TABLE abstract_image DROP CONSTRAINT "+ it.constraint_name +";")
+        }
+        sql.executeUpdate("ALTER TABLE abstract_image ALTER COLUMN filename DROP NOT NULL;")
+//        sql.executeUpdate("ALTER TABLE abstract_image DROP COLUMN IF EXISTS filename;")
+        // TODO: fix view user_image to delete column
+
+        def pyrTiffMime = Mime.findByMimeType("image/pyrtiff")
+        def mimeToRemove = ["image/tiff", "image/tif", "zeiss/zvi"]
+        mimeToRemove.each {
+            def mime = Mime.findByMimeType(it)
+            if (mime) {
+                new Sql(dataSource).executeUpdate("UPDATE abstract_slice SET mime_id = ${pyrTiffMime.id} WHERE mime_id = ${mime.id}")
+                new Sql(dataSource).executeUpdate("DELETE FROM mime_image_server WHERE mime_id = ${mime.id}")
+                mime.delete()
+            }
         }
 
-        Version.setCurrentVersion(Long.parseLong(grailsApplication.metadata.'app.versionDate'))
+        [[old: 1, "new": 104],
+            [old: 2, "new": 100],
+            [old: 3, "new": 11],
+            [old: 4, "new": 31],
+            [old: 5, "new": 20],
+            [old: 6, "new": 40],
+            [old: 7, "new": 20],
+            [old: 8, "new": 41]].each {
+            new Sql(dataSource).executeUpdate("UPDATE uploaded_file SET status = ${it["new"]} WHERE status = ${it["old"]}")
+        }
+    }
+
+    void initv1_3_0() {
+        log.info "1.3.0"
+        List<Configuration> configurations = Configuration.findAllByKeyLike("%.%")
+
+        for(int i = 0; i<configurations.size(); i++){
+            configurations[i].key = configurations[i].key.replace(".","_")
+            configurations[i].save()
+        }
+
+        bootstrapUtilsService.createConfigurations(true)
+    }
+
+    void init20190228() {
+        log.info "20190228"
+
+        // Move old Long[] storages to many-to-one.
+        def sql = new Sql(dataSource)
+        if (!sql.rows("select uploaded_file_storages_id from uploaded_file_storage")) {
+            def inserts = []
+            def i = 0
+            def request = "INSERT INTO uploaded_file_storage (uploaded_file_storages_id, storage_id) VALUES "
+            sql.eachRow("select id, storages from uploaded_file") {
+                def ufId = it[0]
+                ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(it[1] as byte[]))
+                Long[] storages = (Long[]) ois.readObject()
+                inserts += storages.collect{ "($ufId, $it)" }
+
+                if (i > 0 && i % 2000 == 0) {
+                    sql.execute(request + inserts.join(",") + ";")
+                    inserts = []
+                }
+                i++
+            }
+
+            if (inserts.size() > 0) {
+                sql.execute(request + inserts.join(",") + ";")
+            }
+        }
+
+        // Add image server to uploaded file (TODO: use old ImageServerStorage and StorageAbstractImage)
+        UploadedFile.executeUpdate("update UploadedFile uf set uf.imageServer = ? where uf.imageServer is null",
+                [ImageServer.first()])
+
+        // Update all image servers with known base path
+        ImageServer.executeUpdate("update ImageServer i set i.basePath = ? where i.basePath is null",
+                [grailsApplication.config.storage_path])
+
+        // Create a (0,0,0) abstract slice for all abstract images
+        if (!sql.rows("select id from abstract_slice")) {
+            def inserts = []
+            def i = 0
+            def request = "INSERT INTO abstract_slice (id, created, version, image_id, uploaded_file_id, mime_id, channel, z_stack, time) VALUES "
+            sql.eachRow("select uploaded_file.id, image_id, mime_id, abstract_image.created " +
+                    "from uploaded_file " +
+                    "left join abstract_image on abstract_image.id = uploaded_file.image_id " +
+                    "where image_id is not null") {
+                inserts << "(nextval('hibernate_sequence'), '${it[3]}', 0, ${it[1]}, ${it[0]}, ${it[2]}, 0, 0, 0)"
+                if (i > 0 && i % 2000 == 0) {
+                    sql.execute(request + inserts.join(",") + ";")
+                    inserts = []
+                }
+                i++
+            }
+
+            if (inserts.size() > 0) {
+                sql.execute(request + inserts.join(",") + ";")
+            }
+        }
+
+        // Change direction of UF - AI relation and use the root as AI uploaded file
+        boolean exists = sql.rows("SELECT column_name " +
+                "FROM information_schema.columns " +
+                "WHERE table_name='uploaded_file' and column_name='image_id';").size() == 1;
+        if (exists) {
+            sql.executeUpdate("update abstract_image " +
+                    "set uploaded_file_id = cast(ltree2text(subltree(uploaded_file.l_tree, 0, 1)) as bigint) " +
+                    "from uploaded_file " +
+                    "where abstract_image.id = image_id and uploaded_file_id is null;")
+        }
+
+        // Add (0,0,0) slice instances for all image instances which are not in an image group
+        if (!sql.rows("select id from slice_instance")) {
+            def inserts = []
+            def i = 0
+            def request = "INSERT INTO slice_instance(id, created, version, base_slice_id, image_id, project_id) VALUES "
+            sql.eachRow("SELECT image_instance.id as iiid, abstract_slice.id as asid, image_instance.project_id as pid, image_instance.created " +
+                    "from image_instance " +
+                    "left join abstract_image on abstract_image.id = image_instance.base_image_id " +
+                    "left join abstract_slice on abstract_slice.image_id = abstract_image.id " +
+                    "left join image_sequence on image_sequence.image_id = image_instance.id " +
+                    "where abstract_slice.channel = 0 and abstract_slice.z_stack = 0 and abstract_slice.time = 0" +
+                    "and image_sequence.id is null;") {
+                inserts << "(nextval('hibernate_sequence'), '${it[3]}', 0, ${it[1]}, ${it[0]}, ${it[2]})"
+                if (i > 0 && i % 2000 == 0) {
+                    sql.execute(request + inserts.join(",") + ";")
+                    inserts = []
+                }
+                i++
+            }
+
+            if (inserts.size() > 0) {
+                sql.execute(request + inserts.join(",") + ";")
+            }
+        }
+
+
+        sql.close()
     }
 
     void init20190204() {
@@ -218,7 +418,7 @@ class BootstrapOldVersionService {
                     uf.parent = it
                     uf.path = it.path
                     uf.ext = FilenameUtils.getExtension(it.image.path)
-                    uf.status = UploadedFile.DEPLOYED
+                    uf.status = 2 //UploadedFile.DEPLOYED
                     uf.user = it.user
                     uf.storages = StorageAbstractImage.findAllByAbstractImage(it.image).collect { it.storage.id }
                     uf.size = 0L
@@ -226,7 +426,7 @@ class BootstrapOldVersionService {
                     uf.save(failOnError: true)
 
                     it.image = null
-                    it.status = UploadedFile.CONVERTED
+                    it.status = 1 //UploadedFile.CONVERTED
                     it.save()
 
                     if (i % 100 == 0) log.info("done : " + i + "/" + ufs.size())

@@ -1,7 +1,7 @@
 package be.cytomine.utils
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package be.cytomine.utils
 */
 
 import com.vividsolutions.jts.geom.Coordinate
+import com.vividsolutions.jts.geom.Envelope
 import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.geom.GeometryFactory
 import com.vividsolutions.jts.geom.LinearRing
@@ -51,5 +52,23 @@ class GeometryUtils {
         //Build geometry
         LinearRing linearRing = new GeometryFactory().createLinearRing(roiPoints)
         return new GeometryFactory().createPolygon(linearRing)
+    }
+
+    public static def getGeometryBoundaries(def geometry) {
+        if (geometry.getNumPoints() > 1) {
+            Envelope env = geometry.getEnvelopeInternal()
+            def maxY = Math.round(env.getMaxY())
+            def minX = Math.round(env.getMinX())
+            def width = Math.round(env.getWidth())
+            def height = Math.round(env.getHeight())
+            return [topLeftX: minX, topLeftY: maxY, width: width, height: height]
+        } else if (geometry.getNumPoints() == 1) {
+            Envelope env = geometry.getEnvelopeInternal()
+            def maxY = Math.round(env.getMaxY() + 50)
+            def minX = Math.round(env.getMinX() - 50)
+            def width = 100
+            def height = 100
+            return [topLeftX: minX, topLeftY: maxY, width: width, height: height]
+        }
     }
 }

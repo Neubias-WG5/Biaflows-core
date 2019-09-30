@@ -1,7 +1,7 @@
 package be.cytomine
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@ import be.cytomine.ontology.UserAnnotation
 import be.cytomine.test.BasicInstanceBuilder
 import be.cytomine.test.Infos
 import be.cytomine.test.http.AlgoAnnotationAPI
+import be.cytomine.test.http.AnnotationTermAPI
 import be.cytomine.test.http.UserAnnotationAPI
 import be.cytomine.utils.JSONUtils
 import be.cytomine.utils.UpdateData
-import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.WKTReader
 import grails.converters.JSON
 import org.codehaus.groovy.grails.web.json.JSONArray
@@ -66,6 +66,22 @@ class UserAnnotationTests  {
         assert json.total >= 0
     }
 
+    void testCountAnnotationByProject() {
+        def result = UserAnnotationAPI.countByProject(BasicInstanceBuilder.getProject().id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+        assert json.total >= 0
+    }
+
+    void testCountAnnotationByProjectWithDates() {
+        Date startDate = new Date()
+        def result = UserAnnotationAPI.countByProject(BasicInstanceBuilder.getProject().id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, startDate.getTime(), startDate.getTime() - 1000)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+        assert json.total >= 0
+    }
 
     void testDownloadUserAnnotationDocument() {
         AnnotationTerm annotationTerm = BasicInstanceBuilder.getAnnotationTerm()
@@ -79,6 +95,8 @@ class UserAnnotationTests  {
         assert 200 == result.code
         int idAnnotation = result.data.id
 
+        Long commandId = result.command
+
         result = UserAnnotationAPI.show(idAnnotation, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
 
@@ -89,6 +107,34 @@ class UserAnnotationTests  {
         assert 404 == result.code
 
         result = UserAnnotationAPI.redo()
+        assert 200 == result.code
+
+        result = UserAnnotationAPI.show(idAnnotation, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+
+        result = UserAnnotationAPI.create(BasicInstanceBuilder.getUserAnnotationNotExist().encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+
+        result = UserAnnotationAPI.undo()
+        assert 200 == result.code
+
+        //200 because the undoed annotation was not this one
+        result = UserAnnotationAPI.show(idAnnotation, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+        result = UserAnnotationAPI.redo()
+        assert 200 == result.code
+
+        result = UserAnnotationAPI.show(idAnnotation, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+        result = UserAnnotationAPI.undo(commandId)
+        assert 200 == result.code
+
+        result = UserAnnotationAPI.show(idAnnotation, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 404 == result.code
+
+        result = UserAnnotationAPI.redo(commandId)
         assert 200 == result.code
 
         result = UserAnnotationAPI.show(idAnnotation, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
@@ -214,6 +260,8 @@ class UserAnnotationTests  {
         assert json instanceof JSONObject
         int idAnnotation = json.annotation.id
 
+        Long commandId = JSON.parse(result.data).command
+
         def showResult = UserAnnotationAPI.show(idAnnotation, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         json = JSON.parse(showResult.data)
         BasicInstanceBuilder.compare(data.mapNew, json)
@@ -224,6 +272,28 @@ class UserAnnotationTests  {
         BasicInstanceBuilder.compare(data.mapOld, JSON.parse(showResult.data))
 
         showResult = UserAnnotationAPI.redo()
+        assert 200 == result.code
+        showResult = UserAnnotationAPI.show(idAnnotation, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        BasicInstanceBuilder.compare(data.mapNew, JSON.parse(showResult.data))
+
+        result = UserAnnotationAPI.create(BasicInstanceBuilder.getUserAnnotationNotExist().encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+
+        showResult = UserAnnotationAPI.undo()
+        assert 200 == result.code
+        showResult = UserAnnotationAPI.show(idAnnotation, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        BasicInstanceBuilder.compare(data.mapNew, JSON.parse(showResult.data))
+
+        showResult = UserAnnotationAPI.redo()
+        assert 200 == result.code
+        showResult = UserAnnotationAPI.show(idAnnotation, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        BasicInstanceBuilder.compare(data.mapNew, JSON.parse(showResult.data))
+
+        showResult = UserAnnotationAPI.undo(commandId)
+        assert 200 == result.code
+        showResult = UserAnnotationAPI.show(idAnnotation, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        BasicInstanceBuilder.compare(data.mapOld, JSON.parse(showResult.data))
+
+        showResult = UserAnnotationAPI.redo(commandId)
         assert 200 == result.code
         showResult = UserAnnotationAPI.show(idAnnotation, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         BasicInstanceBuilder.compare(data.mapNew, JSON.parse(showResult.data))
@@ -266,6 +336,9 @@ class UserAnnotationTests  {
         assert annotationToDelete.save(flush: true)  != null
         def id = annotationToDelete.id
         def result = UserAnnotationAPI.delete(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+
+        Long commandId = JSON.parse(result.data).command
+
         assert 200 == result.code
 
         def showResult = UserAnnotationAPI.show(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
@@ -282,6 +355,34 @@ class UserAnnotationTests  {
 
         result = UserAnnotationAPI.show(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 404 == result.code
+
+        result = UserAnnotationAPI.create(BasicInstanceBuilder.getUserAnnotationNotExist().encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+
+        result = UserAnnotationAPI.undo()
+        assert 200 == result.code
+
+        //404 because the undoed annotation was not this one
+        result = UserAnnotationAPI.show(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 404 == result.code
+
+        result = UserAnnotationAPI.redo()
+        assert 200 == result.code
+
+        result = UserAnnotationAPI.show(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 404 == result.code
+
+
+        result = UserAnnotationAPI.undo(commandId)
+        assert 200 == result.code
+
+        result = UserAnnotationAPI.show(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+        result = UserAnnotationAPI.redo(commandId)
+        assert 200 == result.code
+
+        result = UserAnnotationAPI.show(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 404 == result.code
     }
 
     void testDeleteUserAnnotationNotExist() {
@@ -289,10 +390,21 @@ class UserAnnotationTests  {
         assert 404 == result.code
     }
 
-    void testDeleteUserAnnotationWithData() {
-        def annotTerm = BasicInstanceBuilder.getAnnotationTerm()
-        def annotationToDelete = annotTerm.userAnnotation
+    void testDeleteUserAnnotationWithTerm() {
+        def annotationToDelete = BasicInstanceBuilder.getUserAnnotationNotExist(true)
         def result = UserAnnotationAPI.delete(annotationToDelete.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+        def user = BasicInstanceBuilder.getUser(Infos.ANOTHERLOGIN, Infos.ANOTHERPASSWORD)
+
+        annotationToDelete = BasicInstanceBuilder.getUserAnnotationNotExist(true)
+        def annotTerm = BasicInstanceBuilder.getAnnotationTermNotExist(annotationToDelete)
+        annotTerm.user = user
+
+        result = AnnotationTermAPI.createAnnotationTerm(annotTerm.encodeAsJSON(), Infos.ANOTHERLOGIN, Infos.ANOTHERPASSWORD)
+        assert 200 == result.code
+
+        result = UserAnnotationAPI.delete(annotationToDelete.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
     }
 

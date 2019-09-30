@@ -1,7 +1,7 @@
 package be.cytomine.test.http
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -130,10 +130,10 @@ class ImageServerAPI extends DomainAPI {
         return downloadImage(URL,username,password)
     }
 
-    static def listImageServerByMime(String mimeType, String username, String password) {
-        String URL = Infos.CYTOMINEURL + "api/imageserver.json?mimeType=$mimeType"
-        return doGET(URL,username,password)
-    }
+//    static def listImageServerByMime(String mimeType, String username, String password) {
+//        String URL = Infos.CYTOMINEURL + "api/imageserver.json?mimeType=$mimeType"
+//        return doGET(URL,username,password)
+//    }
 
 //    "/api/userannotation/$annotation/mask-$term"(controller: "restImageInstance"){
 //        action = [GET:"cropmask"]

@@ -1,7 +1,7 @@
 package be.cytomine
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ class CustomUIController extends RestController {
         def config = [:]
         config.putAll(getGlobalConfig(roles))
         if(project) {
-            config.putAll(getProjectConfig(roles, project))
+            config.putAll(getProjectConfigCurrentUser(project))
         }
         responseSuccess(config)
     }
@@ -83,12 +83,7 @@ class CustomUIController extends RestController {
         Project project = projectService.read(params.long('project'))
 
         if(project) {
-            List<Property> properties = Property.findAllByDomainIdentAndKey(project.id,CUSTOM_UI_PROJECT,[max: 1,sort:"created", order:"desc" ])
-            if(properties.isEmpty()) {
-                responseSuccess(grailsApplication.config.cytomine.customUI.project)
-            } else {
-                responseSuccess(JSON.parse(properties.first().value))
-            }
+            responseSuccess(getProjectConfig(project))
         } else {
             responseNotFound("Project", params.project)
         }
@@ -109,38 +104,48 @@ class CustomUIController extends RestController {
         return globalConfig
     }
 
-    public def getProjectConfig(Set<SecRole> roles, Project project) {
-        def configProject = grailsApplication.config.cytomine.customUI.project
-        boolean isProjectAdmin = projectService.listByAdmin(cytomineService.currentUser).collect {it.id}.contains(project.id)
+    private def getProjectConfig(Project project) {
+        def config = grailsApplication.config.cytomine.customUI.project
+        def result = [:] // clone config so that the default configuration is not updated
+        config.each {
+            result[it.key] = it.value
+        }
+
         List<Property> properties = Property.findAllByDomainIdentAndKey(project.id,CUSTOM_UI_PROJECT,[max: 1,sort:"created", order:"desc" ])
-        def result = [:]
 
-        configProject.each{
-            result[it.key] = shouldBeShow(roles,isProjectAdmin,it.value)
-        }
-
-        //if a property is save, we override the default config
+        // if a property is saved, we override the default config
         if(!properties.isEmpty()) {
-            configProject = JSON.parse(properties.first().value)
+            def configProject = JSON.parse(properties.first().value)
+            configProject.each {
+                result[it.key] = it.value
+            }
         }
-        configProject.each{
-            result[it.key] = shouldBeShow(roles,isProjectAdmin,it.value)
-        }
-
         return result
     }
 
-    boolean shouldBeShow(Set<SecRole> roles, boolean isProjectAdmin, def config) {
-        if(currentRoleServiceProxy.isAdminByNow(cytomineService.currentUser))
-            return true;
+    private getProjectConfigCurrentUser(Project project) {
+        boolean isProjectAdmin = projectService.listByAdmin(cytomineService.currentUser).collect {it.id}.contains(project.id)
+        boolean isAdminByNow = currentRoleServiceProxy.isAdminByNow(cytomineService.currentUser)
 
-        boolean mustBeShow;
-        if(isProjectAdmin) {
-            mustBeShow = config["ADMIN_PROJECT"]
-        } else {
-            mustBeShow = config["CONTRIBUTOR_PROJECT"]
+        def configProject = getProjectConfig(project)
+        def result = [:]
+
+        configProject.each{
+            result[it.key] = shouldBeShown(isAdminByNow, isProjectAdmin, it.value)
         }
-        return mustBeShow
+        return result
+    }
+
+    private boolean shouldBeShown(boolean isAdminByNow, boolean isProjectAdmin, def config) {
+        if(isAdminByNow) {
+            return true
+        }
+
+        if(isProjectAdmin) {
+            return config["ADMIN_PROJECT"]
+        }
+
+        return config["CONTRIBUTOR_PROJECT"]
     }
 
 }

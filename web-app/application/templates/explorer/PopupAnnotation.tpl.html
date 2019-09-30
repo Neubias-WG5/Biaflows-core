@@ -22,13 +22,16 @@
 <div class="annotation-preview-panel custom-ui-project-explore-annotation-preview" style="text-align: center;">
     <img src="<%= smallCropURL %>" style="max-width: 298px;max-height: 298px;min-width: 128px;"/>
 </div>
-<div class="sidebar-map-head custom-ui-project-explore-annotation-similarities">
-    <label>Similarities <i class="toggle-content-suggested glyphicon glyphicon-plus btn-sm"></i> </label>
-</div>
-<div class="popupPanel-suggest annotation-suggested-panel  sidebar-map-content custom-ui-project-explore-annotation-similarities" >
-    <div id="suggTerm<%= id %>"></div>
-    <div id="loadSimilarAnnotation<%= id %>">Computing similar annotations...</div>
-</div>
+
+<% if(retrieval_enabled == 'true'){ %>
+    <div class="sidebar-map-head custom-ui-project-explore-annotation-similarities">
+        <label>Similarities <i class="toggle-content-suggested glyphicon glyphicon-plus btn-sm"></i> </label>
+    </div>
+    <div class="popupPanel-suggest annotation-suggested-panel  sidebar-map-content custom-ui-project-explore-annotation-similarities" >
+        <div id="suggTerm<%= id %>"></div>
+        <div id="loadSimilarAnnotation<%= id %>">Computing similar annotations...</div>
+    </div>
+<% } %>
 <div class="sidebar-map-head custom-ui-project-explore-annotation-properties">
     <label>Properties <i class="toggle-content-property glyphicon glyphicon-plus btn-xs"></i> </label>
 </div>

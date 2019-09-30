@@ -3,7 +3,7 @@ package be.cytomine
 import be.cytomine.image.ImageInstance
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -116,12 +116,34 @@ class UploadedFileTests {
         assert third != null
     }
 
+    void testSearchUploadedFile() {
+        String name = "test"
+        def result = UploadedFileAPI.searchWithName(name, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+        int previousSize = json.collection.size()
+
+        UploadedFile uf = BasicInstanceBuilder.getUploadedFileNotExist()
+        uf.originalFilename = "test"
+        uf.save(true)
+        uf = BasicInstanceBuilder.getUploadedFileNotExist()
+        uf.originalFilename = "random"
+        uf.save(true)
+
+        result = UploadedFileAPI.searchWithName(name, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+        assert json.collection.size() == previousSize + 1
+    }
+
     void testShowUploadedFileWithCredential() {
-      def result = UploadedFileAPI.show(BasicInstanceBuilder.getUploadedFile().id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
-      assert 200 == result.code
-      def json = JSON.parse(result.data)
-      assert json instanceof JSONObject
-  }
+        def result = UploadedFileAPI.show(BasicInstanceBuilder.getUploadedFile().id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+    }
 
   void testAddUploadedFileCorrect() {
       def uploadedfileToAdd = BasicInstanceBuilder.getUploadedFileNotExist()

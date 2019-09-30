@@ -1,7 +1,7 @@
 package be.cytomine.security
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -24,9 +24,7 @@ import be.cytomine.command.*
 import be.cytomine.image.ImageInstance
 import be.cytomine.image.NestedImageInstance
 import be.cytomine.image.UploadedFile
-import be.cytomine.image.server.ImageServerStorage
 import be.cytomine.image.server.Storage
-import be.cytomine.image.server.StorageAbstractImage
 import be.cytomine.ontology.*
 import be.cytomine.processing.Job
 import be.cytomine.project.Project
@@ -44,6 +42,7 @@ import org.apache.commons.collections.ListUtils
 
 import static org.springframework.security.acls.domain.BasePermission.ADMINISTRATION
 import static org.springframework.security.acls.domain.BasePermission.READ
+import static org.springframework.security.acls.domain.BasePermission.WRITE
 
 class SecUserService extends ModelService {
 
@@ -201,8 +200,8 @@ class SecUserService extends ModelService {
                 def userJob = UserJob.findByJob(job);
                 if (userJob) {
                     userJob.username = job.software.name + " " + job.created
+                    users << userJob
                 }
-                users << userJob
             }
         }
         return users
@@ -234,6 +233,17 @@ class SecUserService extends ModelService {
             users.addAll(listUsers(project))
         }
         users.unique()
+    }
+
+    def listUsers(Storage storage) {
+        securityACLService.check(storage, READ)
+        return User.executeQuery("select distinct secUser " +
+                "from AclObjectIdentity as aclObjectId, AclEntry as aclEntry, AclSid as aclSid, User as secUser "+
+                "where aclObjectId.objectId = "+storage.id+" " +
+                "and aclEntry.aclObjectIdentity = aclObjectId.id " +
+                "and aclEntry.sid = aclSid.id " +
+                "and aclSid.sid = secUser.username " +
+                "and secUser.class = 'be.cytomine.security.User'")
     }
 
     def listByGroup(Group group) {
@@ -269,11 +279,12 @@ class SecUserService extends ModelService {
 
         String request = "SELECT u.id as id, u.username as username, s.name as softwareName, s.software_version as softwareVersion, j.created as created, u.job_id as job, j.favorite as favorite " +
                 "FROM annotation_index ai " +
+                "RIGHT JOIN slice_instance si ON ai.slice_id = si.id " + 
                 "RIGHT JOIN sec_user u ON ai.user_id = u.id " +
                 "RIGHT JOIN job j ON j.id = u.job_id " +
                 "RIGHT JOIN software_project sp ON sp.software_id = j.software_id " +
                 "RIGHT JOIN software s ON s.id = sp.software_id " +
-                "WHERE ai.image_id = ${image.id} " +
+                "WHERE si.image_id = ${image.id} " +
                 "AND sp.project_id = ${image.project.id} " +
                 "ORDER BY j.created"
         def data = []
@@ -308,9 +319,10 @@ class SecUserService extends ModelService {
         def users = []
         def humans = listUsers(project)
 
-        humans.each {
-            users << User.getDataFromDomain(it)
-        }
+        if(image) {
+            humans.each {
+                users << User.getDataFromDomain(it)
+            }
 
         def jobs = []
         if(image) {
@@ -319,15 +331,14 @@ class SecUserService extends ModelService {
         }
         def  admins = listAdmins(project)
 
-        log.info(humans.contains(currentUser))
 
-
-        if(currentRoleServiceProxy.isAdminByNow(currentUser)) {
+        if(project.checkPermission(ADMINISTRATION,currentRoleServiceProxy.isAdminByNow(currentUser))) {
             return users
         } else if(project.hideAdminsLayers && project.hideUsersLayers && humans.contains(currentUser)) {
             return jobs
         } else if(project.hideAdminsLayers && !project.hideUsersLayers && humans.contains(currentUser)) {
-            users.removeAll(admins)
+            def adminsId = admins.collect{it.id}
+            users.removeAll{adminsId.contains(it.id)}
             return users
         } else if(!project.hideAdminsLayers && project.hideUsersLayers && humans.contains(currentUser)) {
 //            admins.add(currentUser)
@@ -355,7 +366,7 @@ class SecUserService extends ModelService {
     List<SecUser> getAllOnlineUsers() {
         securityACLService.checkGuest(cytomineService.currentUser)
         //get date with -X secondes
-        def xSecondAgo = Utils.getDatePlusSecond(-20000)
+        def xSecondAgo = Utils.getDateMinusSecond(300)
         def results = LastConnection.withCriteria {
             ge('created', xSecondAgo)
         }
@@ -368,13 +379,13 @@ class SecUserService extends ModelService {
     List<SecUser> getAllOnlineUsers(Project project) {
         securityACLService.check(project,READ)
         if(!project) return getAllOnlineUsers()
+        def xSecondAgo = Utils.getDateMinusSecond(300)
         def results = LastConnection.withCriteria {
             eq('project',project)
-            ne('user',cytomineService.currentUser)
+            ge('created', xSecondAgo)
+            distinct('user')
         }
-        def users = User.getAll(results.collect{it.user.id}.unique())
-        users << cytomineService.currentUser
-        return users
+        return User.getAll(results.collect{it.user.id})
     }
 
     /**
@@ -464,21 +475,15 @@ class SecUserService extends ModelService {
         log.info "service.addUserToProject"
         if (project) {
             log.info "addUserToProject project=" + project + " username=" + user?.username + " ADMIN=" + admin
-            if(admin) {
-                synchronized (this.getClass()) {
-                    permissionService.addPermission(project,user.username,ADMINISTRATION)
-                    permissionService.addPermission(project,user.username,READ)
-                    permissionService.addPermission(project.ontology,user.username,READ)
+            synchronized (this.getClass()) {
+                if(admin) {
+                    permissionService.addPermission(project, user.username, ADMINISTRATION)
                 }
-            }
-            else {
-                synchronized (this.getClass()) {
-                    log.info "addUserToProject project=" + project + " username=" + user?.username + " ADMIN=" + admin
-                    permissionService.addPermission(project,user.username,READ)
+                permissionService.addPermission(project, user.username, READ)
+                if(project.ontology) {
                     log.info "addUserToProject ontology=" + project.ontology + " username=" + user?.username + " ADMIN=" + admin
-                    permissionService.addPermission(project.ontology,user.username,READ)
+                    permissionService.addPermission(project.ontology, user.username, READ)
                 }
-
             }
         }
         [data: [message: "OK"], status: 201]
@@ -497,13 +502,14 @@ class SecUserService extends ModelService {
         }
         if (project) {
             log.info "deleteUserFromProject project=" + project?.id + " username=" + user?.username + " ADMIN=" + admin
+            if(project.ontology) {
+                removeOntologyRightIfNecessary(project, user)
+            }
             if(admin) {
-                removeOntologyRightIfNecessary(project,user)
-                permissionService.deletePermission(project,user.username,ADMINISTRATION)
+                permissionService.deletePermission(project, user.username, ADMINISTRATION)
             }
             else {
-                removeOntologyRightIfNecessary(project,user)
-                permissionService.deletePermission(project,user.username,READ)
+                permissionService.deletePermission(project, user.username, READ)
             }
             ProjectRepresentativeUser representative = ProjectRepresentativeUser.findByUserAndProject(user, project)
             if(representative) {
@@ -523,6 +529,29 @@ class SecUserService extends ModelService {
             //permissionService.deletePermission(project.ontology,user.username,READ)
         }
 
+    }
+
+    def addUserToStorage(SecUser user, Storage storage) {
+        securityACLService.check(storage, ADMINISTRATION)
+
+        log.info "Add user $user to storage $storage"
+        permissionService.addPermission(storage, user.username, READ)
+        permissionService.addPermission(storage, user.username, WRITE)
+
+        [data: [message: "OK"], status: 201]
+    }
+
+    def deleteUserFromStorage(SecUser user, Storage storage) {
+        securityACLService.checkIsSameUserOrAdminContainer(storage, user, cytomineService.currentUser)
+
+        if (user == storage.user) {
+            throw new InvalidRequestException("The storage owner cannot be deleted.")
+        }
+
+        log.info "Remove user $user from storage $storage"
+        permissionService.deletePermission(storage, user.username, READ)
+        permissionService.deletePermission(storage, user.username, WRITE)
+        [data: [message: "OK"], status: 201]
     }
 
     def beforeDelete(def domain) {
@@ -690,12 +719,9 @@ class SecUserService extends ModelService {
 
     def deleteDependentStorage(SecUser user,Transaction transaction, Task task = null) {
         for (storage in Storage.findAllByUser(user)) {
-            if (StorageAbstractImage.countByStorage(storage) > 0) {
+            if (UploadedFile.countByStorage(storage) > 0) {
                 throw new ConstraintException("Storage contains data, cannot delete user. Remove or assign storage to an another user first")
             } else {
-                ImageServerStorage.findAllByStorage(storage).each {
-                    it.delete()
-                }
                 storage.delete()
             }
         }

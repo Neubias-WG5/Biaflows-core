@@ -1,7 +1,7 @@
 package be.cytomine.Exception;
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@ package be.cytomine.Exception;
 * limitations under the License.
 */
 
+
+import java.util.LinkedHashMap;
 
 /**
  * User: lrollus
@@ -36,12 +38,21 @@ public abstract class CytomineException extends RuntimeException{
     public String msg;
 
     /**
+     * Values of the exception
+     */
+    public LinkedHashMap<Object, Object> values;
+
+    /**
      * Message map with this exception
      * @param msg Message
      * @param code Http code
      */
     public CytomineException(String msg, int code) {
+        this(msg,code,new LinkedHashMap<Object, Object>());
+    }
+    public CytomineException(String msg, int code, LinkedHashMap<Object, Object> values) {
         this.msg=msg;
         this.code = code;
+        this.values = values;
     }
 }

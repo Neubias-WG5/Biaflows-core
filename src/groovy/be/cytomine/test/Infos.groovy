@@ -1,7 +1,7 @@
 package be.cytomine.test
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -92,7 +92,9 @@ class Infos {
         PermissionService service = grails.util.Holders.getGrailsApplication().mainContext.getBean('permissionService')
         service.addPermission(project,user.username,ADMINISTRATION,SecUser.findByUsername(Infos.SUPERADMINLOGIN))
         service.addPermission(project,user.username,READ,SecUser.findByUsername(Infos.SUPERADMINLOGIN))
-        service.addPermission(project.ontology,user.username,READ,SecUser.findByUsername(Infos.SUPERADMINLOGIN))
+        if(project.ontology) {
+            service.addPermission(project.ontology, user.username, READ, SecUser.findByUsername(Infos.SUPERADMINLOGIN))
+        }
     }
 
     static void addUserRight(String username, Ontology ontology) {

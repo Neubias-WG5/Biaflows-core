@@ -1,7 +1,9 @@
 package be.cytomine
 
+import be.cytomine.Exception.WrongArgumentException
+
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -19,31 +21,39 @@ package be.cytomine
 import be.cytomine.image.AbstractImage
 import be.cytomine.image.server.Storage
 import be.cytomine.ontology.Property
+import be.cytomine.project.Project
 import be.cytomine.test.BasicInstanceBuilder
 import be.cytomine.test.Infos
 import be.cytomine.test.http.AbstractImageAPI
+import be.cytomine.test.http.ImageInstanceAPI
 import be.cytomine.utils.UpdateData
 import grails.converters.JSON
 import org.codehaus.groovy.grails.web.json.JSONArray
 import org.codehaus.groovy.grails.web.json.JSONObject
 
-/**
- * Created by IntelliJ IDEA.
- * User: lrollus
- * Date: 16/02/11
- * Time: 13:49
- * To change this template use File | Settings | File Templates.
- */
 class AbstractImageTests {
 
-  void testListImages() {
-      Storage storage = BasicInstanceBuilder.getStorage()
-      BasicInstanceBuilder.getAbstractImage()
-      def result = AbstractImageAPI.list(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
-      assert 200 == result.code
-      def json = JSON.parse(result.data)
-      assert json.collection instanceof JSONArray
-  }
+    void testListImages() {
+        Storage storage = BasicInstanceBuilder.getStorage()
+        BasicInstanceBuilder.getAbstractImage()
+        def result = AbstractImageAPI.list(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+    }
+
+    void testListImagesWithInProjectInfo() {
+        Project project = BasicInstanceBuilder.getProjectNotExist(true)
+        BasicInstanceBuilder.getImageInstanceNotExist(project, true)
+        BasicInstanceBuilder.getAbstractImageNotExist(true)
+        def result = AbstractImageAPI.list(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+
+        assert json.collection.collect{it.inProject}.contains(true)
+        assert json.collection.collect{it.inProject}.contains(false)
+    }
 
     void testListImagesDatatable() {
         def result = AbstractImageAPI.list(true,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
@@ -56,15 +66,17 @@ class AbstractImageTests {
       assert 401 == result.code
   }
 
-  void testListAnnotationsByProject() {
-      BasicInstanceBuilder.getAbstractImage()
-      def result = AbstractImageAPI.listByProject(BasicInstanceBuilder.getProject().id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+  void testListByProject() {
+      Project project = BasicInstanceBuilder.getProjectNotExist(true)
+      BasicInstanceBuilder.getImageInstanceNotExist(project, true)
+      def result = AbstractImageAPI.listByProject(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
       assert 200 == result.code
       def json = JSON.parse(result.data)
       assert json.collection instanceof JSONArray
+      assert json.collection.size() == 1
   }
 
-  void testListAnnotationsByProjectNoExistWithCredential() {
+  void testListByProjectNoExistWithCredential() {
       def result = AbstractImageAPI.listByProject(-99,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
       assert 404 == result.code
   }
@@ -163,6 +175,65 @@ class AbstractImageTests {
       json = JSON.parse(showResult.data)
       BasicInstanceBuilder.compare(data.mapNew, json)
   }
+
+    void testEditMagnification() {
+
+        def ai = BasicInstanceBuilder.getAbstractImageNotExist(true)
+        def ii = BasicInstanceBuilder.getImageInstanceNotExist(BasicInstanceBuilder.getProject(), false)
+        ii.baseImage = ai
+        ii.save(true)
+
+        assert ii.resolution == ai.resolution
+        assert ii.magnification == ai.magnification
+
+        def updatedImage = JSON.parse((String)ai.encodeAsJSON())
+        updatedImage.resolution = 2.5d
+        updatedImage.magnification = 20
+        def result = AbstractImageAPI.update(ai.id, updatedImage.toString(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+
+        assert json.abstractimage.resolution == 2.5
+        assert json.abstractimage.magnification == 20
+        updatedImage = json.abstractimage
+
+        result = ImageInstanceAPI.show(ii.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+        assert json.resolution == 2.5
+        assert json.magnification == 20
+
+        json.magnification = 40
+
+        result = ImageInstanceAPI.update(ii.id, json.toString(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+
+        assert json.imageinstance.resolution == 2.5
+        assert json.imageinstance.magnification == 40
+
+        updatedImage.resolution = 6
+        updatedImage.magnification = 10
+        result = AbstractImageAPI.update(ai.id, updatedImage.toString(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+
+        assert json.abstractimage.resolution == 6
+        assert json.abstractimage.magnification == 10
+
+
+        result = ImageInstanceAPI.show(ii.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+
+        assert json.resolution == 6
+        assert json.magnification == 40
+    }
+
 
   void testDeleteImage()  {
       def imageToDelete = BasicInstanceBuilder.getAbstractImage()

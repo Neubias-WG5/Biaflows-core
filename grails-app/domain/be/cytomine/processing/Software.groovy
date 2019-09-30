@@ -1,7 +1,7 @@
 package be.cytomine.processing
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import be.cytomine.utils.JSONUtils
 import org.restapidoc.annotation.RestApiObject
 import org.restapidoc.annotation.RestApiObjectField
 import org.restapidoc.annotation.RestApiObjectFields
+import org.springframework.security.acls.domain.BasePermission
+import org.springframework.security.acls.model.Permission
 
 /**
  * Software is an application that can read/add/update/delete data from cytomine
@@ -196,4 +198,11 @@ class Software extends CytomineDomain {
         return this.name;
     }
 
+    @Override
+    boolean checkPermission(Permission permission, boolean isAdmin) {
+        if (permission == BasePermission.READ) {
+            return true
+        }
+        return super.checkPermission(permission, isAdmin)
+    }
 }

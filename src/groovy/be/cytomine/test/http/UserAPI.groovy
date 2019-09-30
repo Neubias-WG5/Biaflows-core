@@ -1,7 +1,7 @@
 package be.cytomine.test.http
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -71,8 +71,12 @@ class UserAPI extends DomainAPI {
         list(id,domain,type,false,username,password)
     }
 
-    static def list(Long id,String domain,String type,def offline,String username, String password) {
-        String URL = Infos.CYTOMINEURL + "api/${domain}/$id/${type}.json" + (offline? "?offline=true":"")
+    static def list(Long id,String domain,String type,def online,String username, String password) {
+        String URL = Infos.CYTOMINEURL + "api/${domain}/$id/${type}.json" + (online? "?online=true":"")
+        return doGET(URL, username, password)
+    }
+    static def listWithConsultationInformation(Long id,String domain,String type,String username, String password) {
+        String URL = Infos.CYTOMINEURL + "api/${domain}/$id/${type}.json?withLastImage=true&withLastConsultation=true&withNumberConsultations=true"
         return doGET(URL, username, password)
     }
 
@@ -111,6 +115,11 @@ class UserAPI extends DomainAPI {
         String json = ([password: newPassword, oldPassword :password] as JSON).toString()
         String URL = Infos.CYTOMINEURL + "api/user/$id/password.json"
         return doPUT(URL,json,username,password)
+    }
+    static def checkPassword(String passwordToCheck, String username, String password) {
+        String json = ([password: passwordToCheck] as JSON).toString()
+        String URL = Infos.CYTOMINEURL + "api/user/security_check.json"
+        return doPOST(URL,json,username,password)
     }
 
 

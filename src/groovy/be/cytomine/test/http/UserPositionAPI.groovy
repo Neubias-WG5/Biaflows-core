@@ -1,7 +1,7 @@
 package be.cytomine.test.http
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -25,13 +25,15 @@ import be.cytomine.test.Infos
  */
 class UserPositionAPI extends DomainAPI {
 
-    static def listLastByUser(Long idImage,Long idUser, String username, String password) {
-        String URL = Infos.CYTOMINEURL + "/api/imageinstance/$idImage/position/${idUser}.json"
+    static def listLastByUser(Long idImage,Long idUser, String username, String password, boolean broadcast=false) {
+        String URL = Infos.CYTOMINEURL + "/api/imageinstance/$idImage/position/${idUser}.json" +
+                (broadcast ? "?broadcast=true" : "")
         return doGET(URL, username, password)
     }
 
-    static def listLastByImage(Long idImage,String username, String password) {
-        String URL = Infos.CYTOMINEURL + "/api/imageinstance/$idImage/online.json"
+    static def listLastByImage(Long idImage,String username, String password, boolean broadcast=false) {
+        String URL = Infos.CYTOMINEURL + "/api/imageinstance/$idImage/online.json" +
+                (broadcast ? "?broadcast=true" : "")
         return doGET(URL, username, password)
     }
 

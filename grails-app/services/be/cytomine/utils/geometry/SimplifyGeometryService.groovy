@@ -1,7 +1,7 @@
 package be.cytomine.utils.geometry
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -35,24 +35,34 @@ class SimplifyGeometryService {
     def transactional = false
     def grailsApplication
 
+    def simplifyPolygon(String form, def minPoint = null, def maxPoint = null) {
+        simplifyPolygon(new WKTReader().read(form), minPoint, maxPoint)
+    }
+
     /**
      * Simplify form (limit point number)
      * Return simplify polygon and the rate used for simplification
      */
-    def simplifyPolygon(String form, def minPoint = null, def maxPoint = null) {
-        Geometry annotationFull = new WKTReader().read(form);
+    def simplifyPolygon(Geometry geometry, def minPoint = null, def maxPoint = null) {
+        // Fast response for simple geometries
+        if (geometry.numPoints < 100)
+            return [geometry: geometry, rate: 0.0d]
+
         int numOfGeometry = 0
-        if (annotationFull instanceof MultiPolygon) {
-            for (int i = 0; i < annotationFull.getNumGeometries(); i++) {
-                Geometry geom = annotationFull.getGeometryN(i)
+        if (geometry instanceof MultiPolygon) {
+            for (int i = 0; i < geometry.getNumGeometries(); i++) {
+                Geometry geom = geometry.getGeometryN(i)
                 int nbInteriorRing = 1
-                if(geom instanceof Polygon) nbInteriorRing = geom.getNumInteriorRing()
+                if(geom instanceof Polygon)
+                    nbInteriorRing = geom.getNumInteriorRing()
                 numOfGeometry +=  geom.getNumGeometries() * nbInteriorRing
             }
-        } else {
+        }
+        else {
             int nbInteriorRing = 1
-            if(annotationFull instanceof Polygon) nbInteriorRing = annotationFull.getNumInteriorRing()
-            numOfGeometry = annotationFull.getNumGeometries() * nbInteriorRing
+            if(geometry instanceof Polygon)
+                nbInteriorRing = geometry.getNumInteriorRing()
+            numOfGeometry = geometry.getNumGeometries() * nbInteriorRing
         }
         numOfGeometry = Math.max(1, numOfGeometry)
 
@@ -61,65 +71,96 @@ class SimplifyGeometryService {
         }
         numOfGeometry = Math.min(10, numOfGeometry)
 
-        log.info "numOfGeometry=$numOfGeometry"
-        log.info "minPoint=$minPoint maxPoint=$maxPoint"
-        Geometry lastAnnotationFull = annotationFull
         double ratioMax = 1.3d
         double ratioMin = 1.7d
-        /* Number of point (ex: 500 points) */
-        double numberOfPoint = annotationFull.getNumPoints()
+        def maxNumberOfPoint = grailsApplication.config.cytomine.annotation.maxNumberOfPoint
+        def minNumberOfPoint = 100.0d
+
+        double numberOfPoint = geometry.getNumPoints()
 
         /* Maximum number of point that we would have (500/5 (max 150)=max 100 points)*/
-        double rateLimitMax = Math.max(numberOfPoint / ratioMax, numOfGeometry * grailsApplication.config.cytomine.annotation.maxNumberOfPoint)
+        double rateLimitMax
         if (maxPoint) {
-            //overide if max/minpoint is in argument
             rateLimitMax = maxPoint * numOfGeometry
         }
+        else {
+            rateLimitMax = Math.max(numberOfPoint / ratioMax, numOfGeometry * maxNumberOfPoint)
+        }
+
         /* Minimum number of point that we would have (500/10 (min 10 max 100)=min 50 points)*/
-        double rateLimitMin = Math.min(Math.max(numberOfPoint / ratioMin, 10), numOfGeometry * 100)
+        double rateLimitMin
         if (minPoint) {
-            //overide if max/minpoint is in argument
             rateLimitMin = minPoint * numOfGeometry
         }
-        log.info "rateLimitMax=$rateLimitMax rateLimitMin=$rateLimitMin"
+        else {
+            rateLimitMin = Math.min(Math.max(numberOfPoint / ratioMin, 10), numOfGeometry * minNumberOfPoint)
+        }
 
         /* Increase value for the increment (allow to converge faster) */
-        float incrThreshold = 0.25f
-
-        float i = 0;
-        /* Max number of loop (prevent infinite loop) */
-        int maxLoop = 1000
+        double incrThreshold = 0.25d
+        double i = 0
         double rate = 0
 
-        Boolean isPolygonAndNotValid = (annotationFull instanceof com.vividsolutions.jts.geom.Polygon && !((Polygon) annotationFull).isValid())
-        Boolean isMultiPolygon = (annotationFull instanceof com.vividsolutions.jts.geom.MultiPolygon)
-        while (numberOfPoint > rateLimitMax && maxLoop > 0) {
+        /* Max number of loop (prevent infinite loop) */
+        int maxLoop = 1000
 
+        Geometry newGeometry = null
+        Boolean isPolygonAndNotValid = (geometry instanceof Polygon && !((Polygon) geometry).isValid())
+        Boolean isMultiPolygon = (geometry instanceof MultiPolygon)
+        while (numberOfPoint > rateLimitMax && maxLoop > 0) {
             rate = i
             if (isPolygonAndNotValid || isMultiPolygon) {
-                lastAnnotationFull = TopologyPreservingSimplifier.simplify(annotationFull, rate)
-            } else {
-                lastAnnotationFull = DouglasPeuckerSimplifier.simplify(annotationFull, rate)
+                newGeometry = TopologyPreservingSimplifier.simplify(geometry, rate)
+            }
+            else {
+                newGeometry = DouglasPeuckerSimplifier.simplify(geometry, rate)
             }
 
-            if (lastAnnotationFull.getNumPoints() < rateLimitMin) break;
-            annotationFull = lastAnnotationFull
-            i = i + ((incrThreshold)); maxLoop--;
+            if (newGeometry.getNumPoints() < rateLimitMin)
+                break;
+
+            i = i + ((incrThreshold));
+            maxLoop--;
         }
-        return [geometry: annotationFull, rate: rate]
+        return [geometry: newGeometry, rate: rate]
     }
 
 
     def simplifyPolygon(String form, double rate) {
-        Geometry annotation = new WKTReader().read(form);
-        Boolean isPolygonAndNotValid = (annotation instanceof com.vividsolutions.jts.geom.Polygon && !((Polygon) annotation).isValid())
-        Boolean isMultiPolygon = (annotation instanceof com.vividsolutions.jts.geom.MultiPolygon)
+    }
+
+    def simplifyPolygon(Geometry geometry, double rate) {
+        Geometry newGeometry
+        Boolean isPolygonAndNotValid = (geometry instanceof Polygon && !((Polygon) geometry).isValid())
+        Boolean isMultiPolygon = (geometry instanceof MultiPolygon)
         if (isPolygonAndNotValid || isMultiPolygon) {
-            annotation = TopologyPreservingSimplifier.simplify(annotation, rate)
+            newGeometry = TopologyPreservingSimplifier.simplify(geometry, rate)
         } else {
-            annotation = DouglasPeuckerSimplifier.simplify(annotation, rate)
+            newGeometry = DouglasPeuckerSimplifier.simplify(geometry, rate)
         }
-        return [geometry: annotation, rate: rate]
+        return [geometry: newGeometry, rate: rate]
+    }
+
+    def simplifyPolygonForCrop(def geometry) {
+        if (geometry.numPoints < 100)
+            return reduceGeometryPrecision(geometry)
+
+        double index = 2d
+        int max = 1000
+        while (index < max) {
+            geometry = TopologyPreservingSimplifier.simplify(geometry, index)
+            if (geometry.numPoints < 150) {
+                break
+            }
+            index = (index + 5) * 1.1
+        }
+
+        return reduceGeometryPrecision(geometry)
+    }
+
+    def reduceGeometryPrecision(def geometry, int scale = 100) {
+        GeometryPrecisionReducer reducer = new GeometryPrecisionReducer(new PrecisionModel(scale))
+        return reducer.reduce(geometry)
     }
 
 

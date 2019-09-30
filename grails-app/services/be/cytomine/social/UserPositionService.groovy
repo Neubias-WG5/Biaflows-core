@@ -1,6 +1,7 @@
 package be.cytomine.social
 
 import be.cytomine.image.ImageInstance
+import be.cytomine.image.SliceInstance
 import be.cytomine.security.SecUser
 import be.cytomine.security.User
 import be.cytomine.utils.JSONUtils
@@ -23,10 +24,24 @@ class UserPositionService extends ModelService {
     def add(def json){
 
         SecUser user = cytomineService.getCurrentUser()
-        ImageInstance image = ImageInstance.read(JSONUtils.getJSONAttrLong(json,"image",0))
+        SliceInstance slice = null
+        ImageInstance image = null
+
+        def sliceId = JSONUtils.getJSONAttrLong(json, "slice", 0)
+        def imageId = JSONUtils.getJSONAttrLong(json, "image", 0)
+        if (sliceId) {
+            slice = SliceInstance.read(sliceId)
+            image = slice.image
+        }
+        else if (imageId) {
+            image = ImageInstance.read(imageId)
+            slice = image.referenceSlice
+        }
+
         def position = new LastUserPosition()
         position.user = user
         position.image = image
+        position.slice = slice
         position.project = image.project
         def polygon = [
                 [JSONUtils.getJSONAttrDouble(json,"topLeftX",-1),JSONUtils.getJSONAttrDouble(json,"topLeftY",-1)],
@@ -37,14 +52,16 @@ class UserPositionService extends ModelService {
         position.location = polygon
         position.zoom = JSONUtils.getJSONAttrInteger(json,"zoom",0)
         position.rotation = JSONUtils.getJSONAttrDouble(json,"rotation",0)
+        position.broadcast = JSONUtils.getJSONAttrBoolean(json, "broadcast", false)
         position.created = new Date()
         position.updated = position.created
-        position.imageName = image.getFileName()
+        position.imageName = image.getBlindInstanceFilename()
         position.insert(flush:true, failOnError : true) //don't use save (stateless collection)
 
         position = new PersistentUserPosition()
         position.user = user
         position.image = image
+        position.slice = slice
         position.project = image.project
         polygon = [
                 [JSONUtils.getJSONAttrDouble(json,"topLeftX",-1),JSONUtils.getJSONAttrDouble(json,"topLeftY",-1)],
@@ -55,32 +72,50 @@ class UserPositionService extends ModelService {
         position.location = polygon
         position.zoom = JSONUtils.getJSONAttrInteger(json,"zoom",0)
         position.rotation = JSONUtils.getJSONAttrDouble(json,"rotation",0)
+        position.broadcast = JSONUtils.getJSONAttrBoolean(json, "broadcast", false)
         position.session = RequestContextHolder.currentRequestAttributes().getSessionId()
         position.created = new Date()
         position.updated = position.created
-        position.imageName = image.getFileName()
+        position.imageName = image.getBlindInstanceFilename()
         position.insert(flush:true, failOnError : true) //don't use save (stateless collection)
 
         return position
     }
 
-    def lastPositionByUser(ImageInstance image, SecUser user){
+    def lastPositionByUser(ImageInstance image, SecUser user, boolean broadcast, SliceInstance slice = null) {
         securityACLService.check(image,READ)
         def userPositions = LastUserPosition.createCriteria().list(sort: "created", order: "desc", max: 1) {
             eq("user", user)
             eq("image", image)
+
+            if (slice) {
+                eq("slice", slice)
+            }
+
+            if(broadcast) {
+                eq("broadcast", true)
+            }
         }
-        def result = (userPositions.size() > 0) ? userPositions[0] : []
+        def result = (userPositions.size() > 0) ? userPositions[0] : [:]
         return result
     }
 
-    def listOnlineUsersByImage(ImageInstance image){
+    def listOnlineUsersByImage(ImageInstance image, boolean broadcast, SliceInstance slice = null) {
         securityACLService.check(image,READ)
         DateTime thirtySecondsAgo = new DateTime().minusSeconds(30)
 
+        def match = [image: image.id, created: [$gte: thirtySecondsAgo.toDate()]]
+        if(broadcast) {
+            match = [$and: [match, [broadcast: true]]]
+        }
+
+        if (slice) {
+            match = [$and: [match, [slice: slice.id]]]
+        }
+
         def db = mongo.getDB(noSQLCollectionService.getDatabaseName())
         def userPositions = db.lastUserPosition.aggregate(
-                [$match: [image: image.id, created: [$gte: thirtySecondsAgo.toDate()]]],
+                [$match: match],
                 [$project: [user: '$user']],
                 [$group : [_id : '$user']]
         );
@@ -89,17 +124,18 @@ class UserPositionService extends ModelService {
         return ["users": result]
     }
 
-    def list(ImageInstance image, User user, Long afterThan = null, Long beforeThan = null){
+    def list(ImageInstance image, User user, SliceInstance slice, Long afterThan = null, Long beforeThan = null){
         securityACLService.check(image,WRITE)
         return PersistentUserPosition.createCriteria().list(sort: "created", order: "asc") {
             if(user) eq("user", user)
             eq("image", image)
+            if (slice) eq("slice", slice)
             if(afterThan) gte("created", new Date(afterThan))
             if(beforeThan) lte("created", new Date(beforeThan))
         }
     }
 
-    def summarize(ImageInstance image, User user, Long afterThan = null, Long beforeThan = null){
+    def summarize(ImageInstance image, User user, SliceInstance slice, Long afterThan = null, Long beforeThan = null){
         securityACLService.check(image,WRITE)
 
         def db = mongo.getDB(noSQLCollectionService.getDatabaseName())
@@ -109,8 +145,9 @@ class UserPositionService extends ModelService {
         if(afterThan) match << [created: [$gte: new Date(afterThan)]]
         if(beforeThan) match << [created: [$lt: new Date(beforeThan)]]
         if(user) match << [user:user.id]
+        if (slice) match << [slice: slice.id]
 
-        if(afterThan || beforeThan || user) {
+        if(afterThan || beforeThan || user || slice) {
             match = [$and : match]
         } else {
             match = [image: image.id]

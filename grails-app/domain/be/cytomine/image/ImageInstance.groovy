@@ -1,7 +1,7 @@
 package be.cytomine.image
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -28,13 +28,7 @@ import org.restapidoc.annotation.RestApiObject
 import org.restapidoc.annotation.RestApiObjectField
 import org.restapidoc.annotation.RestApiObjectFields
 
-/**
- * Created by IntelliJ IDEA.
- * User: lrollus
- * Date: 18/05/11
- * Time: 8:33
- * An ImageInstance is an image map with a project
- */
+
 @RestApiObject(name = "Image instance", description = "A link between 'abstract image' and 'project'. An 'abstract image' may be in multiple projects.")
 class ImageInstance extends CytomineDomain implements Serializable {
 
@@ -47,6 +41,10 @@ class ImageInstance extends CytomineDomain implements Serializable {
     @RestApiObjectField(description = "The user that add the image to the project")
     SecUser user
 
+    @RestApiObjectField(description = "Instance image filename", useForCreation = false)
+    String instanceFilename
+
+    // ----- Annotation counts
     @RestApiObjectField(description = "The number of user annotation in the image", useForCreation = false, apiFieldName = "numberOfAnnotations")
     Long countImageAnnotations = 0L
 
@@ -56,13 +54,8 @@ class ImageInstance extends CytomineDomain implements Serializable {
     @RestApiObjectField(description = "The number of reviewed annotation in the image", useForCreation = false, apiFieldName = "numberOfReviewedAnnotations")
     Long countImageReviewedAnnotations = 0L
 
-    //stack stuff
-    //TODO:APIDOC still used?
-    Integer zIndex
 
-    //TODO:APIDOC still used?
-    Integer channel
-
+    // ----- Image review
     @RestApiObjectField(description = "The start review date", useForCreation = false)
     Date reviewStart
 
@@ -72,19 +65,31 @@ class ImageInstance extends CytomineDomain implements Serializable {
     @RestApiObjectField(description = "The user who reviewed (or still reviewing) this image", useForCreation = false)
     SecUser reviewUser
 
-    @RestApiObjectField(description = "Instance image filename", useForCreation = false)
-    String instanceFilename;
+    @RestApiObjectField(description = "The image max zoom")
+    Integer magnification
+
+    @RestApiObjectField(description = "The image resolution (microm per pixel)")
+    Double resolution
+
+    @RestApiObjectField(description = "Physical size of a pixel along X axis", mandatory = false)
+    Double physicalSizeX
+
+    @RestApiObjectField(description = "Physical size of a pixel along Y axis", mandatory = false)
+    Double physicalSizeY
+
+    @RestApiObjectField(description = "Physical size of a pixel along Z axis", mandatory = false)
+    Double physicalSizeZ
+
+    @RestApiObjectField(description = "The number of frames per second", mandatory = false)
+    Double fps
 
     @RestApiObjectFields(params = [
             @RestApiObjectField(apiFieldName = "filename", description = "Abstract image filename (see Abstract Image)", allowedType = "string", useForCreation = false),
             @RestApiObjectField(apiFieldName = "originalFilename", description = "Abstract image original filename (see Abstract Image)", allowedType = "string", useForCreation = false),
             @RestApiObjectField(apiFieldName = "path", description = "Abstract image path (see Abstract Image)", allowedType = "string", useForCreation = false),
             @RestApiObjectField(apiFieldName = "sample", description = "Abstract image sample (see Abstract Image)", allowedType = "long", useForCreation = false),
-            @RestApiObjectField(apiFieldName = "mime", description = "Abstract image mime (see Abstract Image)", allowedType = "string", useForCreation = false),
             @RestApiObjectField(apiFieldName = "width", description = "Abstract image width (see Abstract Image)", allowedType = "int", useForCreation = false),
             @RestApiObjectField(apiFieldName = "height", description = "Abstract image height (see Abstract Image)", allowedType = "int", useForCreation = false),
-            @RestApiObjectField(apiFieldName = "resolution", description = "Abstract image resolution (see Abstract Image)", allowedType = "double", useForCreation = false),
-            @RestApiObjectField(apiFieldName = "magnification", description = "Abstract image magnification (see Abstract Image)", allowedType = "int", useForCreation = false),
             @RestApiObjectField(apiFieldName = "preview", description = "Abstract image preview (see Abstract Image)", allowedType = "string", useForCreation = false),
             @RestApiObjectField(apiFieldName = "thumb", description = "Abstract image thumb (see Abstract Image)", allowedType = "string", useForCreation = false),
             @RestApiObjectField(apiFieldName = "reviewed", description = "Image has been reviewed", allowedType = "boolean", useForCreation = false),
@@ -98,12 +103,16 @@ class ImageInstance extends CytomineDomain implements Serializable {
     static constraints = {
         baseImage(unique: ['project'])
         countImageAnnotations nullable: true
-        zIndex(nullable: true) //order in z-stack referenced by stack
-        channel(nullable: true)  //e.g. fluo channel
         reviewStart nullable: true
         reviewStop nullable: true
         reviewUser nullable: true
         instanceFilename nullable: true
+        magnification nullable: true
+        resolution nullable: true
+        physicalSizeX nullable: true
+        physicalSizeY nullable: true
+        physicalSizeZ nullable: true
+        fps nullable: true
     }
 
     static mapping = {
@@ -118,7 +127,7 @@ class ImageInstance extends CytomineDomain implements Serializable {
      * Check if this domain will cause unique constraint fail if saving on database
      */
     void checkAlreadyExist() {
-        ImageInstance.withNewSession {
+        withNewSession {
             ImageInstance imageAlreadyExist = ImageInstance.findByBaseImageAndProject(baseImage, project)
             if (imageAlreadyExist != null && (imageAlreadyExist.id != id)) {
                 throw new AlreadyExistException("Image " + baseImage?.filename + " already map with project " + project.name)
@@ -135,20 +144,33 @@ class ImageInstance extends CytomineDomain implements Serializable {
     static ImageInstance insertDataIntoDomain(def json, def domain = new ImageInstance()) {
         domain.id = JSONUtils.getJSONAttrLong(json, 'id', null)
         domain.created = JSONUtils.getJSONAttrDate(json, "created")
-        domain.deleted = JSONUtils.getJSONAttrDate(json, "deleted")
         domain.updated = JSONUtils.getJSONAttrDate(json, "updated")
+        domain.deleted = JSONUtils.getJSONAttrDate(json, "deleted")
+
         domain.user = JSONUtils.getJSONAttrDomain(json, "user", new SecUser(), false)
         domain.baseImage = JSONUtils.getJSONAttrDomain(json, "baseImage", new AbstractImage(), false)
         domain.project = JSONUtils.getJSONAttrDomain(json, "project", new Project(), false)
+        domain.instanceFilename = JSONUtils.getJSONAttrStr(json, "instanceFilename", false)
+
         domain.reviewStart = JSONUtils.getJSONAttrDate(json, "reviewStart")
         domain.reviewStop = JSONUtils.getJSONAttrDate(json, "reviewStop")
         domain.reviewUser = JSONUtils.getJSONAttrDomain(json, "reviewUser", new User(), false)
-        domain.instanceFilename = JSONUtils.getJSONAttrStr(json, "instanceFilename", false)
-        //Check review constraint
-        if ((domain.reviewUser == null && domain.reviewStart != null) || (domain.reviewUser != null && domain.reviewStart == null) || (domain.reviewStart == null && domain.reviewStop != null))
-            throw new WrongArgumentException("Review data are not valid: user=${domain.reviewUser} start=${domain.reviewStart} stop=${domain.reviewStop}")
 
-        return domain;
+        domain.magnification = JSONUtils.getJSONAttrInteger(json,'magnification',null)
+        domain.physicalSizeX = JSONUtils.getJSONAttrDouble(json, "physicalSizeX", null)
+        domain.physicalSizeY = JSONUtils.getJSONAttrDouble(json, "physicalSizeY", null)
+        domain.physicalSizeZ = JSONUtils.getJSONAttrDouble(json, "physicalSizeZ", null)
+        domain.fps = JSONUtils.getJSONAttrDouble(json, "fps", null)
+
+        //Check review constraint
+        if ((domain.reviewUser == null && domain.reviewStart != null)
+                || (domain.reviewUser != null && domain.reviewStart == null)
+                || (domain.reviewStart == null && domain.reviewStop != null)) {
+            throw new WrongArgumentException("Review data are not valid: user=${domain.reviewUser} " +
+                    "start=${domain.reviewStart} stop=${domain.reviewStop}")
+        }
+
+        domain
     }
 
     /**
@@ -156,67 +178,65 @@ class ImageInstance extends CytomineDomain implements Serializable {
      * @param domain Domain source for json value
      * @return Map with fields (keys) and their values
      */
-    static def getDataFromDomain(def image) {
-
+    static def getDataFromDomain(ImageInstance image) {
         def returnArray = CytomineDomain.getDataFromDomain(image)
         returnArray['baseImage'] = image?.baseImage?.id
         returnArray['project'] = image?.project?.id
         returnArray['user'] = image?.user?.id
+        returnArray['instanceFilename'] = image?.blindInstanceFilename
+
+        returnArray['originalFilename'] = image?.blindOriginalFilename
         returnArray['filename'] = image?.baseImage?.filename
-        returnArray['extension'] = image?.baseImage?.mime?.extension
-        returnArray['originalFilename'] = image?.baseImage?.originalFilename
-        returnArray['instanceFilename'] = image?.instanceFilename
-        returnArray['sample'] = image?.baseImage?.sample?.id
+        returnArray['blindedName'] = image?.getBlindedName()
         returnArray['path'] = image?.baseImage?.path
-        returnArray['mime'] = image?.baseImage?.mimeType
+        returnArray['contentType'] = image?.baseImage?.uploadedFile?.contentType
+        returnArray['sample'] = image?.baseImage?.sample?.id
+
         returnArray['width'] = image?.baseImage?.width
         returnArray['height'] = image?.baseImage?.height
-        returnArray['resolution'] = image?.baseImage?.resolution
-        returnArray['magnification'] = image?.baseImage?.magnification
-        returnArray['depth'] = image?.baseImage?.getZoomLevels()?.max
+        returnArray['depth'] = image?.baseImage?.depth // /!!\ Breaking API : image?.baseImage?.getZoomLevels()?.max
+        returnArray['duration'] = image?.baseImage?.duration
+        returnArray['channels'] = image?.baseImage?.channels
+
+        returnArray['physicalSizeX'] = image?.physicalSizeX
+        returnArray['physicalSizeY'] = image?.physicalSizeY
+        returnArray['physicalSizeZ'] = image?.physicalSizeZ
+        returnArray['fps'] = image?.fps
+
+        returnArray['zoom'] = image?.baseImage?.getZoomLevels()
+
+        returnArray['resolution'] = image?.resolution
+        returnArray['magnification'] = image?.magnification
         returnArray['bitDepth'] = image?.baseImage?.bitDepth
         returnArray['colorspace'] = image?.baseImage?.colorspace
-        try {
-            returnArray['preview'] = image.baseImage ? UrlApi.getThumbImage(image.baseImage?.id, 1024) : null
-        } catch (Exception e) {
-            returnArray['preview'] = 'NO preview:' + e.toString()
-        }
-        try {
-            returnArray['thumb'] = image.baseImage ? UrlApi.getThumbImage(image.baseImage?.id, 512) : null
-        } catch (Exception e) {
-            returnArray['thumb'] = 'NO THUMB:' + e.toString()
-        }
-        try {
-            returnArray['macroURL'] = image.baseImage ? UrlApi.getAssociatedImage(image.baseImage?.id, "macro") : null
-        } catch (Exception e) {
-            returnArray['macro'] = 'NO THUMB:' + e.toString()
-        }
-        try {
-            returnArray['fullPath'] = image.baseImage ? image.baseImage.getAbsolutePath() : null
-        } catch (Exception e) {
-            returnArray['thumb'] = 'NO THUMB:' + e.toString()
-        }
-        try {
-            returnArray['numberOfAnnotations'] = image?.countImageAnnotations
-        } catch (Exception e) {
-            returnArray['numberOfAnnotations'] = -1
-        }
-        try {
-            returnArray['numberOfJobAnnotations'] = image?.countImageJobAnnotations
-        } catch (Exception e) {
-            returnArray['numberOfJobAnnotations'] = -1
-        }
-        try {
-            returnArray['numberOfReviewedAnnotations'] = image?.countImageReviewedAnnotations
-        } catch (Exception e) {
-            returnArray['numberOfReviewedAnnotations'] = -1
-        }
-        returnArray['reviewStart'] = image?.reviewStart ? image.reviewStart?.time?.toString() : null
-        returnArray['reviewStop'] = image?.reviewStop ? image.reviewStop?.time?.toString() : null
+
+        returnArray['reviewStart'] =  image?.reviewStart?.time?.toString()
+        returnArray['reviewStop'] = image?.reviewStop?.time?.toString()
         returnArray['reviewUser'] = image?.reviewUser?.id
         returnArray['reviewed'] = image?.isReviewed()
         returnArray['inReview'] = image?.isInReviewMode()
+
+        returnArray['numberOfAnnotations'] = image?.countImageAnnotations
+        returnArray['numberOfJobAnnotations'] = image?.countImageJobAnnotations
+        returnArray['numberOfReviewedAnnotations'] = image?.countImageReviewedAnnotations
+
+        returnArray['thumb'] = UrlApi.getImageInstanceThumbUrlWithMaxSize(image?.id, 512)
+        returnArray['preview'] = UrlApi.getImageInstanceThumbUrlWithMaxSize(image?.id, 1024)
+        returnArray['macroURL'] = UrlApi.getAssociatedImageInstance(image?.id, "macro", image?.baseImage?.uploadedFile?.contentType, 512)
         return returnArray
+    }
+
+    def getSliceCoordinates() {
+        return this.baseImage?.getSliceCoordinates()
+    }
+
+    def getReferenceSliceCoordinate() {
+        return this.baseImage?.getReferenceSliceCoordinate()
+    }
+
+    def getReferenceSlice() {
+        def base = this.baseImage?.getReferenceSlice()
+        return SliceInstance.findByBaseSliceAndImage(base, this)
     }
 
     /**
@@ -254,16 +274,58 @@ class ImageInstance extends CytomineDomain implements Serializable {
         return user
     }
 
-    // use a normal method and not a getter to avoid erasing instanceFilename with "Blind name"
-    public String getFileName() {
-        if(project?.blindMode) return "[BLIND]"+baseImage.id
-        return getInstanceFilename()
+    String getBlindOriginalFilename() {
+        if (project?.blindMode)
+            return "[BLIND] ${baseImage?.id}"
+        return baseImage?.originalFilename
     }
 
-    public String getInstanceFilename() {
-        if (instanceFilename != null && instanceFilename.trim() != '') {
+    String getBlindInstanceFilename() {
+        if (project?.blindMode)
+            return "[BLIND] ${id}"
+        else if (instanceFilename && instanceFilename?.trim() != '')
             return instanceFilename
+        else
+            return baseImage?.originalFilename
+    }
+
+    private String getBlindedName(){
+        if(project?.blindMode) return baseImage.id
+        return null
+    }
+    
+    Double getPhysicalSizeX() {
+        if (physicalSizeX != null && physicalSizeX != 0) {
+            return physicalSizeX
         }
-        return baseImage.originalFilename
+        return baseImage.physicalSizeX
+    }
+
+    Double getPhysicalSizeY() {
+        if (physicalSizeY != null && physicalSizeY != 0) {
+            return physicalSizeY
+        }
+        return baseImage.physicalSizeY
+    }
+
+    Double getPhysicalSizeZ() {
+        if (physicalSizeZ != null && physicalSizeZ != 0) {
+            return physicalSizeZ
+        }
+        return baseImage.physicalSizeZ
+    }
+
+    public Double getFps() {
+        if (fps != null && fps != 0) {
+            return fps
+        }
+        return baseImage.fps
+    }
+    
+    public Integer getMagnification() {
+        if (magnification != null && magnification != 0) {
+            return magnification
+        }
+        return baseImage.magnification
     }
 }

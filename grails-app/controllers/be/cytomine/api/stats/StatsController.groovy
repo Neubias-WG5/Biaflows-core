@@ -3,7 +3,7 @@ package be.cytomine.api.stats
 import be.cytomine.Exception.WrongArgumentException
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import org.restapidoc.annotation.RestApiMethod
 import org.restapidoc.annotation.RestApiParam
 import org.restapidoc.annotation.RestApiParams
 import org.restapidoc.pojo.RestApiParamType
-
 import static org.springframework.security.acls.domain.BasePermission.READ
 
 class StatsController extends RestController {
@@ -78,10 +77,13 @@ class StatsController extends RestController {
         responseSuccess(statsService.statUserAnnotations(project))
     }
 
-    /**
-     * Compute number of annotation for each user
-     */
-    def statUser = {
+    @RestApiMethod(description="Get the number of annotation for each user")
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The identifier of the project"),
+            @RestApiParam(name="startDate", type="long", paramType = RestApiParamType.QUERY, description = "Annotations before this date will not be counted [Optional]"),
+            @RestApiParam(name="endDate", type="long", paramType = RestApiParamType.QUERY, description = "Annotations after this date will not be counted [Optional]")
+    ])
+    def statUser() {
 
         //Get project
         Project project = Project.read(params.id)
@@ -90,14 +92,21 @@ class StatsController extends RestController {
             return
         }
 
+        Date startDate = params.startDate ? new Date(params.long("startDate")) : null
+        Date endDate = params.endDate ? new Date(params.long("endDate")) : null
+
         securityACLService.check(project,READ)
-        responseSuccess(statsService.statUser(project))
+        responseSuccess(statsService.statUser(project, startDate, endDate))
     }
 
-    /**
-     * Compute the number of annotation for each term
-     */
-    def statTerm = {
+    @RestApiMethod(description="Get the number of annotation for each term")
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The identifier of the project"),
+            @RestApiParam(name="startDate", type="long", paramType = RestApiParamType.QUERY, description = "Annotations before this date will not be counted [Optional]"),
+            @RestApiParam(name="endDate", type="long", paramType = RestApiParamType.QUERY, description = "Annotations after this date will not be counted [Optional]"),
+            @RestApiParam(name="leafsOnly", type="boolean", paramType = RestApiParamType.QUERY, description = "Include only the leafs terms in result [Optional - default=true]")
+    ])
+    def statTerm() {
 
         //Get project
         Project project = Project.read(params.id)
@@ -106,14 +115,21 @@ class StatsController extends RestController {
             return
         }
 
+        Date startDate = params.startDate ? new Date(params.long("startDate")) : null
+        Date endDate = params.endDate ? new Date(params.long("endDate")) : null
+        boolean leafsOnly = params.leafsOnly != null ? params.getBoolean("leafsOnly") : true
+
         securityACLService.check(project,READ)
-        responseSuccess(statsService.statTerm(project))
+        responseSuccess(statsService.statTerm(project, startDate, endDate, leafsOnly))
     }
 
-    /**
-     * Compute the number of annotation for each sample and for each term
-     */
-    def statTermSlide = {
+    @RestApiMethod(description="Compute for each term the number of samples having at least one annotation associated with this term")
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The identifier of the project"),
+            @RestApiParam(name="startDate", type="long", paramType = RestApiParamType.QUERY, description = "Annotations before this date will not be counted [Optional]"),
+            @RestApiParam(name="endDate", type="long", paramType = RestApiParamType.QUERY, description = "Annotations after this date will not be counted [Optional]"),
+    ])
+    def statTermSlide() {
 
         //Get project
         Project project = Project.read(params.id)
@@ -121,32 +137,46 @@ class StatsController extends RestController {
             responseNotFound("Project", params.id)
             return
         }
-
         securityACLService.check(project,READ)
-        responseSuccess(statsService.statTermSlide(project))
+
+        Date startDate = params.startDate ? new Date(params.long("startDate")) : null
+        Date endDate = params.endDate ? new Date(params.long("endDate")) : null
+        responseSuccess(statsService.statTermSlide(project, startDate, endDate))
     }
 
-    /**
-     * For each user, compute the number of sample where he made annotation
-     */
-    def statUserSlide = {
+    @RestApiMethod(description="Compute for each user the number of samples in which (s)he created annotation")
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The identifier of the project"),
+            @RestApiParam(name="startDate", type="long", paramType = RestApiParamType.QUERY, description = "Annotations before this date will not be counted [Optional]"),
+            @RestApiParam(name="endDate", type="long", paramType = RestApiParamType.QUERY, description = "Annotations after this date will not be counted [Optional]"),
+    ])
+    def statUserSlide() {
         Project project = Project.read(params.id)
         if (!project) {
             responseNotFound("Project", params.id)
             return
         }
-
         securityACLService.check(project,READ)
-        responseSuccess(statsService.statUserSlide(project))
+
+        Date startDate = params.startDate ? new Date(params.long("startDate")) : null
+        Date endDate = params.endDate ? new Date(params.long("endDate")) : null
+        responseSuccess(statsService.statUserSlide(project, startDate, endDate))
     }
 
     /**
-     * Compute user annotation number evolution over the time for a project (start = project creation, stop = today)
-     * params.daysRange = number of days between each measure
-     * param.term = (optional) filter on a specific term
+     * Compute user annotation number evolution over the time for a project
      */
-    def statAnnotationEvolution = {
-
+    @RestApiMethod(description="Get the number of user annotations in a project over time")
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The identifier of the project"),
+            @RestApiParam(name="daysRange", type="int", paramType = RestApiParamType.QUERY, description = "The duration of the intervals to consider [Optional - default=project creation]"),
+            @RestApiParam(name="term", type="long", paramType = RestApiParamType.QUERY, description = "If specified, only annotations associated with this term will be considered [Optional]"),
+            @RestApiParam(name="startDate", type="long", paramType = RestApiParamType.QUERY, description = "The start date of the first interval to consider [Optional]"),
+            @RestApiParam(name="endDate", type="long", paramType = RestApiParamType.QUERY, description = "The end date to consider (therefore, the last interval may be shorter than specified in daysRange) [Optional]"),
+            @RestApiParam(name="accumulate", type="boolean", paramType = RestApiParamType.QUERY, description = "If true, the number of annotations will be accumulated (period n+1 count = period n count + nb of connections during period n+1) [Optional - default=true]"),
+            @RestApiParam(name="reverseOrder", type="boolean", paramType = RestApiParamType.QUERY, description = "If true the periods will be returned in reverse order (first item of array = last period) [Optional - default=true]")
+    ])
+    def statAnnotationEvolution() {
         Project project = Project.read(params.id)
         if (project == null) {
             responseNotFound("Project", params.id)
@@ -154,9 +184,87 @@ class StatsController extends RestController {
         }
 
         securityACLService.check(project,READ)
-        int daysRange = params.daysRange!=null ? params.getInt('daysRange') : 1
-        Term term = Term.read(params.getLong('term'))
-        responseSuccess(statsService.statAnnotationEvolution(project, term, daysRange))
+
+        int daysRange = params.daysRange != null ? params.getInt('daysRange') : 1
+        boolean accumulate = params.accumulate != null ? params.getBoolean('accumulate') : true
+        Date startDate = params.startDate ? new Date(params.long("startDate")) : null
+        Date endDate = params.endDate ? new Date(params.long("endDate")) : null
+        boolean reverseOrder = params.reverseOrder != null ? params.getBoolean("reverseOrder") : true
+        Term term = Term.read(params.getLong("term"))
+        if (params.term && !term) {
+            responseNotFound("Term", params.term)
+            return
+        }
+
+        responseSuccess(statsService.statAnnotationEvolution(project, term, daysRange, startDate, endDate, reverseOrder, accumulate))
+    }
+
+    @RestApiMethod(description="Get the number of algo annotations in a project over time")
+    @RestApiParams(params=[
+            @RestApiParam(name="project", type="long", paramType = RestApiParamType.PATH, description = "The identifier of the project"),
+            @RestApiParam(name="daysRange", type="int", paramType = RestApiParamType.QUERY, description = "The duration of the intervals to consider [Optional - default=1]"),
+            @RestApiParam(name="term", type="long", paramType = RestApiParamType.QUERY, description = "If specified, only annotations associated with this term will be considered [Optional]"),
+            @RestApiParam(name="startDate", type="long", paramType = RestApiParamType.QUERY, description = "The start date of the first interval to consider [Optional - default=project creation]"),
+            @RestApiParam(name="endDate", type="long", paramType = RestApiParamType.QUERY, description = "The end date to consider (therefore, the last interval may be shorter than specified in daysRange) [Optional]"),
+            @RestApiParam(name="accumulate", type="boolean", paramType = RestApiParamType.QUERY, description = "If true, the number of annotations will be accumulated (period n+1 count = period n count + nb of connections during period n+1) [Optional - default=true]"),
+            @RestApiParam(name="reverseOrder", type="boolean", paramType = RestApiParamType.QUERY, description = "If true the periods will be returned in reverse order (first item of array = last period) [Optional - default=true]")
+    ])
+    def statAlgoAnnotationEvolution() {
+        Project project = Project.read(params.id)
+        if (project == null) {
+            responseNotFound("Project", params.id)
+            return
+        }
+
+        securityACLService.check(project,READ)
+
+        int daysRange = params.daysRange != null ? params.getInt('daysRange') : 1
+        boolean accumulate = params.accumulate != null ? params.getBoolean('accumulate') : true
+        Date startDate = params.startDate ? new Date(params.long("startDate")) : null
+        Date endDate = params.endDate ? new Date(params.long("endDate")) : null
+        boolean reverseOrder = params.reverseOrder != null ? params.getBoolean("reverseOrder") : true
+        Term term = Term.read(params.getLong("term"))
+        if (params.term && !term) {
+            responseNotFound("Term", params.term)
+            return
+        }
+
+        responseSuccess(statsService.statAlgoAnnotationEvolution(project, term, daysRange, startDate, endDate, reverseOrder, accumulate))
+    }
+
+    @RestApiMethod(description="Get the number of reviewed annotations in a project over time")
+    @RestApiParams(params=[
+            @RestApiParam(name="project", type="long", paramType = RestApiParamType.PATH, description = "The identifier of the project"),
+            @RestApiParam(name="daysRange", type="int", paramType = RestApiParamType.QUERY, description = "The duration of the intervals to consider [Optional - default=1]"),
+            @RestApiParam(name="term", type="long", paramType = RestApiParamType.QUERY, description = "If specified, only annotations associated with this term will be considered [Optional]"),
+            @RestApiParam(name="startDate", type="long", paramType = RestApiParamType.QUERY, description = "The start date of the first interval to consider [Optional - default=project creation]"),
+            @RestApiParam(name="endDate", type="long", paramType = RestApiParamType.QUERY, description = "The end date to consider (therefore, the last interval may be shorter than specified in daysRange) [Optional]"),
+            @RestApiParam(name="accumulate", type="boolean", paramType = RestApiParamType.QUERY, description = "If true, the number of annotations will be accumulated (period n+1 count = period n count + nb of connections during period n+1) [Optional - default=true]"),
+            @RestApiParam(name="reverseOrder", type="boolean", paramType = RestApiParamType.QUERY, description = "If true the periods will be returned in reverse order (first item of array = last period) [Optional - default=true]")
+    ])
+    def statReviewedAnnotationEvolution() {
+        Project project = Project.read(params.id)
+        if (project == null) {
+            responseNotFound("Project", params.id)
+            return
+        }
+
+        securityACLService.check(project,READ)
+
+        int daysRange = params.daysRange != null ? params.getInt('daysRange') : 1
+        boolean accumulate = params.accumulate != null ? params.getBoolean('accumulate') : true
+        Date startDate = params.startDate ? new Date(params.long("startDate")) : null
+        Date endDate = params.endDate ? new Date(params.long("endDate")) : null
+        boolean reverseOrder = params.reverseOrder != null ? params.getBoolean("reverseOrder") : true
+        Term term = Term.read(params.getLong("term"))
+        if (params.term && !term) {
+            responseNotFound("Term", params.term)
+            return
+        }
+        log.info(params.term)
+        log.info(term)
+
+        responseSuccess(statsService.statReviewedAnnotationEvolution(project, term, daysRange, startDate, endDate, reverseOrder, accumulate))
     }
 
     @RestApiMethod(description="Get the total of annotations with a term by project.")
@@ -207,5 +315,66 @@ class StatsController extends RestController {
     def statUsedStorage(){
         securityACLService.checkAdmin(cytomineService.getCurrentUser())
         responseSuccess(statsService.statUsedStorage())
+    }
+
+    @RestApiMethod(description="Get the number of connections to a project over time")
+    @RestApiParams(params=[
+            @RestApiParam(name="project", type="long", paramType = RestApiParamType.PATH, description = "The identifier of the project"),
+            @RestApiParam(name="daysRange", type="int", paramType = RestApiParamType.QUERY, description = "The duration of the intervals to consider"),
+            @RestApiParam(name="startDate", type="long", paramType = RestApiParamType.QUERY, description = "The start date of the first interval to consider"),
+            @RestApiParam(name="endDate", type="long", paramType = RestApiParamType.QUERY, description = "The end date to consider (therefore, the last interval may be shorter than specified in daysRange)"),
+            @RestApiParam(name="accumulate", type="boolean", paramType = RestApiParamType.QUERY, description = "If true, the number of connections will be accumulated (period n+1 count = period n count + nb of connections during period n+1)"),
+    ])
+    def statConnectionsEvolution() {
+        Project project = Project.read(params.project)
+        securityACLService.check(project, READ)
+
+        int daysRange = params.daysRange != null ? params.getInt('daysRange') : 1
+        Date startDate = params.startDate ? new Date(params.long("startDate")) : null
+        Date endDate = params.endDate ? new Date(params.long("endDate")) : null
+        boolean accumulate = params.getBoolean("accumulate")
+
+        responseSuccess(statsService.statConnectionsEvolution(project, daysRange, startDate, endDate, accumulate))
+    }
+
+    @RestApiMethod(description="Get the number of image consultations in a project over time")
+    @RestApiParams(params=[
+            @RestApiParam(name="project", type="long", paramType = RestApiParamType.PATH, description = "The identifier of the project"),
+            @RestApiParam(name="daysRange", type="int", paramType = RestApiParamType.QUERY, description = "The duration of the intervals to consider"),
+            @RestApiParam(name="startDate", type="long", paramType = RestApiParamType.QUERY, description = "The start date of the first interval to consider"),
+            @RestApiParam(name="endDate", type="long", paramType = RestApiParamType.QUERY, description = "The end date to consider (therefore, the last interval may be shorter than specified in daysRange)"),
+            @RestApiParam(name="accumulate", type="boolean", paramType = RestApiParamType.QUERY, description = "If true, the number of image consultations will be accumulated (period n+1 count = period n count + nb of consultations during period n+1)"),
+    ])
+    def statImageConsultationsEvolution() {
+        Project project = Project.read(params.project)
+        securityACLService.check(project, READ)
+
+        int daysRange = params.daysRange != null ? params.getInt('daysRange') : 1
+        Date startDate = params.startDate ? new Date(params.long("startDate")) : null
+        Date endDate = params.endDate ? new Date(params.long("endDate")) : null
+        boolean accumulate = params.getBoolean("accumulate")
+
+        responseSuccess(statsService.statImageConsultationsEvolution(project, daysRange, startDate, endDate, accumulate))
+    }
+
+    @RestApiMethod(description="Get the number of annotation actions in a project over time")
+    @RestApiParams(params=[
+            @RestApiParam(name="project", type="long", paramType = RestApiParamType.PATH, description = "The identifier of the project"),
+            @RestApiParam(name="daysRange", type="int", paramType = RestApiParamType.QUERY, description = "The duration of the intervals to consider"),
+            @RestApiParam(name="startDate", type="long", paramType = RestApiParamType.QUERY, description = "The start date of the first interval to consider"),
+            @RestApiParam(name="endDate", type="long", paramType = RestApiParamType.QUERY, description = "The end date to consider (therefore, the last interval may be shorter than specified in daysRange)"),
+            @RestApiParam(name="accumulate", type="boolean", paramType = RestApiParamType.QUERY, description = "If true, the number of actions will be accumulated (period n+1 count = period n count + nb of actions during period n+1)"),
+            @RestApiParam(name="type", type="string", paramType = RestApiParamType.QUERY, description = "(Optional) If specified, only annotation action of this type will be taken into account"),
+    ])
+    def statAnnotationActionsEvolution() {
+        Project project = Project.read(params.project)
+        securityACLService.check(project, READ)
+
+        int daysRange = params.daysRange != null ? params.getInt('daysRange') : 1
+        Date startDate = params.startDate ? new Date(params.long("startDate")) : null
+        Date endDate = params.endDate ? new Date(params.long("endDate")) : null
+        boolean accumulate = params.getBoolean("accumulate")
+
+        responseSuccess(statsService.statAnnotationActionsEvolution(project, daysRange, startDate, endDate, accumulate, params.type))
     }
 }

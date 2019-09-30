@@ -2,7 +2,7 @@ package be.cytomine.api.social
 
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -102,7 +102,7 @@ class RestProjectConnectionController extends RestController {
         if(params.boolean('heatmap')) {
             responseSuccess(projectConnectionService.numberOfConnectionsByProjectOrderedByHourAndDays(project, afterThan, null))
         }else if(period) {
-            responseSuccess(projectConnectionService.numberOfProjectConnections(afterThan,period, project))
+            responseSuccess(projectConnectionService.numberOfProjectConnections(period, afterThan,null, project))
         } else {
             responseSuccess(projectConnectionService.numberOfConnectionsByProjectAndUser(project, null))
         }
@@ -118,13 +118,14 @@ class RestProjectConnectionController extends RestController {
     def numberOfConnectionsByProjectAndUser() {
         SecUser user = secUserService.read(params.user)
         Project project = projectService.read(params.project)
-        Long afterThan = params.long("afterThan");
+        Long afterThan = params.long("afterThan")
+        Long beforeThan = params.long("beforeThan")
         String period = params.period
 
         if(params.boolean('heatmap')) {
             responseSuccess(projectConnectionService.numberOfConnectionsByProjectOrderedByHourAndDays(project, afterThan, user))
         }else if(period) {
-            responseSuccess(projectConnectionService.numberOfProjectConnections(afterThan,period, project))
+            responseSuccess(projectConnectionService.numberOfProjectConnections(period, afterThan, beforeThan, project, user))
         } else {
             responseSuccess(projectConnectionService.numberOfConnectionsByProjectAndUser(project, user))
         }
@@ -135,12 +136,30 @@ class RestProjectConnectionController extends RestController {
             @RestApiParam(name="afterThan", type="date", paramType = RestApiParamType.QUERY, description = "The date when counting starts"),
             @RestApiParam(name="period", type="string", paramType = RestApiParamType.QUERY, description = "The period of connections (hour : by hours, day : by days, week : by weeks)"),
     ])
+    
+    def countByProject() {
+        Project project = projectService.read(params.project)
+        securityACLService.check(project, READ)
+
+        Long startDate = params.long("startDate")
+        Long endDate = params.long("endDate")
+
+        responseSuccess(projectConnectionService.countByProject(project, startDate, endDate))
+    }
+
+    @RestApiMethod(description="Get the number of connections in the specified project")
+    @RestApiParams(params=[
+            @RestApiParam(name="project", type="long", paramType = RestApiParamType.PATH, description = "The identifier of the project"),
+            @RestApiParam(name="startDate", type="long", paramType = RestApiParamType.QUERY, description = "Only connections after this date will be counted (optional)"),
+            @RestApiParam(name="endDate", type="long", paramType = RestApiParamType.QUERY, description = "Only connections before this date will be counted (optional)"),
+    ])
     def numberOfProjectConnections() {
         securityACLService.checkAdmin(cytomineService.getCurrentUser())
-        Long afterThan = params.long("afterThan");
+        Long beforeThan = params.long("beforeThan")
+        Long afterThan = params.long("afterThan")
         String period = params.get("period").toString()
         if(period){
-            responseSuccess(projectConnectionService.numberOfProjectConnections(afterThan,period))
+            responseSuccess(projectConnectionService.numberOfProjectConnections(period, afterThan, beforeThan))
         } else {
             response([success: false, message: "Mandatory parameter 'period' not found. Parameters are : "+params], 400)
         }
@@ -267,6 +286,5 @@ class RestProjectConnectionController extends RestController {
             responseSuccess(result)
         }
     }
-
 
 }

@@ -1,7 +1,7 @@
 package be.cytomine.ontology
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -94,6 +94,11 @@ class TermService extends ModelService {
      */
     public List<Long> getAllTermId(Project project) {
         securityACLService.check(project.container(),READ)
+
+        if(!project.ontology) {
+            return []
+        }
+
         //better perf with sql request
         String request = "SELECT t.id FROM term t WHERE t.ontology_id="+project.ontology.id
         def data = []

@@ -1,7 +1,7 @@
 package be.cytomine.api
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@ package be.cytomine.api
 */
 
 import be.cytomine.Exception.CytomineException
-import be.cytomine.test.HttpClient
+import be.cytomine.Exception.ServerException
 import be.cytomine.utils.Task
 import grails.converters.JSON
 import org.codehaus.groovy.grails.web.json.JSONArray
+import org.codehaus.groovy.grails.web.json.JSONObject
 
 import javax.imageio.ImageIO
 import java.awt.image.BufferedImage
@@ -101,7 +102,7 @@ class RestController {
             responseResult(result)
         } catch (CytomineException e) {
             log.error(e)
-            response([success: false, errors: e.msg], e.code)
+            response([success: false, errors: e.msg, errorValues : e.values], e.code)
         }
     }
 
@@ -130,16 +131,38 @@ class RestController {
      * @param data Data ro send
      * @return response
      */
+    // TODO see ImageInstanceController to think how to make it more flexible
     protected def response(data) {
         withFormat {
             json {
-                render data as JSON
+                def result = data as JSON
+
+                if(isFilterResponseEnabled()) result = filterResponse(result)
+
+                render result
             }
             jsonp {
                 response.contentType = 'application/javascript'
                 render "${params.callback}(${data as JSON})"
             }
         }
+    }
+
+    private grails.converters.JSON filterResponse(grails.converters.JSON response){
+        JSONObject json = JSON.parse(response.toString())
+        if(json.containsKey("collection")) {
+            for(JSONObject element : json.collection) {
+                filterOneElement(element)
+            }
+        } else {
+            filterOneElement(json)
+        }
+
+        return json as JSON
+    }
+
+    protected void filterOneElement(JSONObject element){
+        if(isFilterResponseEnabled()) throw new ServerException("Filter enabled but no filter defined")
     }
 
     /**
@@ -280,84 +303,88 @@ class RestController {
 
     /**
      * Response an image as a HTTP response
-     * @param url Image url
+     * @param bytes Image
      */
-    protected def responseImage(String url) {
-        withFormat {
-            png {
-                if (request.method == 'HEAD') {
-                    render(text: "", contentType: "image/png")
-                }
-                else {
-                    HttpClient client = new HttpClient()
-                    client.timeout = 60000;
-                    client.connect(url, "", "")
-                    byte[] imageData = client.getData()
-                    //IIP Send JPEG, so we have to convert to PNG
-                    InputStream input = new ByteArrayInputStream(imageData);
-                    BufferedImage bufferedImage = ImageIO.read(input);
-                    def out = new ByteArrayOutputStream()
-                    ImageIO.write(bufferedImage, "PNG", out)
-                    response.contentType = "image/png"
-                    response.getOutputStream() << out.toByteArray()
-                }
+    protected def responseByteArray(byte[] bytes) {
+        log.info params.format
+        if (params.alphaMask || params.type == 'alphaMask')
+            params.format = 'png'
+
+        log.info params.format
+        if (params.format == 'jpg') {
+            if (request.method == 'HEAD') {
+                render(text: "", contentType: "image/jpeg");
             }
-            jpg {
-                if (request.method == 'HEAD') {
-                    render(text: "", contentType: "image/jpeg")
-                } else {
-                    URL source = new URL(url)
-                    URLConnection connection = source.openConnection()
-                    response.outputStream << connection.getInputStream()
-                }
+            else {
+                response.contentLength = bytes.length
+                response.setHeader("Connection", "Keep-Alive")
+                response.setHeader("Accept-Ranges", "bytes")
+                response.setHeader("Content-Type", "image/jpeg")
+                response.getOutputStream() << bytes
+                response.getOutputStream().flush()
             }
         }
-
-    }
-
-
-    /**
-     * Response an image as a HTTP response
-     * @param bufferedImage Image
-     */
-    protected def responseBufferedImage(BufferedImage bufferedImage) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        withFormat {
-
-            png {
-                if (request.method == 'HEAD') {
-                    render(text: "", contentType: "image/png")
-                }
-                else {
-                    ImageIO.write(bufferedImage, "png", baos);
-                    byte[] bytesOut = baos.toByteArray();
-                    response.contentLength = baos.size();
-                    response.setHeader("Connection", "Keep-Alive")
-                    response.setHeader("Accept-Ranges", "bytes")
-                    response.setHeader("Content-Type", "image/png")
-                    response.getOutputStream() << bytesOut
-                    response.getOutputStream().flush()
-                }
+        else if (params.format == 'tiff' || params.format == 'tif') {
+            if (request.method == 'HEAD') {
+                render(text: "", contentType: "image/tiff")
             }
-            jpg {
-                if (request.method == 'HEAD') {
-                    render(text: "", contentType: "image/jpeg");
-                }
-                else {
-                    ImageIO.write(bufferedImage, "jpg", baos);
-                    byte[] bytesOut = baos.toByteArray();
-                    response.contentLength = baos.size();
-                    response.setHeader("Connection", "Keep-Alive")
-                    response.setHeader("Accept-Ranges", "bytes")
-                    response.setHeader("Content-Type", "image/jpeg")
-                    response.getOutputStream() << bytesOut
-                    response.getOutputStream().flush()
-                }
+            else {
+                response.contentLength = bytes.length
+                response.setHeader("Connection", "Keep-Alive")
+                response.setHeader("Accept-Ranges", "bytes")
+                response.setHeader("Content-Type", "image/tiff")
+                response.getOutputStream() << bytes
+                response.getOutputStream().flush()
+            }
+        }
+        else {
+            if (request.method == 'HEAD') {
+                render(text: "", contentType: "image/png")
+            }
+            else {
+                response.contentLength = bytes.length
+                response.setHeader("Connection", "Keep-Alive")
+                response.setHeader("Accept-Ranges", "bytes")
+                response.setHeader("Content-Type", "image/png")
+                response.getOutputStream() << bytes
+                response.getOutputStream().flush()
             }
         }
     }
 
+    private static String SEARCH_PARAM_EQUALS = "equals"
+    private static String SEARCH_PARAM_LIKE = "like"
+    private static String SEARCH_PARAM_ILIKE = "ilike"
 
+    static def equalsOperators = [SEARCH_PARAM_EQUALS]
+    static def likeOperators = [SEARCH_PARAM_LIKE]
+    static def ilikeOperators = [SEARCH_PARAM_ILIKE]
+    static def equalsAndLikeOperators = [SEARCH_PARAM_EQUALS, SEARCH_PARAM_LIKE]
+    static def equalsAndIlikeOperators = [SEARCH_PARAM_EQUALS, SEARCH_PARAM_ILIKE]
+    static def likeAndIlikeOperators = [SEARCH_PARAM_LIKE, SEARCH_PARAM_ILIKE]
+    static def equalsAndLikeAndIlikeOperators = [SEARCH_PARAM_EQUALS, SEARCH_PARAM_LIKE, SEARCH_PARAM_ILIKE]
+
+    protected def getSearchParameters(def allowedParameters){
+        def searchParameters = []
+        for(def param : params){
+            if (param.key ==~ /.+\[.+\]/) {
+                String[] tmp = param.key.split('\\[')
+                String operator = tmp[1].substring(0,tmp[1].length()-1)
+                String field = tmp[0]
+
+                def allowedParameter = allowedParameters.find { it.field = field }
+                if (allowedParameter?.allowedOperators?.contains(operator)) {
+                    String value = param.value
+                    if (operator == SEARCH_PARAM_LIKE || operator == SEARCH_PARAM_ILIKE)
+                        value = "%$value%"
+
+                    def sqlOperator = (operator == SEARCH_PARAM_EQUALS) ? "=" : operator
+                    searchParameters << [operator: operator, field: field, value: value, sqlOperator: sqlOperator]
+                }
+            }
+        }
+        return searchParameters
+    }
     /**
      * Substract the collection with offset (min) and max
      * @param collection Full collection
@@ -372,4 +399,9 @@ class RestController {
         def maxForCollection = Math.min(collection.size() - offset, max)
         return collection.subList(offset, offset + maxForCollection)
     }
+
+    protected boolean isFilterResponseEnabled() {
+        return false
+    }
+
 }

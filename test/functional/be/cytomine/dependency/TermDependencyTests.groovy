@@ -1,7 +1,7 @@
 package be.cytomine.dependency
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ class TermDependencyTests  {
 
     void testTermDependency() {
         //create a term and all its dependence domain
-        def dependentDomain = createTermWithDependency(BasicInstanceBuilder.getProjectNotExist(true))
+        def dependentDomain = createTermWithDependency(BasicInstanceBuilder.getProjectNotExist(BasicInstanceBuilder.getOntologyNotExist(true),true))
         def term = dependentDomain.first()
         BasicInstanceBuilder.checkIfDomainsExist(dependentDomain)
 
@@ -72,7 +72,7 @@ class TermDependencyTests  {
 
     void testTermDependencyWithAnnotation() {
         //create a term and all its dependence domain
-        def dependentDomain = createTermWithDependencyRefuse(BasicInstanceBuilder.getProjectNotExist(true))
+        def dependentDomain = createTermWithDependencyRefuse(BasicInstanceBuilder.getProjectNotExist(BasicInstanceBuilder.getOntologyNotExist(true), true))
         def term = dependentDomain.first()
         BasicInstanceBuilder.checkIfDomainsExist(dependentDomain)
 
@@ -141,23 +141,17 @@ class TermDependencyTests  {
     private def createTermWithDependency(Project project) {
 
         //create a term x, link with ontology
-        Term term = BasicInstanceBuilder.getTermNotExist()
-        term.ontology = project.ontology
-        BasicInstanceBuilder.saveDomain(term)
+        Term term = BasicInstanceBuilder.getTermNotExist(project.ontology, true)
 
         //create a relation with term x and another term y
-        Term anotherTerm1 = BasicInstanceBuilder.getTermNotExist()
-        anotherTerm1.ontology = project.ontology
-        BasicInstanceBuilder.saveDomain(anotherTerm1)
+        Term anotherTerm1 = BasicInstanceBuilder.getTermNotExist(project.ontology, true)
 
         RelationTerm rt1 = new RelationTerm(term1: term, term2: anotherTerm1, relation: Relation.findByName(RelationTerm.names.PARENT))
         BasicInstanceBuilder.saveDomain(rt1)
 
 
         //create a relation with another term y and term x
-        Term anotherTerm2 = BasicInstanceBuilder.getTermNotExist()
-        anotherTerm1.ontology = project.ontology
-        BasicInstanceBuilder.saveDomain(anotherTerm1)
+        Term anotherTerm2 = BasicInstanceBuilder.getTermNotExist(project.ontology, true)
 
         RelationTerm rt2 = new RelationTerm(term2: term, term1: anotherTerm1, relation: Relation.findByName(RelationTerm.names.PARENT))
         BasicInstanceBuilder.saveDomain(rt2)
@@ -168,48 +162,35 @@ class TermDependencyTests  {
     private def createTermWithDependencyRefuse(Project project) {
 
         //create a term x, link with ontology
-        Term term = BasicInstanceBuilder.getTermNotExist()
-        term.ontology = project.ontology
-        BasicInstanceBuilder.saveDomain(term)
+        Term term = BasicInstanceBuilder.getTermNotExist(project.ontology, true)
 
         //create a relation with term x and another term y
-        Term anotherTerm1 = BasicInstanceBuilder.getTermNotExist()
-        anotherTerm1.ontology = project.ontology
-        BasicInstanceBuilder.saveDomain(anotherTerm1)
+        Term anotherTerm1 = BasicInstanceBuilder.getTermNotExist(project.ontology, true)
 
         RelationTerm rt1 = new RelationTerm(term1: term, term2: anotherTerm1, relation: Relation.findByName(RelationTerm.names.PARENT))
         BasicInstanceBuilder.saveDomain(rt1)
 
 
         //create a relation with another term y and term x
-        Term anotherTerm2 = BasicInstanceBuilder.getTermNotExist()
-        anotherTerm1.ontology = project.ontology
-        BasicInstanceBuilder.saveDomain(anotherTerm1)
+        Term anotherTerm2 = BasicInstanceBuilder.getTermNotExist(project.ontology, true)
 
         RelationTerm rt2 = new RelationTerm(term2: term, term1: anotherTerm1, relation: Relation.findByName(RelationTerm.names.PARENT))
         BasicInstanceBuilder.saveDomain(rt2)
 
         //create an annotation with this term
-        AnnotationTerm annotationTerm = BasicInstanceBuilder.getAnnotationTermNotExist()
-        annotationTerm.term = term
-        annotationTerm.userAnnotation.project = project
-        BasicInstanceBuilder.saveDomain(annotationTerm.userAnnotation)
-        BasicInstanceBuilder.saveDomain(annotationTerm)
+        UserAnnotation userAnnotation = BasicInstanceBuilder.getUserAnnotationNotExist(project, true)
+        AnnotationTerm annotationTerm = BasicInstanceBuilder.getAnnotationTermNotExist(userAnnotation, term, true)
 
         //create an algo annotation term for this term
-        AlgoAnnotationTerm algoAnnotationTerm1 = BasicInstanceBuilder.getAlgoAnnotationTermNotExist()
-        algoAnnotationTerm1.term = anotherTerm1
+        AlgoAnnotation algoAnnotation = BasicInstanceBuilder.getAlgoAnnotationNotExist(project, true)
+        AlgoAnnotationTerm algoAnnotationTerm1 = BasicInstanceBuilder.getAlgoAnnotationTermNotExist(algoAnnotation, term)
         algoAnnotationTerm1.expectedTerm = term
-        algoAnnotationTerm1.retrieveAnnotationDomain().project = project
-        BasicInstanceBuilder.saveDomain(algoAnnotationTerm1.retrieveAnnotationDomain())
         BasicInstanceBuilder.saveDomain(algoAnnotationTerm1)
 
         //create an algo annotation term for this term (expected term)
-        AlgoAnnotationTerm algoAnnotationTerm2 = BasicInstanceBuilder.getAlgoAnnotationTermNotExist()
-        algoAnnotationTerm2.term = term
+        UserAnnotation userAnnotation2 = BasicInstanceBuilder.getUserAnnotationNotExist(project, true)
+        AlgoAnnotationTerm algoAnnotationTerm2 = BasicInstanceBuilder.getAlgoAnnotationTermNotExist(algoAnnotation, term)
         algoAnnotationTerm2.expectedTerm = anotherTerm1
-        algoAnnotationTerm2.retrieveAnnotationDomain().project = project
-        BasicInstanceBuilder.saveDomain(algoAnnotationTerm2.retrieveAnnotationDomain())
         BasicInstanceBuilder.saveDomain(algoAnnotationTerm2)
 
         return [term,rt1,rt2,annotationTerm,algoAnnotationTerm1,algoAnnotationTerm2]

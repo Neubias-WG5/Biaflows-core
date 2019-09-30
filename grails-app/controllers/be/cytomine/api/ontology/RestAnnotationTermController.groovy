@@ -1,7 +1,7 @@
 package be.cytomine.api.ontology
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ import org.restapidoc.annotation.RestApiParam
 import org.restapidoc.annotation.RestApiParams
 import org.restapidoc.pojo.RestApiParamType
 
+import static org.springframework.security.acls.domain.BasePermission.READ
+
 /**
  * Controller that handle link between an annotation and a term
  * This controller carry request for (user)annotationterm and algoannotationterm
@@ -49,6 +51,7 @@ class RestAnnotationTermController extends RestController {
     def cytomineService
     def roiAnnotationService
     def reviewedAnnotationService
+    def securityACLService
 
     def currentDomainName() {
         "annotation term or algo annotation term"
@@ -185,6 +188,8 @@ class RestAnnotationTermController extends RestController {
                 if(!json.userannotation || !UserAnnotation.read(json.userannotation)) {
                     throw new WrongArgumentException("AnnotationTerm must have a valide userannotation:"+json.userannotation)
                 }
+                securityACLService.check(json.userannotation,UserAnnotation,"container",READ)
+                securityACLService.checkFullOrRestrictedForOwner(json.userannotation,UserAnnotation, "user")
                 def result = annotationTermService.add(json)
                 responseResult(result)
             }

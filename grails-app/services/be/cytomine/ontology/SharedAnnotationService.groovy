@@ -1,7 +1,7 @@
 package be.cytomine.ontology
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -39,11 +39,12 @@ import static org.springframework.security.acls.domain.BasePermission.*
 class SharedAnnotationService extends ModelService {
 
     static transactional = true
-    def imageProcessingService
     def securityACLService
     def springSecurityService
     def secRoleService
     def secUserSecRoleService
+    def abstractImageService
+    def imageServerService
 
 
     // Avoid loading loop because secUserService -> userAnnotationService -> shareAnnotationService
@@ -106,39 +107,29 @@ class SharedAnnotationService extends ModelService {
         String cid = UUID.randomUUID().toString()
 
         //create annotation crop (will be send with comment)
-        File annnotationCrop = null
+        File annotationCrop = null
         try {
             params.format = "png"
             params.alphaMask = true
+            params.geometry = annotation.location
+            params.complete = true
+            params.maxSize = 512
+            BufferedImage bufferedImage = imageServerService.crop(annotation, params)
 
-            String cropURL = annotation.toCropURL(params)
-            if (cropURL != null) {
-                log.info "Load image from " + annotation.toCropURL(params)
-                def parameters = annotation.toCropParams(params)
+            log.info "Image " + bufferedImage
 
-                String query = parameters.collect { key, value ->
-                    if (value instanceof String)
-                        value = URLEncoder.encode(value, "UTF-8")
-                    "$key=$value"
-                }.join("&")
-
-                String url = abstractImageService.crop(parameters, query)
-                BufferedImage bufferedImage = imageProcessingService.getImageFromURL(url)
-
-                log.info "Image " + bufferedImage
-
-                if (bufferedImage != null) {
-                    annnotationCrop = File.createTempFile("temp", ".${params.format}")
-                    annnotationCrop.deleteOnExit()
-                    ImageIO.write(bufferedImage, params.format as String, annnotationCrop)
-                }
+            if (bufferedImage != null) {
+                annotationCrop = File.createTempFile("temp", ".${params.format}")
+                annotationCrop.deleteOnExit()
+                ImageIO.write(bufferedImage, params.format as String, annotationCrop)
             }
         } catch (FileNotFoundException e) {
-            annnotationCrop = null
+            annotationCrop = null
         }
+
         def attachments = []
-        if (annnotationCrop != null) {
-            attachments << [cid: cid, file: annnotationCrop]
+        if (annotationCrop != null) {
+            attachments << [cid: cid, file: annotationCrop]
         }
 
         //do receivers email list

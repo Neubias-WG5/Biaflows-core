@@ -1,7 +1,7 @@
 package be.cytomine.utils.bootstrap
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -70,22 +70,19 @@ class BootstrapDataService {
         ]
         bootstrapUtilsService.createFilters(filters)
 
-        def IIPMimeSamples = [
+        def nativelySupportedMimes = [
+                [extension : 'tif', mimeType : 'image/pyrtiff'],
+                [extension : 'jp2', mimeType : 'image/jp2'],
+                [extension : 'ndpi', mimeType : 'openslide/ndpi'],
                 [extension : 'mrxs', mimeType : 'openslide/mrxs'],
                 [extension : 'vms', mimeType : 'openslide/vms'],
-                [extension : 'tif', mimeType : 'openslide/ventana'],
-                [extension : 'tif', mimeType : 'image/tif'],
-                [extension : 'tif', mimeType : 'philips/tif'],
-                [extension : 'tiff', mimeType : 'image/tiff'],
-                [extension : 'tif', mimeType : 'image/pyrtiff'],
                 [extension : 'svs', mimeType : 'openslide/svs'],
-                [extension : 'jp2', mimeType : 'image/jp2'],
                 [extension : 'scn', mimeType : 'openslide/scn'],
-                [extension : 'ndpi', mimeType : 'openslide/ndpi'],
                 [extension : 'bif', mimeType : 'openslide/bif'],
-                [extension : 'zvi', mimeType : 'zeiss/zvi']
+                [extension : 'tif', mimeType : 'openslide/ventana'],
+                [extension : 'tif', mimeType : 'philips/tif']
         ]
-        bootstrapUtilsService.createMimes(IIPMimeSamples)
+        bootstrapUtilsService.createMimes(nativelySupportedMimes)
 
 
         def usersSamples = [
@@ -100,7 +97,7 @@ class BootstrapDataService {
 
         bootstrapUtilsService.createUsers(usersSamples)
         bootstrapUtilsService.createRelation()
-        bootstrapUtilsService.createConfigurations()
+        bootstrapUtilsService.createConfigurations(false)
 
         SecUser admin = SecUser.findByUsername("admin")
         if(!grailsApplication.config.grails.adminPrivateKey) {

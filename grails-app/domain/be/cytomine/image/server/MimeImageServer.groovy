@@ -1,7 +1,7 @@
 package be.cytomine.image.server
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package be.cytomine.image.server
 
 import be.cytomine.CytomineDomain
 import be.cytomine.image.Mime
+import be.cytomine.middleware.ImageServer
 
 /**
  * Association between mime and image server
@@ -27,4 +28,7 @@ class MimeImageServer extends CytomineDomain {
     ImageServer imageServer
     Mime mime
 
+    static mapping = {
+        cache true
+    }
 }

@@ -1,7 +1,7 @@
 package be.cytomine.test.http
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -62,6 +62,11 @@ class ImageInstanceAPI extends DomainAPI {
 
     static def listByProjectWithLastActivity(Long id, String username, String password) {
         String URL = Infos.CYTOMINEURL + "api/project/$id/imageinstance.json?withLastActivity=true"
+        return doGET(URL, username, password)
+    }
+
+    static def listByProjectLight(Long id, String username, String password) {
+        String URL = Infos.CYTOMINEURL + "api/project/$id/imageinstance.json?light=true"
         return doGET(URL, username, password)
     }
 

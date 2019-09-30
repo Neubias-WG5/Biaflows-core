@@ -1,7 +1,7 @@
 package be.cytomine
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import be.cytomine.security.User
 import be.cytomine.test.BasicInstanceBuilder
 import be.cytomine.test.Infos
 import be.cytomine.test.http.DomainAPI
+import be.cytomine.test.http.ImageInstanceAPI
 import be.cytomine.test.http.ProjectAPI
 import be.cytomine.test.http.TaskAPI
 import be.cytomine.test.http.UserAnnotationAPI
@@ -35,13 +36,6 @@ import grails.converters.JSON
 import org.codehaus.groovy.grails.web.json.JSONArray
 import org.codehaus.groovy.grails.web.json.JSONObject
 
-/**
- * Created by IntelliJ IDEA.
- * User: lrollus
- * Date: 17/02/11
- * Time: 16:16
- * To change this template use File | Settings | File Templates.
- */
 class ProjectTests  {
 
     void testListProjectWithCredential() {
@@ -69,7 +63,7 @@ class ProjectTests  {
         assert 200 == result.code
         Long id = result.data.id
 
-        result = ProjectAPI.list(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, true, true)
+        result = ProjectAPI.list(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, true, true, true)
         assert 200 == result.code
         def json = JSON.parse(result.data)
         assert json.collection instanceof JSONArray
@@ -77,6 +71,8 @@ class ProjectTests  {
         def proj = json.collection.find{it.id == id}
         assert proj.lastActivity > proj.created
         assert proj.membersCount == 1
+        assert proj.currentUserRoles != null
+        assert proj.currentUserRoles.admin
     }
 
     void testListProjectWithoutCredential() {
@@ -165,6 +161,18 @@ class ProjectTests  {
 
     void testAddProjectCorrect() {
         def projectToAdd = BasicInstanceBuilder.getProjectNotExist()
+        def result = ProjectAPI.create(projectToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        Project project = result.data
+        result = ProjectAPI.show(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+        assert ProjectAPI.containsInJSONList(User.findByUsername(Infos.SUPERADMINLOGIN).id,JSON.parse(ProjectAPI.listUser(project.id,"admin",Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD).data))
+    }
+
+    void testAddProjectWithoutOntology() {
+        def projectToAdd = BasicInstanceBuilder.getProjectNotExist()
+        projectToAdd.ontology = null
         def result = ProjectAPI.create(projectToAdd.encodeAsJSON(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
         Project project = result.data
@@ -296,6 +304,102 @@ class ProjectTests  {
         jsonProject = jsonUpdate.toString()
         def result = ProjectAPI.update(-99, jsonProject, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 404 == result.code
+    }
+
+    void testEditProjectOntologyCorrect() {
+
+        def project = BasicInstanceBuilder.getProjectNotExist(true)
+
+        def data = UpdateData.createUpdateSet(project,[ontology: [project.ontology,BasicInstanceBuilder.getOntologyNotExist(true)]])
+
+        def result = ProjectAPI.update(project.id, data.postData,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+        def json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+        int idProject = json.project.id
+        def showResult = ProjectAPI.show(idProject, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        json = JSON.parse(showResult.data)
+
+
+        BasicInstanceBuilder.compare(data.mapNew, json)
+
+
+        def term = BasicInstanceBuilder.getTermNotExist(project.ontology, true)
+        def at = BasicInstanceBuilder.getAnnotationTermNotExist(BasicInstanceBuilder.getUserAnnotationNotExist(project,true), term, true)
+        def aat = BasicInstanceBuilder.getAlgoAnnotationTermNotExist(at.userAnnotation, term, true)
+        def rat = BasicInstanceBuilder.getReviewedAnnotationNotExist(project)
+        rat.terms = [term]
+        rat.save()
+
+
+        data = UpdateData.createUpdateSet(project,[ontology: [project.ontology,BasicInstanceBuilder.getOntologyNotExist(true)]])
+
+        result = ProjectAPI.update(project.id, data.postData,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 403 == result.code
+
+        json = JSON.parse(result.data)
+
+        assert json.errors.contains("3 associated terms")
+
+        data.postData = JSON.parse(data.postData)
+        data.postData.forceOntologyUpdate = true
+        data.postData = data.postData.toString()
+
+        result = ProjectAPI.update(project.id, data.postData,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 403 == result.code
+
+        json = JSON.parse(result.data)
+
+        assert json.errors.contains("2 associated terms")
+
+    }
+
+    void testEditProjectOntologyAndDeletingTerms() {
+
+        def project = BasicInstanceBuilder.getProjectNotExist(true)
+        def term = BasicInstanceBuilder.getTermNotExist(project.ontology, true)
+        def at = BasicInstanceBuilder.getAnnotationTermNotExist(BasicInstanceBuilder.getUserAnnotationNotExist(project,true), term, true)
+
+        def data = UpdateData.createUpdateSet(project,[ontology: [project.ontology,BasicInstanceBuilder.getOntologyNotExist(true)]])
+
+        data.postData = JSON.parse(data.postData)
+        data.postData.forceOntologyUpdate = true
+        data.postData = data.postData.toString()
+
+        def result = ProjectAPI.update(project.id, data.postData,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+        def json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+        int idProject = json.project.id
+        def showResult = ProjectAPI.show(idProject, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        json = JSON.parse(showResult.data)
+
+
+        BasicInstanceBuilder.compare(data.mapNew, json)
+
+
+        def aat = BasicInstanceBuilder.getAlgoAnnotationTermNotExist(at.userAnnotation, term, true)
+        def rat = BasicInstanceBuilder.getReviewedAnnotationNotExist(project)
+        rat.terms = [term]
+        rat.save()
+
+
+        data = UpdateData.createUpdateSet(project,[ontology: [project.ontology,BasicInstanceBuilder.getOntologyNotExist(true)]])
+
+        data.postData = JSON.parse(data.postData)
+        data.postData.forceOntologyUpdate = true
+        data.postData = data.postData.toString()
+
+        result = ProjectAPI.update(project.id, data.postData,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 403 == result.code
+
+        json = JSON.parse(result.data)
+
+        assert json.errors.contains("2 associated terms")
+        assert !json.errors.contains("project members")
+
     }
 
     void testDeleteProject() {
@@ -504,6 +608,13 @@ class ProjectTests  {
 
     }
 
+    void testListCommandHistory() {
+        def result = ProjectAPI.listCommandHistory(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json instanceof JSONArray
+    }
+
     void testListCommandHistoryByProject() {
         def annotationToAdd = BasicInstanceBuilder.getUserAnnotation()
         annotationToAdd.project = BasicInstanceBuilder.getProjectNotExist(true)
@@ -512,10 +623,16 @@ class ProjectTests  {
 
         result = ProjectAPI.listCommandHistory(annotationToAdd.project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json instanceof JSONArray
+    }
 
-        result = ProjectAPI.listCommandHistory(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+    void testListCommandHistoryByProjectWithDates() {
+        Date startDate = new Date()
+        def result = ProjectAPI.listCommandHistory(BasicInstanceBuilder.getProject().id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, startDate.getTime(), startDate.getTime() - 1000)
         assert 200 == result.code
-
+        def json = JSON.parse(result.data)
+        assert json instanceof JSONArray
     }
 
     void testDeleteProjectAndRestoreIt() {
@@ -587,6 +704,61 @@ class ProjectTests  {
         result = ProjectAPI.listBySoftware(softproj.software.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
         assert !DomainAPI.containsInJSONList(project.id,JSON.parse(result.data))
+    }
+
+    void testImageNamesOfBlindProject() {
+        Project project = BasicInstanceBuilder.getProjectNotExist(true)
+        ImageInstance image = BasicInstanceBuilder.getImageInstanceNotExist(project, true)
+
+        def result = ImageInstanceAPI.listByProject(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+        assert json.collection[0].instanceFilename == image.instanceFilename
+        assert json.collection[0].blindedName instanceof JSONObject.Null
+
+        result = ImageInstanceAPI.show(image.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+
+        assert json.instanceFilename == image.instanceFilename
+        assert json.blindedName instanceof JSONObject.Null
+
+        project.blindMode = true
+        project.save(true)
+
+        result = ImageInstanceAPI.listByProject(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+        assert json.collection[0].instanceFilename == image.instanceFilename
+        assert !(json.collection[0].blindedName instanceof JSONObject.Null)
+
+        result = ImageInstanceAPI.show(image.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+
+        assert json.instanceFilename == image.instanceFilename
+        assert !(json.blindedName instanceof JSONObject.Null)
+
+
+        User user = BasicInstanceBuilder.getUser()
+
+        assert (200 ==ProjectAPI.addUserProject(project.id, user.id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD).code)
+
+        result = ImageInstanceAPI.listByProject(project.id, user.username, "password")
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+        assert json.collection[0].instanceFilename instanceof JSONObject.Null
+        assert !(json.collection[0].blindedName instanceof JSONObject.Null)
+
+        result = ImageInstanceAPI.show(image.id, user.username, "password")
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+
+        assert json.instanceFilename instanceof JSONObject.Null
+        assert !(json.blindedName instanceof JSONObject.Null)
     }
 
 }

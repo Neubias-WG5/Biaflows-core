@@ -1,7 +1,7 @@
 package be.cytomine.command
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package be.cytomine.command
 */
 
 import be.cytomine.Exception.CytomineException
+import be.cytomine.Exception.ObjectNotFoundException
+import be.cytomine.security.SecUser
 import grails.util.GrailsNameUtils
 
 class CommandService {
@@ -76,6 +78,7 @@ class CommandService {
                 def item = new UndoStackItem(command: c, user: c.user, transaction: c.transaction)
                 item.save(flush: true,failOnError: true)
             }
+            result.data.put('command', c.id)
         }
         return result
     }
@@ -92,4 +95,110 @@ class CommandService {
         }
         return commandclass.findAll()
     }
+
+    def undo(UndoStackItem undoItem, SecUser user) {
+        def data = []
+        def statutes = []
+        def result
+
+        def transaction =  undoItem.transaction
+        log.debug "FirstUndoStack=" + undoItem
+
+        if (!transaction) {
+            log.debug "Transaction not in progress"
+            //Not Transaction, no other command must be deleted
+            result = undoItem.getCommand().undo()
+            //An undo command must be move to redo stack
+            moveToRedoStack(undoItem)
+            data << result.data
+            statutes << result.status
+        } else {
+            log.debug "Transaction in progress"
+            //Its a transaction, many other command will be deleted
+            def undoStacks = UndoStackItem.findAllByUserAndTransaction(user, transaction, [sort: "created", order: "desc"])
+            for (undoStack in undoStacks) {
+                //browse all command and undo it while its the same transaction
+                log.debug "Undo stack transaction:" + transaction?.id
+                if(undoStack.getCommand().refuseUndo) {
+                    //responseError(new ObjectNotFoundException("You cannot delete your last operation!")) //undo delete project is not possible
+                    throw new ObjectNotFoundException("You cannot delete your last operation!") //undo delete project is not possible
+                    return
+                }
+                result = undoStack.getCommand().undo()
+                log.info "Undo stack transaction: UNDO " + undoStack?.command?.actionMessage
+                data << result.data
+                statutes << result.status
+                moveToRedoStack(undoStack)
+            }
+        }
+
+        return [data : data, statutes : statutes]
+    }
+
+    def redo(RedoStackItem redoItem, SecUser user) {
+        def data = []
+        def statutes = []
+        def result
+
+        def transaction =  redoItem.transaction
+        log.debug "LastRedoStack=" + redoItem
+
+        if (!transaction) {
+            log.debug "Transaction not in progress"
+            //Not Transaction, no other command must be deleted
+            result = redoItem.getCommand().redo()
+            //An undo command must be move to redo stack
+            moveToUndoStack(redoItem)
+            data << result.data
+            statutes << result.status
+        } else {
+            log.debug "Transaction in progress"
+            //Its a transaction, many other command will be deleted
+            def redoStacks = RedoStackItem.findAllByUserAndTransaction(user, transaction, [sort: "created", order: "desc"])
+            for (redoStack in redoStacks) {
+                //Redo each command from the same transaction
+                result = redoStack.getCommand().redo()
+                moveToUndoStack(redoItem)
+                data << result.data
+                statutes << result.status
+            }
+        }
+
+        return [data : data, statutes : statutes]
+    }
+
+    /**
+     * Move an undo stack item to redo stack
+     * @param firstUndoStack Undo stack item to move
+     */
+    private def moveToRedoStack(UndoStackItem firstUndoStack) {
+        //create new redo stack item
+        new RedoStackItem(
+                command: firstUndoStack.getCommand(),
+                user: firstUndoStack.getUser(),
+                transaction: firstUndoStack.transaction
+        ).save(flush: true)
+        //save to history stack
+        new CommandHistory(command: firstUndoStack.getCommand(), prefixAction: "UNDO", project: firstUndoStack.getCommand().project, user: firstUndoStack.user, message: firstUndoStack.command.actionMessage).save(failOnError: true)
+        //delete from undo stack
+        firstUndoStack.delete(flush: true)
+    }
+
+    /**
+     * Move redo item to the undo stack
+     * @param lastRedoStack redo item to move
+     */
+    private def moveToUndoStack(RedoStackItem lastRedoStack) {
+        //create the new undo item
+        new UndoStackItem(
+                command: lastRedoStack.getCommand(),
+                user: lastRedoStack.getUser(),
+                transaction: lastRedoStack.transaction,
+        ).save(flush: true)
+        //add to history stack
+        new CommandHistory(command: lastRedoStack.getCommand(), prefixAction: "REDO", project: lastRedoStack.getCommand().project,user: lastRedoStack.user,message: lastRedoStack.command.actionMessage).save(failOnError: true);
+        //delete the redo item
+        lastRedoStack.delete(flush: true)
+    }
+
 }

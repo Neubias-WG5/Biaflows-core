@@ -1,7 +1,7 @@
 package be.cytomine
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -170,6 +170,26 @@ class ReviewedAnnotationListingTests {
          assert json.collection instanceof JSONArray
          assert ReviewedAnnotationAPI.containsInJSONList(annotation.id,json)
      }
+
+    void testListReviewedAnnotationByImageAndReviewUser() {
+        def annotation = BasicInstanceBuilder.getReviewedAnnotation()
+        println "annotation.reviewUser="+annotation.reviewUser
+
+        def annotationNotCriteria = BasicInstanceBuilder.getReviewedAnnotationNotExist()
+        annotationNotCriteria.project = annotation.project
+        annotationNotCriteria.image = annotation.image
+        def anotherUser = BasicInstanceBuilder.getUserNotExist(true)
+        annotationNotCriteria.reviewUser = anotherUser
+        BasicInstanceBuilder.saveDomain(annotationNotCriteria)
+        println "annotationNotCriteria.reviewUser="+annotationNotCriteria.reviewUser
+
+        def result = ReviewedAnnotationAPI.listByImageAndReviewUser(annotation.image.id, annotation.reviewUser.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.collection instanceof JSONArray
+        assert ReviewedAnnotationAPI.containsInJSONList(annotation.id,json)
+        assert !ReviewedAnnotationAPI.containsInJSONList(annotationNotCriteria.id,json)
+    }
 
      void testListReviewedAnnotationByImageAndUserAndBBOX() {
          String bbox = "1,1,10000,10000"

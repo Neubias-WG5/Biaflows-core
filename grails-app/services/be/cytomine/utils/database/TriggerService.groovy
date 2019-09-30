@@ -1,7 +1,7 @@
 package be.cytomine.utils.database
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -78,9 +78,8 @@ class TriggerService {
             statement.execute(getAnnotationReviewAfterDelete())
 
         } catch (org.postgresql.util.PSQLException e) {
-            log.debug e
+            log.error e
         }
-
     }
 
     String getUserAnnotationTriggerBeforeInsert() {
@@ -93,7 +92,7 @@ class TriggerService {
         BEGIN
             SELECT * INTO currentImage FROM image_instance where id = NEW.image_id FOR UPDATE;
             SELECT * INTO currentProject FROM project where id = NEW.project_id FOR UPDATE;
-            SELECT * INTO currentIndex FROM annotation_index WHERE user_id = NEW.user_id AND image_id = NEW.image_id;
+            SELECT * INTO currentIndex FROM annotation_index WHERE user_id = NEW.user_id AND slice_id = NEW.slice_id;
             RETURN NEW;
         END ;
         \$incUserAnnBefore\$ LANGUAGE plpgsql; """
@@ -123,11 +122,11 @@ class TriggerService {
                 SET count_annotations = count_annotations + 1
                 WHERE project.id = NEW.project_id;
 
-                SELECT count(*) INTO alreadyExist FROM annotation_index WHERE user_id = NEW.user_id AND image_id = NEW.image_id;
+                SELECT count(*) INTO alreadyExist FROM annotation_index WHERE user_id = NEW.user_id AND slice_id = NEW.slice_id;
                 IF (alreadyExist=0) THEN
-                    INSERT INTO annotation_index(user_id, image_id, count_annotation, count_reviewed_annotation, version, id) VALUES(NEW.user_id,NEW.image_id,0,0,0,nextval('hibernate_sequence'));
+                    INSERT INTO annotation_index(user_id, slice_id, count_annotation, count_reviewed_annotation, version, id) VALUES(NEW.user_id,NEW.slice_id,0,0,0,nextval('hibernate_sequence'));
                 END IF;
-                UPDATE annotation_index SET count_annotation = count_annotation+1, version = version+1 WHERE user_id = NEW.user_id AND image_id = NEW.image_id;
+                UPDATE annotation_index SET count_annotation = count_annotation+1, version = version+1 WHERE user_id = NEW.user_id AND slice_id = NEW.slice_id;
             RETURN NEW;
         END ;
         \$incUserAnnAfter\$ LANGUAGE plpgsql; """
@@ -150,13 +149,13 @@ class TriggerService {
             alreadyExist INTEGER;
         BEGIN
                 IF(NEW.user_id<>OLD.user_id) THEN
-                    SELECT count(*) INTO alreadyExist FROM annotation_index WHERE user_id = NEW.user_id AND image_id = NEW.image_id;
+                    SELECT count(*) INTO alreadyExist FROM annotation_index WHERE user_id = NEW.user_id AND slice_id = NEW.slice_id;
                     IF (alreadyExist=0) THEN
-                        INSERT INTO annotation_index(user_id, image_id, count_annotation, count_reviewed_annotation, version, id) VALUES(NEW.user_id,NEW.image_id,0,0,0,nextval('hibernate_sequence'));
+                        INSERT INTO annotation_index(user_id, slice_id, count_annotation, count_reviewed_annotation, version, id) VALUES(NEW.user_id,NEW.slice_id,0,0,0,nextval('hibernate_sequence'));
                     END IF;
-                    UPDATE annotation_index SET count_annotation = count_annotation+1, version = version+1 WHERE user_id = NEW.user_id AND image_id = NEW.image_id;
+                    UPDATE annotation_index SET count_annotation = count_annotation+1, version = version+1 WHERE user_id = NEW.user_id AND slice_id = NEW.slice_id;
 
-                    UPDATE annotation_index SET count_annotation = count_annotation-1, version = version+1 WHERE user_id = OLD.user_id AND image_id = OLD.image_id;
+                    UPDATE annotation_index SET count_annotation = count_annotation-1, version = version+1 WHERE user_id = OLD.user_id AND slice_id = OLD.slice_id;
 
                 END IF;
             RETURN NEW;
@@ -185,7 +184,7 @@ class TriggerService {
         BEGIN
             SELECT * INTO currentImage FROM image_instance where id = OLD.image_id FOR UPDATE;
             SELECT * INTO currentProject FROM project where id = OLD.project_id FOR UPDATE;
-            SELECT * INTO currentIndex FROM annotation_index WHERE user_id = OLD.user_id AND image_id = OLD.image_id;
+            SELECT * INTO currentIndex FROM annotation_index WHERE user_id = OLD.user_id AND slice_id = OLD.slice_id;
             RETURN OLD;
         END ;
         \$incUserAnnBefore\$ LANGUAGE plpgsql; """
@@ -218,7 +217,7 @@ class TriggerService {
                 SET count_image_annotations = count_image_annotations - 1
                 WHERE image_instance.id = OLD.image_id;
 
-                UPDATE annotation_index SET count_annotation = count_annotation-1, version = version+1 WHERE user_id = OLD.user_id AND image_id = OLD.image_id;
+                UPDATE annotation_index SET count_annotation = count_annotation-1, version = version+1 WHERE user_id = OLD.user_id AND slice_id = OLD.slice_id;
             RETURN OLD;
         END ;
          \$decUserAnnAfter\$ LANGUAGE plpgsql; """
@@ -251,7 +250,7 @@ class TriggerService {
         BEGIN
             SELECT * INTO currentImage FROM image_instance where id = NEW.image_id FOR UPDATE;
             SELECT * INTO currentProject FROM project where id = NEW.project_id FOR UPDATE;
-            SELECT * INTO currentIndex FROM annotation_index WHERE user_id = NEW.user_id AND image_id = NEW.image_id;
+            SELECT * INTO currentIndex FROM annotation_index WHERE user_id = NEW.user_id AND slice_id = NEW.slice_id;
             RETURN NEW;
         END ;
         \$incAlgoAnnBefore\$ LANGUAGE plpgsql; """
@@ -281,11 +280,11 @@ class TriggerService {
                 SET count_job_annotations = count_job_annotations + 1
                 WHERE project.id = NEW.project_id;
 
-                SELECT count(*) INTO alreadyExist FROM annotation_index WHERE user_id = NEW.user_id AND image_id = NEW.image_id;
+                SELECT count(*) INTO alreadyExist FROM annotation_index WHERE user_id = NEW.user_id AND slice_id = NEW.slice_id;
                 IF (alreadyExist=0) THEN
-                    INSERT INTO annotation_index(user_id, image_id, count_annotation, count_reviewed_annotation, version, id) VALUES(NEW.user_id,NEW.image_id,0,0,0,nextval('hibernate_sequence'));
+                    INSERT INTO annotation_index(user_id, slice_id, count_annotation, count_reviewed_annotation, version, id) VALUES(NEW.user_id,NEW.slice_id,0,0,0,nextval('hibernate_sequence'));
                 END IF;
-                UPDATE annotation_index SET count_annotation = count_annotation+1, version = version+1 WHERE user_id = NEW.user_id AND image_id = NEW.image_id;
+                UPDATE annotation_index SET count_annotation = count_annotation+1, version = version+1 WHERE user_id = NEW.user_id AND slice_id = NEW.slice_id;
             RETURN NEW;
         END ;
         \$incAlgoAnnAfter\$ LANGUAGE plpgsql; """
@@ -312,7 +311,7 @@ class TriggerService {
         BEGIN
             SELECT * INTO currentImage FROM image_instance where id = OLD.image_id FOR UPDATE;
             SELECT * INTO currentProject FROM project where id = OLD.project_id FOR UPDATE;
-            SELECT * INTO currentIndex FROM annotation_index WHERE user_id = OLD.user_id AND image_id = OLD.image_id;
+            SELECT * INTO currentIndex FROM annotation_index WHERE user_id = OLD.user_id AND slice_id = OLD.slice_id;
             RETURN OLD;
         END ;
         \$incAlgoAnnBefore\$ LANGUAGE plpgsql; """
@@ -345,7 +344,7 @@ class TriggerService {
                 SET count_image_job_annotations = count_image_job_annotations - 1
                 WHERE image_instance.id = OLD.image_id;
 
-                UPDATE annotation_index SET count_annotation = count_annotation-1, version = version+1 WHERE user_id = OLD.user_id AND image_id = OLD.image_id;
+                UPDATE annotation_index SET count_annotation = count_annotation-1, version = version+1 WHERE user_id = OLD.user_id AND slice_id = OLD.slice_id;
             RETURN OLD;
         END ;
          \$decAlgoAnnAfter\$ LANGUAGE plpgsql; """
@@ -601,7 +600,7 @@ class TriggerService {
         BEGIN
             SELECT * INTO currentImage FROM image_instance where id = NEW.image_id FOR UPDATE;
             SELECT * INTO currentProject FROM project where id = NEW.project_id FOR UPDATE;
-            SELECT * INTO currentAnnotationIndex FROM annotation_index WHERE user_id = NEW.review_user_id AND image_id = NEW.image_id;
+            SELECT * INTO currentAnnotationIndex FROM annotation_index WHERE user_id = NEW.review_user_id AND slice_id = NEW.slice_id;
 
             SELECT parent_class_name INTO current_class from reviewed_annotation where id = NEW.id;
             IF current_class = user_class THEN
@@ -643,11 +642,11 @@ class TriggerService {
             WHERE project.id = NEW.project_id;
 
 
-            SELECT count(*) INTO alreadyExist FROM annotation_index WHERE user_id = NEW.review_user_id AND image_id = NEW.image_id;
+            SELECT count(*) INTO alreadyExist FROM annotation_index WHERE user_id = NEW.review_user_id AND slice_id = NEW.slice_id;
             IF (alreadyExist=0) THEN
-                INSERT INTO annotation_index(user_id, image_id, count_annotation, count_reviewed_annotation, version, id) VALUES(NEW.review_user_id,NEW.image_id,0,0,0,nextval('hibernate_sequence'));
+                INSERT INTO annotation_index(user_id, slice_id, count_annotation, count_reviewed_annotation, version, id) VALUES(NEW.review_user_id,NEW.slice_id,0,0,0,nextval('hibernate_sequence'));
             END IF;
-            UPDATE annotation_index SET count_reviewed_annotation = count_reviewed_annotation+1, version = version+1 WHERE user_id = NEW.review_user_id AND image_id = NEW.image_id;
+            UPDATE annotation_index SET count_reviewed_annotation = count_reviewed_annotation+1, version = version+1 WHERE user_id = NEW.review_user_id AND slice_id = NEW.slice_id;
 
 
             SELECT parent_class_name INTO current_class from reviewed_annotation where id = NEW.id;
@@ -693,7 +692,7 @@ class TriggerService {
         BEGIN
             SELECT * INTO currentImage FROM image_instance where id = OLD.image_id FOR UPDATE;
             SELECT * INTO currentProject FROM project where id = OLD.project_id FOR UPDATE;
-            SELECT * INTO currentAnnotationIndex FROM annotation_index WHERE user_id = OLD.review_user_id AND image_id = OLD.image_id;
+            SELECT * INTO currentAnnotationIndex FROM annotation_index WHERE user_id = OLD.review_user_id AND slice_id = OLD.slice_id;
 
             SELECT parent_class_name INTO current_class from reviewed_annotation where id = OLD.id;
             IF current_class = user_class THEN
@@ -735,7 +734,7 @@ class TriggerService {
             UPDATE annotation_index
             SET count_reviewed_annotation = count_reviewed_annotation-1, version = version+1
             WHERE user_id = OLD.user_id
-            AND image_id = OLD.image_id;
+            AND slice_id = OLD.slice_id;
 
             IF OLD.parent_class_name = user_class THEN
                 UPDATE user_annotation
@@ -759,65 +758,4 @@ class TriggerService {
         log.debug createTrigger
         return createFunction + dropTrigger + createTrigger
     }
-
-
-
-
-
-
-
-
-//
-//
-//
-//    String getReviewedAnnotationIndexTriggerIncr() {
-//        String createFunction = """
-//                           CREATE OR REPLACE FUNCTION incrementReviewedAnnotationIndex() RETURNS trigger as \$incAnnRevIndex\$
-//    DECLARE
-//            alreadyExist INTEGER;
-//            current_id annotation_index.id%TYPE;
-//    BEGIN
-//            SELECT count(*) INTO alreadyExist FROM annotation_index WHERE user_id = NEW.user_id AND image_id = NEW.image_id;
-//            IF (alreadyExist=0) THEN
-//                INSERT INTO annotation_index(user_id, image_id, count_annotation, count_reviewed_annotation, version, id) VALUES(NEW.user_id,NEW.image_id,0,0,0,nextval('hibernate_sequence'));
-//            END IF;
-//            UPDATE annotation_index SET count_reviewed_annotation = count_reviewed_annotation+1, version = version+1 WHERE user_id = NEW.user_id AND image_id = NEW.image_id;
-//            RETURN NEW;
-//    END;
-//    \$incAnnRevIndex\$ LANGUAGE plpgsql; """
-//
-//        String dropTrigger = "DROP TRIGGER IF EXISTS incrementReviewedAnnotationIndexTrigger on reviewed_annotation;"
-//
-//        String createTrigger = "CREATE TRIGGER incrementReviewedAnnotationIndexTrigger AFTER INSERT ON reviewed_annotation FOR EACH ROW EXECUTE PROCEDURE incrementReviewedAnnotationIndex(); "
-//
-//        log.debug createFunction
-//        log.debug dropTrigger
-//        log.debug createTrigger
-//        return createFunction + dropTrigger + createTrigger
-//    }
-//
-//    String getReviewedAnnotationIndexTriggerDecr() {
-//        String createFunction = """
-//                            CREATE OR REPLACE FUNCTION decrementReviewedAnnotationIndex() RETURNS trigger as \$decrAnnUserIndex\$
-//            DECLARE
-//                    alreadyExist INTEGER;
-//                    current_id annotation_index.id%TYPE;
-//            BEGIN
-//                    UPDATE annotation_index SET count_reviewed_annotation = count_reviewed_annotation-1, version = version+1 WHERE user_id = OLD.user_id AND image_id = OLD.image_id;
-//                    RETURN OLD;
-//            END;
-//            \$decrAnnUserIndex\$ LANGUAGE plpgsql; """
-//
-//        String dropTrigger = "DROP TRIGGER IF EXISTS decrementReviewedAnnotationIndexTrigger on reviewed_annotation;"
-//
-//        String createTrigger = "CREATE TRIGGER decrementReviewedAnnotationIndexTrigger AFTER DELETE ON reviewed_annotation FOR EACH ROW EXECUTE PROCEDURE decrementReviewedAnnotationIndex(); "
-//
-//        log.debug createFunction
-//        log.debug dropTrigger
-//        log.debug createTrigger
-//        return createFunction + dropTrigger + createTrigger
-//    }
-//
-
-
 }

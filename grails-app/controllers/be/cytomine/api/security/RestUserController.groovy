@@ -1,7 +1,7 @@
 package be.cytomine.api.security
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -17,14 +17,18 @@ package be.cytomine.api.security
 */
 
 import be.cytomine.Exception.CytomineException
+import be.cytomine.Exception.ForbiddenException
 import be.cytomine.api.RestController
 import be.cytomine.image.ImageInstance
+import be.cytomine.image.server.Storage
 import be.cytomine.ontology.Ontology
 import be.cytomine.project.Project
 import be.cytomine.security.Group
 import be.cytomine.security.SecUser
 import be.cytomine.security.User
 import be.cytomine.social.PersistentProjectConnection
+import be.cytomine.social.PersistentImageConsultation
+import be.cytomine.social.AnnotationAction
 import be.cytomine.utils.SecurityUtils
 import grails.converters.JSON
 import grails.plugin.springsecurity.SpringSecurityUtils
@@ -54,6 +58,7 @@ class RestUserController extends RestController {
     def imageConsultationService
     def projectRepresentativeUserService
     def userAnnotationService
+    def storageService
 
     /**
      * Get all project users
@@ -64,18 +69,89 @@ class RestUserController extends RestController {
         @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The project id"),
             @RestApiParam(name="online", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional, default false) Get only online users for this project"),
             @RestApiParam(name="showJob", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional, default false) Also show the users job for this project"),
+            @RestApiParam(name="withLastImage", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional, default false) Show the last image seen by each user in this project"),
+            @RestApiParam(name="withLastConsultation", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional, default false) Show the last consultation of this project by each user"),
+            @RestApiParam(name="withNumberConsultations", type="boolean", paramType = RestApiParamType.QUERY, description = "(Optional, default false) Show the number of consultations of this project by each user"),
     ])
     def showByProject() {
         boolean online = params.boolean('online')
         boolean showUserJob = params.boolean('showJob')
         Project project = projectService.read(params.long('id'))
-        if (project && !online) {
-            responseSuccess(secUserService.listUsers(project, showUserJob))
-        } else if (project && online) {
-            def users = secUserService.getAllFriendsUsersOnline(cytomineService.currentUser, project)
+        List<SecUser> users
+        if(!project){
+            responseNotFound("User", "Project", params.id)
+        }
+        if (online) {
+            users = secUserService.getAllFriendsUsersOnline(cytomineService.currentUser, project)
+        } else {
+            users = secUserService.listUsers(project, showUserJob)
+        }
+
+        boolean withLastImage = params.boolean('withLastImage')
+        boolean withLastConsultation = params.boolean('withLastConsultation')
+        boolean withNumberConsultations = params.boolean('withNumberConsultations')
+        if(!withNumberConsultations && !withLastConsultation && !withLastImage){
             responseSuccess(users)
         } else {
-            responseNotFound("User", "Project", params.id)
+            // we sorted to apply binary search instead of a simple "find" method. => performance
+            def binSearchI = { aList, property, target ->
+                def a = aList
+                def offSet = 0
+                while (!a.empty) {
+                    def n = a.size()
+                    def m = n.intdiv(2)
+                    if(a[m]."$property" > target) {
+                        a = a[0..<m]
+                    } else if (a[m]."$property" < target) {
+                        a = a[(m + 1)..<n]
+                        offSet += m + 1
+                    } else {
+                        return (offSet + m)
+                    }
+                }
+                return -1
+            }
+
+            def images = []
+            if(withLastImage){
+                images = imageConsultationService.lastImageOfUsersByProject(project)
+                images.sort {it.user}
+            }
+
+            def connections = []
+            if(withLastConsultation){
+                connections = projectConnectionService.lastConnectionInProject(project)
+                connections.sort {it.user}
+            }
+
+            def frequencies = []
+            if(withNumberConsultations){
+                frequencies = projectConnectionService.numberOfConnectionsByProjectAndUser(project)
+                frequencies.sort {it.user}
+            }
+
+            def results = []
+            for(SecUser user : users) {
+                def userInfo = User.getDataFromDomain(user)
+                if(withLastImage){
+                    int index = binSearchI(images, "user", user.id)
+                    def image = index >= 0 ? images[index]:null
+                    userInfo.lastImage = image?.image
+                }
+                if(withLastConsultation){
+                    int index = binSearchI(connections, "user", user.id)
+                    def connection = index >= 0 ? connections[index]:null
+                    userInfo.lastConsultation = connection?.created
+                }
+                if(withNumberConsultations){
+                    int index = binSearchI(frequencies, "user", user.id)
+                    def frequency = index >= 0 ? frequencies[index]:null
+                    userInfo.numberConsultations = frequency?.frequency
+                }
+                results << userInfo
+            }
+
+            responseSuccess(results)
         }
     }
 
@@ -172,6 +248,19 @@ class RestUserController extends RestController {
             responseSuccess(secUserService.listLayers(project,image))
         } else {
             responseNotFound("User", "Project", params.id)
+        }
+    }
+
+    @RestApiMethod(description="Get all storage users.", listing = true)
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The storage id")
+    ])
+    def showUserByStorage() {
+        Storage storage = storageService.read(params.long('id'))
+        if (storage) {
+            responseSuccess(secUserService.listUsers(storage))
+        } else {
+            responseNotFound("User", "Storage", params.id)
         }
     }
 
@@ -443,10 +532,38 @@ class RestUserController extends RestController {
         response(ret)
     }
 
+    @RestApiMethod(description="Add user in a storage")
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The storage id"),
+            @RestApiParam(name="idUser", type="long", paramType = RestApiParamType.PATH, description = "The user id")
+    ])
+    @RestApiResponseObject(objectIdentifier = "empty")
+    def addUserToStorage() {
+        Storage storage = storageService.read(params.long('id'))
+        SecUser user = secUserService.read(params.long('idUser'))
+        secUserService.addUserToStorage(user, storage)
+        response.status = 200
+        response([data: [message: "OK"], status: 200])
+    }
+    
+    @RestApiMethod(description="Delete user from a storage")
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The storage id"),
+            @RestApiParam(name="idUser", type="long", paramType = RestApiParamType.PATH, description = "The user id")
+    ])
+    @RestApiResponseObject(objectIdentifier = "empty")
+    def deleteUserFromStorage() {
+        Storage storage = storageService.read(params.long('id'))
+        SecUser user = secUserService.read(params.long('idUser'))
+        secUserService.deleteUserFromStorage(user, storage)
+        response.status = 200
+        response([data: [message: "OK"], status: 200])
+    }
+
     @RestApiMethod(description="Change a user password for a user")
     @RestApiParams(params=[
-        @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The user id"),
-        @RestApiParam(name="password", type="string", paramType = RestApiParamType.QUERY, description = "The new password")
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The user id"),
+            @RestApiParam(name="password", type="string", paramType = RestApiParamType.QUERY, description = "The new password")
     ])
     def resetPassword () {
         try {
@@ -470,6 +587,21 @@ class RestUserController extends RestController {
             responseError(e)
         }
 
+    }
+
+    @RestApiMethod(description="Check a user password for the current user")
+    @RestApiParams(params=[
+            @RestApiParam(name="password", type="string", paramType = RestApiParamType.QUERY, description = "The password")
+    ])
+    def checkPassword () {
+        String password = request.JSON.password
+        def result = springSecurityService.encodePassword(password).equals(cytomineService.currentUser.password)
+
+        if(result) {
+            responseSuccess([:])
+        } else {
+            response([success: false, errors: "No matching password"], 401)
+        }
     }
 
     /**
@@ -530,30 +662,16 @@ class RestUserController extends RestController {
         def result = db.lastUserPosition.aggregate(
                 [$match : [ project : project.id, created:[$gt:thirtySecondsAgo.toDate()]]],
                 [$project:[user:1,image:1,imageName:1,created:1]],
-                [$group : [_id : [ user: '$user', image: '$image',imageName: '$imageName'], "date":[$max:'$created']]]
+                [$group : [_id : [ user: '$user', image: '$image',imageName: '$imageName'], "date":[$max:'$created']]],
+                [$group : [_id : [ user: '$_id.user'], "position":[$push: [id: '$_id.image',image: '$_id.image', filename: '$_id.imageName', originalFilename: '$_id.imageName', date: '$date']]]]
         )
 
         def usersWithPosition = []
-        def userInfo = [:]
-        long previousUser = -1
         result.results().each {
-
-            def userId = it["_id"]["user"]
-            def imageId = it["_id"]["image"]
-            def imageName = it["_id"]["imageName"]
-            def date = it["date"]
-
-            long currentUser = userId
-            if (previousUser != currentUser) {
-                //new user, create a new line
-                userInfo = [id: currentUser, position: []]
-                usersWithPosition << userInfo
-                usersId.remove(currentUser)
-            }
-            //add position to the current user
-            userInfo['position'] << [id: imageId,image: imageId, filename: imageName, originalFilename:imageName, date: date]
-            previousUser = currentUser
+            usersWithPosition << [id: it["_id"]["user"], position: it["position"]]
         }
+        usersId.remove(usersWithPosition.collect{it.id})
+
         //user online with no image open
         usersId.each {
             usersWithPosition << [id: it, position: []]
@@ -628,6 +746,7 @@ class RestUserController extends RestController {
         Integer offset = params.offset != null ? params.getInt('offset') : 0
         Integer max = (params.max != null && params.getInt('max')!=0) ? params.getInt('max') : Integer.MAX_VALUE
         def maxForCollection = Math.min(users.size() - offset, max)
+        long collectionSize = users.size()
 
         if(field && ["id","email","username"].contains(field)) {
             users.sort { a,b->
@@ -707,6 +826,12 @@ class RestUserController extends RestController {
             sorted = true;
         }
 
+        // to fit the pagination system
+        if(collectionSize > results.size()) {
+            def filler = Arrays.asList(new Object[collectionSize-results.size()-offset]);
+            results = Arrays.asList(new Object[offset]) + results + filler
+        }
+
         responseSuccess(results)
     }
 
@@ -764,7 +889,25 @@ class RestUserController extends RestController {
         result["lastConnection"] = PersistentProjectConnection.findAllByUserAndProject(user.id, project.id, [sort: 'created', order: 'desc', max: 1])[0]?.created
         result["totalAnnotations"] = userAnnotationService.count(user, project)
         result["totalConnections"] = PersistentProjectConnection.countByUserAndProject(user.id, project.id)
+        result["totalConsultations"] = PersistentImageConsultation.countByUserAndProject(user.id, project.id)
+        result["totalAnnotationSelections"] = AnnotationAction.countByUserAndProjectAndAction(user.id, project.id, "select")
 
         responseSuccess(result)
     }
+
+    @Override
+    protected boolean isFilterResponseEnabled() {
+        try{
+            securityACLService.checkAdmin(cytomineService.currentUser)
+            return false
+        } catch(ForbiddenException e){}
+        return true
+    }
+
+    @Override
+    protected void filterOneElement(JSONObject element){
+        if(element['id'] != cytomineService.currentUser.id)
+        element['email'] = null
+    }
+
 }

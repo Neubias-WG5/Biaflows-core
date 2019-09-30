@@ -1,7 +1,7 @@
 package be.cytomine.security
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import be.cytomine.project.Project
 import be.cytomine.test.BasicInstanceBuilder
 import be.cytomine.test.Infos
 import be.cytomine.test.http.AnnotationDomainAPI
+import be.cytomine.test.http.AnnotationTermAPI
 import be.cytomine.test.http.ImageInstanceAPI
 import be.cytomine.test.http.ProjectAPI
 import be.cytomine.test.http.UserAnnotationAPI
@@ -66,6 +67,16 @@ class UserAnnotationSecurityTests extends SecurityTestsAbstract {
         assert 200 == result.code
         annotation2 = result.data
 
+        //add the two annotations
+        def annotations = []
+        annotations << JSON.parse(annotation1.encodeAsJSON())
+        annotations << JSON.parse(annotation2.encodeAsJSON())
+        result = UserAnnotationAPI.create(JSONUtils.toJSONString(annotations), SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        assert 200 == result.code
+        result = UserAnnotationAPI.create(JSONUtils.toJSONString(annotations), SecurityTestsAbstract.USERNAMEADMIN, SecurityTestsAbstract.PASSWORDADMIN)
+        assert 200 == result.code
+
+
         //Get/List annotation with cytomine admin
         assert (200 == UserAnnotationAPI.show(annotation2.id, SecurityTestsAbstract.USERNAMEADMIN, SecurityTestsAbstract.PASSWORDADMIN).code)
         result = UserAnnotationAPI.listByProject(project.id, SecurityTestsAbstract.USERNAMEADMIN, SecurityTestsAbstract.PASSWORDADMIN)
@@ -106,6 +117,15 @@ class UserAnnotationSecurityTests extends SecurityTestsAbstract {
         def result = UserAnnotationAPI.create(annotation.encodeAsJSON(), SecurityTestsAbstract.USERNAME2, SecurityTestsAbstract.PASSWORD2)
         assert 200 == result.code
         annotation = result.data
+
+        //add the two annotations
+        def annotations = []
+        annotations << JSON.parse(annotation.encodeAsJSON())
+        annotations << JSON.parse(annotation.encodeAsJSON())
+        result = UserAnnotationAPI.create(JSONUtils.toJSONString(annotations), SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        assert 200 == result.code
+        result = UserAnnotationAPI.create(JSONUtils.toJSONString(annotations), SecurityTestsAbstract.USERNAME2, SecurityTestsAbstract.PASSWORD2)
+        assert 200 == result.code
 
         //Get/List annotation 1 with user 1
         assert (200 == UserAnnotationAPI.show(annotation.id, SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1).code)
@@ -175,6 +195,15 @@ class UserAnnotationSecurityTests extends SecurityTestsAbstract {
         def result = UserAnnotationAPI.create(annotation.encodeAsJSON(), SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
         assert 200 == result.code
         annotation = result.data
+
+        //add the two annotations
+        def annotations = []
+        annotations << JSON.parse(annotation.encodeAsJSON())
+        annotations << JSON.parse(annotation.encodeAsJSON())
+        result = UserAnnotationAPI.create(JSONUtils.toJSONString(annotations), SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        assert 200 == result.code
+        result = UserAnnotationAPI.create(JSONUtils.toJSONString(annotations), SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        assert 200 == result.code
 
         //Get/List annotation 1 with user 2
         assert (200 == UserAnnotationAPI.show(annotation.id, SecurityTestsAbstract.USERNAME2, SecurityTestsAbstract.PASSWORD2).code)
@@ -272,8 +301,6 @@ class UserAnnotationSecurityTests extends SecurityTestsAbstract {
          String basedLocation = "POLYGON ((0 0, 0 5000, 10000 5000, 10000 0, 0 0))"
          String addedLocation = "POLYGON ((0 5000, 10000 5000, 10000 10000, 0 10000, 0 5000))"
          String expectedLocation = "POLYGON ((0 0, 0 10000, 10000 10000, 10000 0, 0 0))"
-
-
 
          User user1 = getUser1() //project admin
          User user2 = getUser2()
@@ -407,5 +434,146 @@ class UserAnnotationSecurityTests extends SecurityTestsAbstract {
        result = AnnotationDomainAPI.correctAnnotation(annotation.id, JSONUtils.toJSONString(json),SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
        assert 400 == result.code
    }
+
+    void testTargettedFreeHandCorrectionWithNotProjectMember() {
+        // user not member of project cannot correct annotation
+        String basedLocation = "POLYGON ((0 0, 0 5000, 10000 5000, 10000 0, 0 0))"
+        String addedLocation = "POLYGON ((0 5000, 10000 5000, 10000 10000, 0 10000, 0 5000))"
+
+        //Create project with user 1
+        ImageInstance image = ImageInstanceAPI.buildBasicImage(SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+
+        //Add annotation 1 with user1
+        UserAnnotation annotation = BasicInstanceBuilder.getUserAnnotationNotExist()
+        annotation.image = image
+        annotation.project = image.project
+        def result = UserAnnotationAPI.create(annotation.encodeAsJSON(), SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        assert 200 == result.code
+        annotation = result.data
+        //add annotation with empty space inside it
+        annotation.location = new WKTReader().read(basedLocation)
+        assert annotation.save(flush: true)  != null
+
+        //correct remove
+        def json = [:]
+        json.location = addedLocation
+        json.review = false
+        json.remove = false
+        json.annotation = annotation.id
+        result = AnnotationDomainAPI.correctAnnotation(annotation.id, JSONUtils.toJSONString(json), SecurityTestsAbstract.USERNAME2, SecurityTestsAbstract.PASSWORD2)
+        assert 403 == result.code
+        annotation.refresh()
+        assert new WKTReader().read(basedLocation).equals(annotation.location)
+    }
+
+    void testTargettedFreeHandCorrectionWithProjectMember() {
+        // project member can correct the annotation of another user iff project in classic mode
+        String basedLocation = "POLYGON ((0 0, 0 5000, 10000 5000, 10000 0, 0 0))"
+        String addedLocation = "POLYGON ((0 5000, 10000 5000, 10000 10000, 0 10000, 0 5000))"
+        String expectedLocation = "POLYGON ((0 0, 0 10000, 10000 10000, 10000 0, 0 0))"
+
+        User user2 = getUser2()
+
+        //Create project with user 1
+        ImageInstance image = ImageInstanceAPI.buildBasicImage(SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        Project project = image.project
+
+        //Add project right for user 2
+        def resAddUser = ProjectAPI.addUserProject(project.id, user2.id, SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        Infos.printRight(project)
+        assert 200 == resAddUser.code
+
+        //Add annotation 1 with user1
+        UserAnnotation annotation = BasicInstanceBuilder.getUserAnnotationNotExist()
+        annotation.image = image
+        annotation.project = image.project
+        def result = UserAnnotationAPI.create(annotation.encodeAsJSON(), SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        assert 200 == result.code
+        annotation = result.data
+        //add annotation with empty space inside it
+        annotation.location = new WKTReader().read(basedLocation)
+        assert annotation.save(flush: true)  != null
+
+        //correction allowed in classic mode
+        def json = [:]
+        json.location = addedLocation
+        json.review = false
+        json.remove = false
+        json.annotation = annotation.id
+        result = AnnotationDomainAPI.correctAnnotation(annotation.id, JSONUtils.toJSONString(json),SecurityTestsAbstract.USERNAME2, SecurityTestsAbstract.PASSWORD2)
+        assert 200 == result.code
+        annotation.refresh()
+        assert new WKTReader().read(expectedLocation).equals(annotation.location)
+
+        project.mode = Project.EditingMode.RESTRICTED
+        BasicInstanceBuilder.saveDomain(project)
+
+        //correction not allowed in restricted mode
+        json.remove = true
+        result = AnnotationDomainAPI.correctAnnotation(annotation.id, JSONUtils.toJSONString(json),SecurityTestsAbstract.USERNAME2, SecurityTestsAbstract.PASSWORD2)
+        assert 403 == result.code
+        annotation.refresh()
+        assert new WKTReader().read(expectedLocation).equals(annotation.location)
+    }
+
+    void testDeleteUserAnnotationWithTerm() {
+
+        User user1 = getUser1()
+        User user2 = getUser2()
+
+
+        ImageInstance image = ImageInstanceAPI.buildBasicImage(SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        Project project = image.project
+
+
+        // DELETE AN ANNOT (USER1) WHEN USER1 HAD ASSOCIATED A TERM
+
+        //Add annotation 1 with user1
+        UserAnnotation annotation = BasicInstanceBuilder.getUserAnnotationNotExist()
+        annotation.image = image
+        annotation.project = image.project
+        def result = UserAnnotationAPI.create(annotation.encodeAsJSON(), SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        assert result.code == 200
+        annotation = result.data
+
+
+        def annotTerm = BasicInstanceBuilder.getAnnotationTermNotExist(annotation)
+        annotTerm.user = user1
+
+        result = AnnotationTermAPI.createAnnotationTerm(annotTerm.encodeAsJSON(), SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        assert result.code == 200
+
+        result = UserAnnotationAPI.delete(annotation.id, SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        assert result.code == 200
+
+
+        // DELETE AN ANNOT (USER1) WHEN USER2 HAD ASSOCIATED A TERM
+
+        //Add annotation 1 with user1
+        annotation = BasicInstanceBuilder.getUserAnnotationNotExist()
+        annotation.image = image
+        annotation.project = image.project
+        annotation.user = user1
+        result = UserAnnotationAPI.create(annotation.encodeAsJSON(), SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        assert result.code == 200
+        annotation = result.data
+
+
+        //Add project right for user 2
+        def resAddUser = ProjectAPI.addUserProject(project.id, user2.id, SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        Infos.printRight(project)
+        assert 200 == resAddUser.code
+
+
+        annotTerm = BasicInstanceBuilder.getAnnotationTermNotExist(annotation)
+        annotTerm.user = user2
+
+        result = AnnotationTermAPI.createAnnotationTerm(annotTerm.encodeAsJSON(), SecurityTestsAbstract.USERNAME2, SecurityTestsAbstract.PASSWORD2)
+        assert result.code == 200
+
+        result = UserAnnotationAPI.delete(annotation.id, SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
+        assert result.code == 200
+    }
+
 
 }

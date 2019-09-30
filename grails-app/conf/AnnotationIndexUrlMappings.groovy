@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ class AnnotationIndexUrlMappings {
 
     static mappings = {
 
-        "/api/imageinstance/$id/annotationindex.$format"(controller:"restAnnotationIndex"){
-            action = [GET:"listByImage"]
+        "/api/sliceinstance/$id/annotationindex.$format"(controller:"restAnnotationIndex"){
+            action = [GET:"listBySlice"]
         }
 
     }

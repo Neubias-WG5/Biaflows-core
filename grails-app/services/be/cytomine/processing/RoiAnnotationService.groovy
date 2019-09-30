@@ -1,7 +1,7 @@
 package be.cytomine.processing
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -93,8 +93,8 @@ class RoiAnnotationService extends ModelService {
 
         //simplify annotation
         try {
-            def data = simplifyGeometryService.simplifyPolygon(annotationForm.toString(),minPoint,maxPoint)
-            json.location = new WKTWriter().write(data.geometry)
+            def data = simplifyGeometryService.simplifyPolygon(annotationForm,minPoint,maxPoint)
+            json.location = data.geometry
             json.geometryCompression = data.rate
         } catch (Exception e) {
             log.error("Cannot simplify:" + e)
@@ -159,7 +159,7 @@ class RoiAnnotationService extends ModelService {
     }
 
     def getStringParamsI18n(def domain) {
-        return [domain.user.toString(), domain.image?.baseImage?.originalFilename]
+        return [cytomineService.getCurrentUser().toString(), domain.image?.getFileName(), domain.user.toString()]
     }
 
     def afterAdd(def domain, def response) {

@@ -17,19 +17,18 @@
                                 If this is a mistake just ignore this email - your password will not be changed.
                             </p><!-- /Callout Panel -->
 
-                            <p>This <a href='<%= by %>/login/loginWithToken?tokenKey=<%= tokenKey %>&username=<%= username %>'>link</a> will log you in and take you to a page where you can set a new password.<br />
-                                Please note that this link will expire on <%= expiryDate %>. <br/>
-                                You can request a new one by clicking <a href="<%= by %>/#forgotPassword">here</a> and enter your username.</p>
+                            <p>This <a href='<%= by %>/#/account?token=<%= tokenKey %>&username=<%= username %>'>link</a> will log you in and take you to a page where you can set a new password.<br />
+                                Please note that this link will expire on <%= expiryDate %>.</p>
 
                                 <!-- Callout Panel -->
                                 <p class="callout">
                                     Trouble clicking? Copy and paste this URL into your browser:
-                                    <a href="<%= by %>/login/loginWithToken?tokenKey=<%= tokenKey %>&username=<%= username %>">http://<%= by %>/login/loginWithToken?tokenKey=<%= tokenKey %>&username=<%= username %></a>
+                                    <a href='<%= by %>/#/account?token=<%= tokenKey %>&username=<%= username %>'><%= by %>/#/account?token=<%= tokenKey %>&username=<%= username %></a>
                                 </p><!-- /Callout Panel -->
 
 
                         <!-- social & contact -->
-                        <g:render template="/mail/social" model="[]"/>
+                        <g:render template="/mail/social" model="[website :website, mailFrom: mailFrom, phoneNumber:phoneNumber]"/>
 
                         </td>
                     </tr>

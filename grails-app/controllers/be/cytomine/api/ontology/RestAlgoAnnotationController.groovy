@@ -1,7 +1,7 @@
 package be.cytomine.api.ontology
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -22,11 +22,13 @@ import be.cytomine.image.ImageInstance
 import be.cytomine.ontology.AlgoAnnotation
 import be.cytomine.ontology.SharedAnnotation
 import be.cytomine.ontology.Term
+import be.cytomine.project.Project
 import be.cytomine.security.SecUser
 import grails.converters.JSON
 import org.codehaus.groovy.grails.web.json.JSONArray
 import org.restapidoc.annotation.*
 import org.restapidoc.pojo.RestApiParamType
+import static org.springframework.security.acls.domain.BasePermission.READ
 
 /**
  * Controller that handle request on annotation created by software (job)
@@ -47,7 +49,7 @@ class  RestAlgoAnnotationController extends RestController {
     def unionGeometryService
     def annotationIndexService
     def reportService
-    def imageProcessingService
+    def imageServerService
 
     /**
      * List all annotation (created by algo) visible for the current user
@@ -79,6 +81,24 @@ class  RestAlgoAnnotationController extends RestController {
         else {
             responseNotFound("Annotation", params.id)
         }
+    }
+
+    /**
+     * Count annotations
+     */
+    @RestApiMethod(description="Count the number of annotation in the project")
+    @RestApiResponseObject(objectIdentifier = "[total:x]")
+    @RestApiParams(params=[
+            @RestApiParam(name="project", type="long", paramType = RestApiParamType.PATH,description = "The project id"),
+            @RestApiParam(name="startDate", type="long", paramType = RestApiParamType.QUERY,description = "Only count the annotations created after this date (optional)"),
+            @RestApiParam(name="endDate", type="long", paramType = RestApiParamType.QUERY,description = "Only count the annotations created before this date (optional)")
+    ])
+    def countByProject() {
+        Project project = projectService.read(params.project)
+        securityACLService.check(project, READ)
+        Date startDate = params.startDate ? new Date(params.long("startDate")) : null
+        Date endDate = params.endDate ? new Date(params.long("endDate")) : null
+        responseSuccess([total: algoAnnotationService.countByProject(project, startDate, endDate)])
     }
 
     /**
@@ -152,97 +172,91 @@ class  RestAlgoAnnotationController extends RestController {
             @RestApiParam(name="terms", type="list", paramType = RestApiParamType.QUERY,description = "The annotation terms id (if empty: all terms)"),
             @RestApiParam(name="users", type="list", paramType = RestApiParamType.QUERY,description = "The annotation users id (if empty: all users)"),
             @RestApiParam(name="images", type="list", paramType = RestApiParamType.QUERY,description = "The annotation images id (if empty: all images)"),
-            @RestApiParam(name="format", type="string", paramType = RestApiParamType.QUERY,description = "The report format (pdf, xls,...)")
+            @RestApiParam(name="afterThan", type="Long", paramType = RestApiParamType.QUERY, description = "(Optional) Annotations created before this date will not be returned"),
+            @RestApiParam(name="beforeThan", type="Long", paramType = RestApiParamType.QUERY, description = "(Optional) Annotations created after this date will not be returned"),
+            @RestApiParam(name="format", type="string", paramType = RestApiParamType.QUERY,description = "The report format (pdf, xls,...)"),
     ])
     def downloadDocumentByProject() {
-        reportService.createAnnotationDocuments(params.long('id'),params.terms,params.noTerm,params.multipleTerms,params.users,params.images,params.format,response,"ALGOANNOTATION")
+        Long afterThan = params.getLong('afterThan')
+        Long beforeThan = params.getLong('beforeThan')
+        reportService.createAnnotationDocuments(params.long('id'), params.terms, params.noTerm, params.multipleTerms,
+                params.users, params.images, afterThan, beforeThan, params.format, response, "ALGOANNOTATION")
     }
 
 
-    /**
-     * Get annotation algo crop (image area that frame annotation)
-     * (Use this service if you know the annotation type)
-     */
-    @RestApiMethod(description="Get annotation algo crop (image area that frame annotation)")
-    @RestApiResponseObject(objectIdentifier =  "file")
+    @RestApiMethod(description="Get a crop of an automatic annotation (image area framing annotation)", extensions=["png", "jpg", "tiff"])
     @RestApiParams(params=[
-            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH,description = "The annotation id"),
-            @RestApiParam(name="maxSize", type="int", paramType = RestApiParamType.PATH,description = "Maximum size of the crop image (w and h)"),
-            @RestApiParam(name="zoom", type="int", paramType = RestApiParamType.PATH,description = "Zoom level"),
-            @RestApiParam(name="draw", type="boolean", paramType = RestApiParamType.PATH,description = "Draw annotation form border on the image"),
+            @RestApiParam(name="id", type="long", paramType=RestApiParamType.PATH, description="The annotation id"),
+            @RestApiParam(name="type", type="String", paramType=RestApiParamType.QUERY, description="Type of crop. Allowed values are 'crop' (default behavior if not set), 'draw' (the shape is drawn in the crop), 'mask' (annotation binary mask), 'alphaMask (part of crop outside annotation is transparent, requires png format)", required=false),
+            @RestApiParam(name="draw", type="boolean", paramType=RestApiParamType.QUERY, description="Equivalent to set type='draw'", required=false),
+            @RestApiParam(name="mask", type="boolean", paramType=RestApiParamType.QUERY, description="Equivalent to set type='mask'", required=false),
+            @RestApiParam(name="alphaMask", type="boolean", paramType=RestApiParamType.QUERY, description="Equivalent to set type='alphaMask'", required=false),
+            @RestApiParam(name="maxSize", type="int", paramType=RestApiParamType.QUERY, description="Maximum crop size in width and height", required = false),
+            @RestApiParam(name="zoom", type="int", paramType=RestApiParamType.QUERY, description="Zoom level in which crop is extracted. Ignored if maxSize is set.", required = false),
+            @RestApiParam(name="increaseArea", type="double", paramType=RestApiParamType.QUERY, description="Increase crop area by multiplying original crop size by this factor.", required = false),
+            @RestApiParam(name="complete", type="boolean", paramType = RestApiParamType.QUERY,description = "Do not simplify the annotation shape.", required=false),
+            @RestApiParam(name="colormap", type="String", paramType = RestApiParamType.QUERY, description = "The absolute path of a colormap file", required=false),
+            @RestApiParam(name="inverse", type="int", paramType = RestApiParamType.QUERY, description = "True if colors have to be inversed", required=false),
+            @RestApiParam(name="contrast", type="float", paramType = RestApiParamType.QUERY, description = "Multiply pixels by contrast", required=false),
+            @RestApiParam(name="gamma", type="float", paramType = RestApiParamType.QUERY, description = "Apply gamma correction", required=false),
+            @RestApiParam(name="bits", type="int", paramType = RestApiParamType.QUERY, description = "Output bit depth per channel", required=false)
     ])
+    @RestApiResponseObject(objectIdentifier ="image (bytes)")
     def crop() {
         AlgoAnnotation annotation = AlgoAnnotation.read(params.long("id"))
-        if (!annotation) {
-            responseNotFound("AlgoAnnotation", params.id)
+        if (annotation) {
+            responseByteArray(imageServerService.crop(annotation, params))
         } else {
-            redirect (url : annotation.toCropURL(params))
+            responseNotFound("AlgoAnnotation", params.id)
         }
 
     }
 
-    //TODO:APIDOC
+    @RestApiMethod(description="Get a binary mask of an automatic annotation (image area framing annotation). Equivalent to crop with 'mask' type.", extensions=["png", "jpg", "tiff"])
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType=RestApiParamType.PATH, description="The annotation id"),
+            @RestApiParam(name="maxSize", type="int", paramType=RestApiParamType.QUERY, description="Maximum crop size in width and height", required = false),
+            @RestApiParam(name="zoom", type="int", paramType=RestApiParamType.QUERY, description="Zoom level in which crop is extracted. Ignored if maxSize is set.", required = false),
+            @RestApiParam(name="increaseArea", type="double", paramType=RestApiParamType.QUERY, description="Increase crop area by multiplying original crop size by this factor.", required = false),
+            @RestApiParam(name="complete", type="boolean", paramType = RestApiParamType.QUERY,description = "Do not simplify the annotation shape.", required=false),
+            @RestApiParam(name="colormap", type="String", paramType = RestApiParamType.QUERY, description = "The absolute path of a colormap file", required=false),
+            @RestApiParam(name="inverse", type="int", paramType = RestApiParamType.QUERY, description = "True if colors have to be inversed", required=false),
+            @RestApiParam(name="contrast", type="float", paramType = RestApiParamType.QUERY, description = "Multiply pixels by contrast", required=false),
+            @RestApiParam(name="gamma", type="float", paramType = RestApiParamType.QUERY, description = "Apply gamma correction", required=false),
+            @RestApiParam(name="bits", type="int", paramType = RestApiParamType.QUERY, description = "Output bit depth per channel", required=false)
+    ])
+    @RestApiResponseObject(objectIdentifier ="image (bytes)")
     def cropMask () {
         AlgoAnnotation annotation = AlgoAnnotation.read(params.long("id"))
-        if (!annotation) {
-            responseNotFound("AlgoAnnotation", params.id)
-        } else {
+        if (annotation) {
             params.mask = true
-            redirect (url : annotation.toCropURL(params))
+            responseByteArray(imageServerService.crop(annotation, params))
+        } else {
+            responseNotFound("AlgoAnnotation", params.id)
         }
-
     }
 
-    //TODO:APIDOC
+    @RestApiMethod(description="Get an alpha mask of an automatic annotation (image area framing annotation). Equivalent to crop with 'alphaMask' type.", extensions=["png"])
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType=RestApiParamType.PATH, description="The annotation id"),
+            @RestApiParam(name="maxSize", type="int", paramType=RestApiParamType.QUERY, description="Maximum crop size in width and height", required = false),
+            @RestApiParam(name="zoom", type="int", paramType=RestApiParamType.QUERY, description="Zoom level in which crop is extracted. Ignored if maxSize is set.", required = false),
+            @RestApiParam(name="increaseArea", type="double", paramType=RestApiParamType.QUERY, description="Increase crop area by multiplying original crop size by this factor.", required = false),
+            @RestApiParam(name="complete", type="boolean", paramType = RestApiParamType.QUERY,description = "Do not simplify the annotation shape.", required=false),
+            @RestApiParam(name="colormap", type="String", paramType = RestApiParamType.QUERY, description = "The absolute path of a colormap file", required=false),
+            @RestApiParam(name="inverse", type="int", paramType = RestApiParamType.QUERY, description = "True if colors have to be inversed", required=false),
+            @RestApiParam(name="contrast", type="float", paramType = RestApiParamType.QUERY, description = "Multiply pixels by contrast", required=false),
+            @RestApiParam(name="gamma", type="float", paramType = RestApiParamType.QUERY, description = "Apply gamma correction", required=false),
+            @RestApiParam(name="bits", type="int", paramType = RestApiParamType.QUERY, description = "Output bit depth per channel", required=false)
+    ])
+    @RestApiResponseObject(objectIdentifier ="image (bytes)")
     def cropAlphaMask () {
         AlgoAnnotation annotation = AlgoAnnotation.read(params.long("id"))
-        if (!annotation) {
-            responseNotFound("AlgoAnnotation", params.id)
-        } else {
+        if (annotation) {
             params.alphaMask = true
-            redirect (url : annotation.toCropURL(params))
-        }
-
-    }
-
-    /**
-     * Do union operation between annotation from the same image, user and term.
-     * Params are:
-     * -minIntersectionLength: size of the intersection geometry between two annotation to merge them
-     * -bufferLength: tolerance threshold for two annotation (if they are very close but not intersect)
-     */
-    @Deprecated
-    def union() {
-        ImageInstance image = ImageInstance.read(params.getLong('idImage'))
-        SecUser user = SecUser.read(params.getLong('idUser'))
-        Term term = Term.read(params.getLong('idTerm'))
-        Integer minIntersectLength = params.getInt('minIntersectionLength')
-        Integer bufferLength = params.getInt('bufferLength')
-        Integer area = params.getInt('area')
-
-        if (!image) {
-            responseNotFound("ImageInstance", params.getLong('idImage'))
-        }
-        else if (!term) {
-            responseNotFound("Term", params.getLong('idTerm'))
-        }
-        else if (!user) {
-            responseNotFound("User", params.getLong('idUser'))
-        }
-        else {
-            if(!area) {
-                //compute a good "windows area" (depend of number of annotation and image size)
-                //little image with a lot of annotataion must be very short window size
-                def annotationNumber = annotationIndexService.count(image,user)
-                def imageSize = image.baseImage.width*image.baseImage.height
-                area = (Math.sqrt(imageSize)/(annotationNumber/1000))/4
-                area = Math.max(area,500)
-            }
-            unionAnnotations(image, user, term, minIntersectLength, bufferLength,area)
-            def data = [:]
-            data.annotationunion = [:]
-            data.annotationunion.status = "ok"
-            responseSuccess(data)
+            responseByteArray(imageServerService.crop(annotation, params))
+        } else {
+            responseNotFound("AlgoAnnotation", params.id)
         }
     }
 

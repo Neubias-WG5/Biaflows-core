@@ -1,7 +1,7 @@
 package be.cytomine.api.processing
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import be.cytomine.processing.Software
 import be.cytomine.processing.SoftwareProject
 import be.cytomine.project.Project
 import be.cytomine.security.UserJob
+import be.cytomine.utils.JSONUtils
 import be.cytomine.utils.Task
 import grails.converters.JSON
 import org.restapidoc.annotation.*
@@ -111,6 +112,7 @@ class RestJobController extends RestController {
             long idJob = result?.data?.job?.id
             def userjob = jobService.createUserJob(secUserService.getUser(springSecurityService.currentUser.id), Job.read(idJob))
             result?.data?.job?.userJob = userjob?.id
+            result?.data?.job?.username = userjob?.humanUsername()
             log.info userjob
             responseResult(result)
         } catch (CytomineException e) {
@@ -235,6 +237,27 @@ class RestJobController extends RestController {
             response.outputStream.flush()
         } else {
             responseNotFound("JobData", "getPreview")
+        }
+    }
+
+    def setFavorite() {
+        Job job = jobService.read(params.long('id'))
+        securityACLService.checkisNotReadOnly(job.container())
+        if (job) {
+            def favorite = JSONUtils.getJSONAttrBoolean(request.JSON, 'favorite', false)
+            responseSuccess(jobService.markAsFavorite(job, favorite))
+        } else {
+            responseNotFound("Job", params.id)
+        }
+    }
+
+    def getLog() {
+        Job job = jobService.read(params.long('id'))
+        def data = jobService.getLog(job)
+        if (data) {
+            responseSuccess(data)
+        } else {
+            responseNotFound("Job", params.id)
         }
     }
 

@@ -1,7 +1,7 @@
 package be.cytomine.utils
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -38,7 +38,10 @@ class Configuration extends CytomineDomain implements Serializable {
     Role readingRole
 
     static constraints = {
-        key(blank: false, unique: true)
+        key (blank: false, unique: true, validator: {
+            val, obj ->
+                return !val.contains(".")
+        })
         value(blank: false)
         readingRole(nullable: false)
     }

@@ -1,7 +1,7 @@
 package be.cytomine.api.processing
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import org.restapidoc.pojo.RestApiParamType
 @RestApi(name = "Processing | job template services", description = "Methods for managing job template, a pre-filled job to quickly run")
 class RestJobTemplateController extends RestController {
 
-    def imageProcessingService
     def jobTemplateService
     def imageInstanceService
     def projectService

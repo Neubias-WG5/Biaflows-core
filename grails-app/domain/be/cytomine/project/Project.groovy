@@ -1,7 +1,7 @@
 package be.cytomine.project
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -127,6 +127,7 @@ class Project extends CytomineDomain implements Serializable {
     static constraints = {
         name(maxSize: 150, unique: true, blank: false)
         discipline(nullable: true)
+        ontology(nullable: true)
     }
 
     /**
@@ -179,7 +180,7 @@ class Project extends CytomineDomain implements Serializable {
 
         domain.id = JSONUtils.getJSONAttrLong(json,'id',null)
         domain.name = JSONUtils.getJSONAttrStr(json, 'name',true)
-        domain.ontology = JSONUtils.getJSONAttrDomain(json, "ontology", new Ontology(), true)
+        domain.ontology = JSONUtils.getJSONAttrDomain(json, "ontology", new Ontology(), false)
         domain.discipline = JSONUtils.getJSONAttrDomain(json, "discipline", new Discipline(), false)
 
         domain.retrievalDisable = JSONUtils.getJSONAttrBoolean(json, 'retrievalDisable', false)

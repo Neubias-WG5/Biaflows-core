@@ -21,17 +21,16 @@
                             </p>
 
                             <p>
-                                Click <a href='<%= by %>/login/loginWithToken?tokenKey=<%= tokenKey %>&username=<%= username %>&redirect=#account'> here</a> to sign in, set your firstname, lastname and change your password. <br />
-                                Please note that this link will expire on <%= expiryDate %>. You can request a new one by clicking <a href="<%= by %>/#forgotPassword">here</a> and enter your username.
+                                Click <a href='<%= by %>/#/account?token=<%= tokenKey %>&username=<%= username %>'> here</a> to sign in, set your firstname, lastname and change your password. <br />
+                                Please note that this link will expire on <%= expiryDate %>.
                             </p>
                             
                             <p>
-                            For more information about Cytomine open-source project, please <a href='http://www.cytomine.org/'>visit our website</a>.<br>
-                            <a href='http://www.cytomine.org/'><img src="http://www.cytomine.be/cytominelogo.png" align="left" height="100"></a>
+                            For more information about Cytomine open-source project, please <a href='https://www.cytomine.org/'>visit our website</a>.
                             </p>
 
                             <!-- social & contact -->
-                            <g:render template="/mail/social" model="[]"/>
+                            <g:render template="/mail/social" model="[website :website, mailFrom: mailFrom, phoneNumber:phoneNumber]"/>
 
                         </td>
                     </tr>

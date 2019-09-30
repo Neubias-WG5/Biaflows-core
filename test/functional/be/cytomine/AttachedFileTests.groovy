@@ -1,7 +1,7 @@
 package be.cytomine
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -81,6 +81,16 @@ class AttachedFileTests {
         def attachedFileToAdd = BasicInstanceBuilder.getAttachedFileNotExist(false)
         def result = AttachedFileAPI.upload(attachedFileToAdd.domainClassName,attachedFileToAdd.domainIdent,new File("test/functional/be/cytomine/utils/simpleFile.txt"),Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.filename == "simpleFile.txt"
+    }
+
+    void testAddAttachedFileCorrectWithOtherName() {
+        def attachedFileToAdd = BasicInstanceBuilder.getAttachedFileNotExist(false)
+        def result = AttachedFileAPI.upload("myTestFile", attachedFileToAdd.domainClassName,attachedFileToAdd.domainIdent,new File("test/functional/be/cytomine/utils/simpleFile.txt"),Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json.filename == "myTestFile"
     }
 
     void testAddAttachedFileIncorrect() {

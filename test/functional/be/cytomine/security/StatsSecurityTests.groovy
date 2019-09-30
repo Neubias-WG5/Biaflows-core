@@ -3,7 +3,7 @@ package be.cytomine.security
 import be.cytomine.ontology.Term
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ class StatsSecurityTests extends SecurityTestsAbstract {
     void testStatsSecurityForCytomineAdmin() {
 
         Project project = BasicInstanceBuilder.getProjectNotExist(true)
-        def result;
+        def result
 
         result = StatsAPI.statTerm(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
@@ -45,6 +45,16 @@ class StatsSecurityTests extends SecurityTestsAbstract {
         assert 200 == result.code
         result = StatsAPI.statAnnotationEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
+        result = StatsAPI.statAlgoAnnotationEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        result = StatsAPI.statReviewedAnnotationEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        result = StatsAPI.statAnnotationActionEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        result = StatsAPI.statProjectConnectionEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        result = StatsAPI.statImageConsultationEvolution(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
 
         Term term  = BasicInstanceBuilder.getTermNotExist(true);
         result = StatsAPI.statAnnotationTermedByProject(term.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
@@ -57,7 +67,7 @@ class StatsSecurityTests extends SecurityTestsAbstract {
     }
     void testStatsSecurityForGoodUser() {
         Project project = BasicInstanceBuilder.getProjectNotExist(true)
-        def result;
+        def result
 
         User user = BasicInstanceBuilder.getUser2();
         ProjectAPI.addUserProject(project.id, user.id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
@@ -74,6 +84,16 @@ class StatsSecurityTests extends SecurityTestsAbstract {
         assert 200 == result.code
         result = StatsAPI.statAnnotationEvolution(project.id, "user2", "password")
         assert 200 == result.code
+        result = StatsAPI.statAlgoAnnotationEvolution(project.id, "user2", "password")
+        assert 200 == result.code
+        result = StatsAPI.statReviewedAnnotationEvolution(project.id, "user2", "password")
+        assert 200 == result.code
+        result = StatsAPI.statAnnotationActionEvolution(project.id, "user2", "password")
+        assert 200 == result.code
+        result = StatsAPI.statProjectConnectionEvolution(project.id, "user2", "password")
+        assert 200 == result.code
+        result = StatsAPI.statImageConsultationEvolution(project.id, "user2", "password")
+        assert 200 == result.code
 
         result = StatsAPI.totalProjects("user2", "password")
         assert 403 == result.code
@@ -82,7 +102,7 @@ class StatsSecurityTests extends SecurityTestsAbstract {
     }
     void testStatsSecurityForBadUser() {
         Project project = BasicInstanceBuilder.getProjectNotExist(true)
-        def result;
+        def result
 
         BasicInstanceBuilder.getUser2();
 
@@ -98,6 +118,16 @@ class StatsSecurityTests extends SecurityTestsAbstract {
         assert 403 == result.code
         result = StatsAPI.statAnnotationEvolution(project.id, "user2", "password")
         assert 403 == result.code
+        result = StatsAPI.statAlgoAnnotationEvolution(project.id, "user2", "password")
+        assert 403 == result.code
+        result = StatsAPI.statReviewedAnnotationEvolution(project.id, "user2", "password")
+        assert 403 == result.code
+        result = StatsAPI.statAnnotationActionEvolution(project.id, "user2", "password")
+        assert 403 == result.code
+        result = StatsAPI.statProjectConnectionEvolution(project.id, "user2", "password")
+        assert 403 == result.code
+        result = StatsAPI.statImageConsultationEvolution(project.id, "user2", "password")
+        assert 403 == result.code
 
         Term term  = BasicInstanceBuilder.getTermNotExist(true);
         result = StatsAPI.statAnnotationTermedByProject(term.id, "user2", "password")
@@ -110,7 +140,7 @@ class StatsSecurityTests extends SecurityTestsAbstract {
     }
     void testStatsSecurityForNonUser() {
         Project project = BasicInstanceBuilder.getProjectNotExist(true)
-        def result;
+        def result
 
         result = StatsAPI.statTerm(project.id, Infos.BADLOGIN, Infos.BADPASSWORD)
         assert 401 == result.code
@@ -123,6 +153,16 @@ class StatsSecurityTests extends SecurityTestsAbstract {
         result = StatsAPI.statUserAnnotations(project.id, Infos.BADLOGIN, Infos.BADPASSWORD)
         assert 401 == result.code
         result = StatsAPI.statAnnotationEvolution(project.id, Infos.BADLOGIN, Infos.BADPASSWORD)
+        assert 401 == result.code
+        result = StatsAPI.statAlgoAnnotationEvolution(project.id, Infos.BADLOGIN, Infos.BADPASSWORD)
+        assert 401 == result.code
+        result = StatsAPI.statReviewedAnnotationEvolution(project.id, Infos.BADLOGIN, Infos.BADPASSWORD)
+        assert 401 == result.code
+        result = StatsAPI.statAnnotationActionEvolution(project.id, Infos.BADLOGIN, Infos.BADPASSWORD)
+        assert 401 == result.code
+        result = StatsAPI.statProjectConnectionEvolution(project.id, Infos.BADLOGIN, Infos.BADPASSWORD)
+        assert 401 == result.code
+        result = StatsAPI.statImageConsultationEvolution(project.id, Infos.BADLOGIN, Infos.BADPASSWORD)
         assert 401 == result.code
 
         Term term  = BasicInstanceBuilder.getTermNotExist(true);

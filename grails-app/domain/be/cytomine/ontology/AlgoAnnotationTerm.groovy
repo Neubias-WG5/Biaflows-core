@@ -1,7 +1,7 @@
 package be.cytomine.ontology
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -130,14 +130,13 @@ class AlgoAnnotationTerm extends CytomineDomain implements Serializable {
      */
     static AlgoAnnotationTerm insertDataIntoDomain(def json, def domain = new AlgoAnnotationTerm()) {
         domain.id = JSONUtils.getJSONAttrLong(json,'id',null)
-        //Extract and read the correct annotation
+
         Long annotationId = JSONUtils.getJSONAttrLong(json, 'annotationIdent', -1)
-        if (annotationId == -1) {
-            annotationId = JSONUtils.getJSONAttrLong(json, 'annotation', -1)
-        }
-        AnnotationDomain annotation = AnnotationDomain.getAnnotationDomain(annotationId)
+        String annotationClassName = JSONUtils.getJSONAttrStr(json, 'annotationClassName')
+        AnnotationDomain annotation = AnnotationDomain.getAnnotationDomain(annotationId, annotationClassName)
         domain.annotationClassName = annotation.class.getName()
         domain.annotationIdent = annotation.id
+
         domain.term = JSONUtils.getJSONAttrDomain(json, "term", new Term(), false)
         domain.expectedTerm = JSONUtils.getJSONAttrDomain(json, "expectedTerm", new Term(), false)
         domain.userJob = JSONUtils.getJSONAttrDomain(json, "user", new UserJob(), false)

@@ -125,6 +125,17 @@ class SoftwareUserRepositoryService extends ModelService {
         amqpQueueService.publishMessage(AmqpQueue.findByName("queueCommunication"), jsonBuilder.toString())
     }
 
+    def refresh(def repo) {
+        def message = [requestType: "refreshRepository",
+                       id: repo.id,
+                       username: repo.username]
+
+        JsonBuilder jsonBuilder = new JsonBuilder()
+        jsonBuilder(message)
+
+        amqpQueueService.publishMessage(AmqpQueue.findByName("queueCommunication"), jsonBuilder.toString())
+    }
+
     def refreshRepositories() {
         def message = [requestType: "refreshRepositories"]
 

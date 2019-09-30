@@ -1,7 +1,7 @@
 package be.cytomine.social
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -103,6 +103,7 @@ class PersistentImageConsultation extends CytomineDomain {
     public Object clone() {
         PersistentImageConsultation result = new PersistentImageConsultation()
         result.user = user;
+        result.project = project
         result.projectConnection = projectConnection;
         result.time = time;
         result.image = image;

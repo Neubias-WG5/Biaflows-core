@@ -1,7 +1,7 @@
 package be.cytomine
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import be.cytomine.test.Infos
 import be.cytomine.test.http.AlgoAnnotationAPI
 import be.cytomine.test.http.AnnotationDomainAPI
 import be.cytomine.test.http.UserAnnotationAPI
+import be.cytomine.test.http.DomainAPI
 import be.cytomine.utils.JSONUtils
 import be.cytomine.utils.UpdateData
 import com.vividsolutions.jts.io.WKTReader
@@ -153,6 +154,36 @@ class GenericAnnotationTests  {
         assert 200 == result.code
         def json = JSON.parse(result.data)
         //assert json.collection instanceof JSONArray
+    }
+
+    void testListAnnotationByProjectAndDates() {
+        UserAnnotation annot1 = BasicInstanceBuilder.getUserAnnotation()
+        def project = annot1.project
+        def creationTime = annot1.created.getTime()
+
+        UserAnnotation annot2 = BasicInstanceBuilder.getUserAnnotationNotExist(project, annot1.image)
+        annot2.created = new Date(creationTime - 10000)
+        BasicInstanceBuilder.saveDomain(annot2)
+        println annot1.created
+        println annot2.created
+
+        def result = AnnotationDomainAPI.listByProjectAndDates(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, project.id, creationTime - 5000)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert DomainAPI.containsInJSONList(annot1.id, json)
+        assert !DomainAPI.containsInJSONList(annot2.id, json)
+
+        result = AnnotationDomainAPI.listByProjectAndDates(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, project.id, null, creationTime - 5000)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+        assert !DomainAPI.containsInJSONList(annot1.id, json)
+        assert DomainAPI.containsInJSONList(annot2.id, json)
+
+        result = AnnotationDomainAPI.listByProjectAndDates(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, project.id, creationTime - 6000, creationTime - 4000)
+        assert 200 == result.code
+        json = JSON.parse(result.data)
+        assert !DomainAPI.containsInJSONList(annot1.id, json)
+        assert !DomainAPI.containsInJSONList(annot2.id, json)
     }
 
     void testDownloadAnnotationDocumentForAnnotationAlgo() {
@@ -497,7 +528,35 @@ class GenericAnnotationTests  {
         doFreeHandAnnotationRem(annotation,true)
     }
 
-    private void doFreeHandAnnotationAdd(def annotation,boolean reviewMode) {
+    void testFreehandAnnotationCorrectionUserMerge() {
+        def image = BasicInstanceBuilder.getImageInstance()
+        def annot1 = BasicInstanceBuilder.getUserAnnotationNotExist(image.project, image, true)
+        def annot2 = BasicInstanceBuilder.getUserAnnotationNotExist(image.project, image, true)
+        doFreehandAnnotationMerge(annot1, annot2, false)
+    }
+
+    void testFreehandAnnotationCorrectionReviewedMerge() {
+        def image = BasicInstanceBuilder.getImageInstance()
+        def annot1 = BasicInstanceBuilder.createReviewAnnotation(image)
+        def annot2 = BasicInstanceBuilder.createReviewAnnotation(image)
+        doFreehandAnnotationMerge(annot1, annot2, true)
+    }
+
+    void testFreehandAnnotationCorrectionUserTargetted() {
+        def image = BasicInstanceBuilder.getImageInstance()
+        def annot1 = BasicInstanceBuilder.getUserAnnotationNotExist(image.project, image, true)
+        def annot2 = BasicInstanceBuilder.getUserAnnotationNotExist(image.project, image, true)
+        doFreehandAnnotationTargettedAdd(annot1, annot2, false)
+    }
+
+    void testFreehandAnnotationCorrectionReviewedTargetted() {
+        def image = BasicInstanceBuilder.getImageInstance()
+        def annot1 = BasicInstanceBuilder.createReviewAnnotation(image)
+        def annot2 = BasicInstanceBuilder.createReviewAnnotation(image)
+        doFreehandAnnotationTargettedAdd(annot1, annot2, true)
+    }
+
+    private void doFreeHandAnnotationAdd(def annotation, boolean reviewMode) {
         String basedLocation = "POLYGON ((0 0, 0 5000, 10000 5000, 10000 0, 0 0))"
         String addedLocation = "POLYGON ((0 5000, 10000 5000, 10000 10000, 0 10000, 0 5000))"
         String expectedLocation = "POLYGON ((0 0, 0 10000, 10000 10000, 10000 0, 0 0))"
@@ -507,7 +566,7 @@ class GenericAnnotationTests  {
         annotation.location = new WKTReader().read(basedLocation)
         assert annotation.save(flush: true)  != null
 
-        //correct remove
+        //correct add
         def json = [:]
         json.location = addedLocation
         json.image = annotation.image.id
@@ -525,7 +584,6 @@ class GenericAnnotationTests  {
     private void doFreeHandAnnotationAddWithSelfIntersectPolygon(def annotation,boolean reviewMode) {
         String basedLocation = "POLYGON ((0 0, 0 5000, 10000 5000, 10000 0, 0 0))"
         String addedLocation = "POLYGON((0 0, 10 10, 0 10, 10 0, 0 0))"
-        String expectedLocation = "POLYGON ((0 0, 0 10000, 10000 10000, 10000 0, 0 0))"
 
         //add annotation with empty space inside it
         annotation.user = User.findByUsername(Infos.SUPERADMINLOGIN)
@@ -565,6 +623,66 @@ class GenericAnnotationTests  {
 
         annotation.refresh()
         assert new WKTReader().read(expectedLocation).equals(annotation.location)
+    }
+
+    private void doFreehandAnnotationMerge(def annot1, def annot2, boolean reviewMode) {
+        String location1 = "POLYGON ((0 0, 0 5000, 10000 5000, 10000 0, 0 0))"
+        String location2 = "POLYGON ((0 10000, 0 15000, 10000 15000, 10000 10000, 0 10000))"
+        String addedLocation = "POLYGON ((0 5000, 10000 5000, 10000 10000, 0 10000, 0 5000))"
+        String expectedLocation = "POLYGON ((0 0, 0 15000, 10000 15000, 10000 0, 0 0))"
+
+        annot1.location = new WKTReader().read(location1)
+        assert annot1.save(flush: true) != null
+
+        annot2.location = new WKTReader().read(location2)
+        assert annot2.save(flush: true) != null
+
+        def json = [:]
+        json.location = addedLocation
+        json.image = annot1.image.id
+        json.review = reviewMode
+        json.remove = false
+        json.layers = [annot1.user.id]
+
+        def result = AnnotationDomainAPI.correctAnnotation(annot1.id, JSONUtils.toJSONString(json), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def jsonResult = JSON.parse(result.data)
+        assert jsonResult instanceof JSONObject
+        println jsonResult
+        def merge = reviewMode ? jsonResult.reviewedannotation : jsonResult.annotation
+        assert new WKTReader().read(expectedLocation).equals(new WKTReader().read(merge.location))
+    }
+
+    private void doFreehandAnnotationTargettedAdd(def annot1, def annot2, boolean reviewMode) {
+        String location1 = "POLYGON ((0 0, 0 5000, 10000 5000, 10000 0, 0 0))"
+        String location2 = "POLYGON ((0 10000, 0 15000, 10000 15000, 10000 10000, 0 10000))"
+        String addedLocation = "POLYGON ((0 5000, 10000 5000, 10000 10000, 0 10000, 0 5000))"
+        String expectedLocation = "POLYGON ((0 0, 0 10000, 10000 10000, 10000 0, 0 0))"
+
+        annot1.location = new WKTReader().read(location1)
+        assert annot1.save(flush: true) != null
+
+        annot2.location = new WKTReader().read(location2)
+        assert annot2.save(flush: true) != null
+
+        def json = [:]
+        json.location = addedLocation
+        json.review = reviewMode
+        json.remove = false
+        json.annotation = annot1.id
+
+        def result = AnnotationDomainAPI.correctAnnotation(annot1.id, JSONUtils.toJSONString(json), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+        annot1.refresh()
+        assert new WKTReader().read(expectedLocation).equals(annot1.location)
+
+        Long commandId = JSON.parse(result.data).command
+        result = UserAnnotationAPI.undo(commandId)
+        assert 200 == result.code
+
+        annot1.refresh()
+        assert !(new WKTReader().read(expectedLocation).equals(annot1.location))
     }
 
 

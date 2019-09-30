@@ -1,7 +1,7 @@
 package be.cytomine.admin
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ package be.cytomine.admin
 * limitations under the License.
 */
 
-import be.cytomine.image.server.ImageServer
+import be.cytomine.middleware.ImageServer
 import grails.plugin.springsecurity.annotation.Secured
 
 @Secured(['ROLE_ADMIN','ROLE_SUPER_ADMIN'])

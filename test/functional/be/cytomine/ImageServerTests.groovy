@@ -1,7 +1,7 @@
 package be.cytomine
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -38,13 +38,13 @@ import java.awt.image.BufferedImage
  */
 class ImageServerTests {
 
-    void testImageServerListByMime() {
-        ImageInstance imageInstance = BasicInstanceBuilder.initImage()
-        def result = ImageServerAPI.listImageServerByMime(imageInstance.baseImage.mime.mimeType,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
-        assert 200 == result.code
-        def json = JSON.parse(result.data)
-        assert json.collection.size()>0
-    }
+//    void testImageServerListByMime() {
+//        ImageInstance imageInstance = BasicInstanceBuilder.initImage()
+//        def result = ImageServerAPI.listImageServerByMime(imageInstance.baseImage.mime.mimeType,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+//        assert 200 == result.code
+//        def json = JSON.parse(result.data)
+//        assert json.collection.size()>0
+//    }
 
 /*
     void testGetThumb512() {

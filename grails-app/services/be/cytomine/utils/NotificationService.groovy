@@ -1,7 +1,7 @@
 package be.cytomine.utils
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -32,8 +32,9 @@ class NotificationService {
     def grailsApplication
     def cytomineMailService
     def secUserService
-    def imageProcessingService
     def renderService
+    def abstractImageService
+    def imageServerService
 
     public def notifyNewImageAvailable(SecUser currentUser, AbstractImage abstractImage, def projects) {
         User recipient = null
@@ -57,10 +58,10 @@ class NotificationService {
 
         def attachments = []
 
-        String thumbURL = UrlApi.getThumbImage(abstractImage.id, 256)
+        String thumbURL = UrlApi.getAbstractImageThumbUrlWithMaxSize(abstractImage.id, 256)
         if (thumbURL) {
             macroCID = UUID.randomUUID().toString()
-            BufferedImage bufferedImage = imageProcessingService.getImageFromURL(thumbURL)
+            BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageServerService.thumb(abstractImage, [maxSize: 256])))
             if (bufferedImage != null) {
                 File macroFile = File.createTempFile("temp", ".jpg")
                 macroFile.deleteOnExit()
@@ -80,6 +81,9 @@ class NotificationService {
                 cid : macroCID,
                 imagesInstances : imagesInstances,
                 by: grailsApplication.config.grails.serverURL,
+                website: grailsApplication.config.grails.instanceHostWebsite,
+                mailFrom: grailsApplication.config.grails.instanceHostSupportMail,
+                phoneNumber: grailsApplication.config.grails.instanceHostPhoneNumber
         ])
 
         cytomineMailService.send(
@@ -100,7 +104,10 @@ class NotificationService {
                 username : guestUser.getUsername(),
                 tokenKey : forgotPasswordToken.getTokenKey(),
                 expiryDate : forgotPasswordToken.getExpiryDate(),
-                by: grailsApplication.config.grails.serverURL,
+                by: grailsApplication.config.grails.UIURL,
+                website: grailsApplication.config.grails.instanceHostWebsite,
+                mailFrom: grailsApplication.config.grails.instanceHostSupportMail,
+                phoneNumber: grailsApplication.config.grails.instanceHostPhoneNumber
         ])
         String mailTitle = sender.getFirstname() + " " + sender.getLastname() + " invited you to join Cytomine"
         cytomineMailService.send(
@@ -120,8 +127,11 @@ class NotificationService {
                 comment: request.comment,
                 annotationURL: request.annotationURL,
                 shareAnnotationURL: request.shareAnnotationURL,
-                by: grailsApplication.config.grails.serverURL,
-                cid : cid
+                by: grailsApplication.config.grails.UIURL,
+                cid : cid,
+                website: grailsApplication.config.grails.instanceHostWebsite,
+                mailFrom: grailsApplication.config.grails.instanceHostSupportMail,
+                phoneNumber: grailsApplication.config.grails.instanceHostPhoneNumber
         ])
 
         cytomineMailService.send(
@@ -136,7 +146,10 @@ class NotificationService {
     def notifyForgotUsername(User user) {
         String message = renderService.createForgotUsernameMessage([
                 username : user.getUsername(),
-                by: grailsApplication.config.grails.serverURL
+                by: grailsApplication.config.grails.UIURL,
+                website: grailsApplication.config.grails.instanceHostWebsite,
+                mailFrom: grailsApplication.config.grails.instanceHostSupportMail,
+                phoneNumber: grailsApplication.config.grails.instanceHostPhoneNumber
         ])
         cytomineMailService.send(
                 cytomineMailService.NO_REPLY_EMAIL,
@@ -151,7 +164,10 @@ class NotificationService {
                 username : user.getUsername(),
                 tokenKey : forgotPasswordToken.getTokenKey(),
                 expiryDate : forgotPasswordToken.getExpiryDate(),
-                by: grailsApplication.config.grails.serverURL
+                by: grailsApplication.config.grails.UIURL,
+                website: grailsApplication.config.grails.instanceHostWebsite,
+                mailFrom: grailsApplication.config.grails.instanceHostSupportMail,
+                phoneNumber: grailsApplication.config.grails.instanceHostPhoneNumber
         ])
 
         cytomineMailService.send(

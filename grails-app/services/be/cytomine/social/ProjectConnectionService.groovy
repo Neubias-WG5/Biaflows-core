@@ -256,13 +256,29 @@ class ProjectConnectionService extends ModelService {
         return result
     }
 
-    def numberOfProjectConnections(Long afterThan = null, String period, Project project = null){
+    def countByProject(Project project, Long startDate = null, Long endDate = null) {
+        def result = PersistentProjectConnection.createCriteria().get {
+            eq("project", project)
+            if(startDate) {
+                gt("created", new Date(startDate))
+            }
+            if(endDate) {
+                lt("created", new Date(endDate))
+            }
+            projections {
+                rowCount()
+            }
+        }
+        return [total: result]
+    }
+
+    def numberOfProjectConnections(String period, Long afterThan = null, Long beforeThan = null, Project project = null, User user = null){
 
         // what we want
         //db.persistentProjectConnection.aggregate( {"$match": {$and: [{project : ID_PROJECT}, {created : {$gte : new Date(AFTER) }}]}}, { "$project": { "created": {  "$subtract" : [  "$created",  {  "$add" : [  {"$millisecond" : "$created"}, { "$multiply" : [ {"$second" : "$created"}, 1000 ] }, { "$multiply" : [ {"$minute" : "$created"}, 60, 1000 ] } ] } ] } }  }, { "$project": { "y":{"$year":"$created"}, "m":{"$month":"$created"}, "d":{"$dayOfMonth":"$created"}, "h":{"$hour":"$created"}, "time":"$created" }  },  { "$group":{ "_id": { "year":"$y","month":"$m","day":"$d","hour":"$h"}, time:{"$first":"$time"},  "total":{ "$sum": 1}  }});
         def db = mongo.getDB(noSQLCollectionService.getDatabaseName())
 
-        def match
+        def match = [:]
         def projection1;
         def projection2;
         def group;
@@ -290,13 +306,18 @@ class ProjectConnectionService extends ModelService {
                 group = [$group : [_id : [ year: '$y', month: '$m', week: '$w'], "time":[$first:'$time'], "frequency":[$sum:1]]]
                 break;
         }
+
         if(afterThan) {
             match = [ created : [$gte : new Date(afterThan)]]
-        } else {
-            match = [:]
+        }
+        if(beforeThan) {
+            match = [$and: [match, [created: [$lte: new Date(beforeThan)]]]]
         }
         if(project){
             match = [$and: [match, [ project : project.id]]]
+        }
+        if(user){
+            match = [$and: [match, [user: user.id]]]
         }
         match = [$match : match]
 
@@ -402,7 +423,7 @@ class ProjectConnectionService extends ModelService {
         if(!connection.time) {
             int i = 0;
             Date before = new Date()
-            while(!consultations[i].time && i < consultations.size()){
+            while(i < consultations.size() && !consultations[i].time) {
                 consultations[i] = ((PersistentImageConsultation) consultations[i]).clone()
                 imageConsultationService.fillImageConsultation(consultations[i], before)
                 before = consultations[i].created

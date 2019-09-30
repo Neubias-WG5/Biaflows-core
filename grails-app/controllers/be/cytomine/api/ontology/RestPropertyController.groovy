@@ -1,7 +1,7 @@
 package be.cytomine.api.ontology
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -277,6 +277,7 @@ class RestPropertyController extends RestController {
     def addPropertyProject() {
         def json = request.JSON
         json.domainClassName = Project.getName()
+        if(!json.domainIdent) json.domainIdent = params.idProject
         securityACLService.check(json.domainIdent,json.domainClassName,"container",WRITE)
         add(propertyService, request.JSON)
     }
@@ -287,6 +288,7 @@ class RestPropertyController extends RestController {
     ])
     def addPropertyAnnotation()  {
         def json = request.JSON
+        if(!json.domainIdent) json.domainIdent = params.idAnnotation
         AnnotationDomain annotation = AnnotationDomain.getAnnotationDomain(json.domainIdent)
         json.domainClassName = annotation.class.getName()
         add(propertyService, request.JSON)
@@ -299,6 +301,7 @@ class RestPropertyController extends RestController {
     def addPropertyImageInstance()  {
         def json = request.JSON
         json.domainClassName = ImageInstance.getName()
+        if(!json.domainIdent) json.domainIdent = params.idImageInstance
         add(propertyService, request.JSON)
     }
 
@@ -313,6 +316,9 @@ class RestPropertyController extends RestController {
         } else {
             if (json.domainClassName == null || json.domainClassName == "")
                 json.domainClassName = params.get("domainClassName")
+
+            if (json.domainIdent == null || json.domainIdent == "")
+                json.domainIdent = params.get("domainIdent")
 
             responseResult(addOne(propertyService, json))
         }

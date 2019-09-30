@@ -1,7 +1,7 @@
 package be.cytomine
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import be.cytomine.ontology.Ontology
 import be.cytomine.test.BasicInstanceBuilder
 import be.cytomine.test.Infos
 import be.cytomine.test.http.OntologyAPI
+import be.cytomine.test.http.ProjectAPI
 import be.cytomine.utils.UpdateData
 import grails.converters.JSON
 import org.codehaus.groovy.grails.web.json.JSONArray
@@ -89,7 +90,7 @@ class OntologyTests  {
     }
   
     void testUpdateOntologyCorrect() {
-        Ontology ontologyToAdd = BasicInstanceBuilder.getOntology()
+        Ontology ontologyToAdd = BasicInstanceBuilder.getOntologyNotExist(true)
         def data = UpdateData.createUpdateSet(ontologyToAdd,[name: ["OLDNAME","NEWNAME"], user:[BasicInstanceBuilder.user1,BasicInstanceBuilder.user2]])
         def result = OntologyAPI.update(ontologyToAdd.id, data.postData,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
@@ -149,17 +150,24 @@ class OntologyTests  {
           def result = OntologyAPI.update(ontologyToAdd.id, jsonOntology, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
           assert 400 == result.code
       }
-  
+
     void testDeleteOntology() {
         def ontologyToDelete = BasicInstanceBuilder.getOntologyNotExist()
         assert ontologyToDelete.save(flush: true)!= null
         def id = ontologyToDelete.id
-        def result = OntologyAPI.delete(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+
+        def result = OntologyAPI.list(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+
+        int countOntology = JSON.parse(result.data).collection.size()
+
+        result = OntologyAPI.delete(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
   
         def showResult = OntologyAPI.show(id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 404 == showResult.code
-  
+        result = OntologyAPI.list(Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert JSON.parse(result.data).collection.size() == countOntology -1
+
         result = OntologyAPI.undo()
         assert 200 == result.code
   
@@ -177,12 +185,19 @@ class OntologyTests  {
         def result = OntologyAPI.delete(-99, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 404 == result.code
     }
-  
+
     void testDeleteOntologyWithProject() {
-        def project = BasicInstanceBuilder.getProject()
+        def project = BasicInstanceBuilder.getProjectNotExist(true)
         def ontologyToDelete = project.ontology
         def result = OntologyAPI.delete(ontologyToDelete.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 400 == result.code
+
+        result = ProjectAPI.delete(project.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
+        result = OntologyAPI.delete(ontologyToDelete.id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+
     }
 
   void testDeleteOntologyWithTerms() {

@@ -1,7 +1,7 @@
 package be.cytomine.ontology
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -20,10 +20,12 @@ import be.cytomine.AnnotationDomain
 import be.cytomine.Exception.WrongArgumentException
 import be.cytomine.api.UrlApi
 import be.cytomine.image.ImageInstance
+import be.cytomine.image.SliceInstance
 import be.cytomine.project.Project
 import be.cytomine.security.SecUser
 import be.cytomine.security.User
 import be.cytomine.utils.JSONUtils
+import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.WKTReader
 import org.restapidoc.annotation.RestApiObject
 import org.restapidoc.annotation.RestApiObjectField
@@ -41,24 +43,24 @@ class UserAnnotation extends AnnotationDomain implements Serializable {
     @RestApiObjectField(description = "The number of reviewed annotations for this annotation", useForCreation = false)
     Integer countReviewedAnnotations = 0
 
-    @RestApiObjectFields(params=[
-        @RestApiObjectField(apiFieldName = "cropURL", description = "URL to get the annotation crop",allowedType = "string",useForCreation = false),
-        @RestApiObjectField(apiFieldName = "smallCropURL", description = "URL to get a small annotation crop (<256px)",allowedType = "string",useForCreation = false),
-        @RestApiObjectField(apiFieldName = "url", description = "URL to go to the annotation on the image",allowedType = "string",useForCreation = false),
-        @RestApiObjectField(apiFieldName = "imageURL", description = "URL to go to the image",allowedType = "string",useForCreation = false),
-        @RestApiObjectField(apiFieldName = "reviewed", description = "True if annotation has at least one review",allowedType = "boolean",useForCreation = false)
+    @RestApiObjectFields(params = [
+            @RestApiObjectField(apiFieldName = "cropURL", description = "URL to get the annotation crop", allowedType = "string", useForCreation = false),
+            @RestApiObjectField(apiFieldName = "smallCropURL", description = "URL to get a small annotation crop (<256px)", allowedType = "string", useForCreation = false),
+            @RestApiObjectField(apiFieldName = "url", description = "URL to go to the annotation on the image", allowedType = "string", useForCreation = false),
+            @RestApiObjectField(apiFieldName = "imageURL", description = "URL to go to the image", allowedType = "string", useForCreation = false),
+            @RestApiObjectField(apiFieldName = "reviewed", description = "True if annotation has at least one review", allowedType = "boolean", useForCreation = false)
     ])
     static constraints = {
     }
 
     static mapping = {
-          id generator: "assigned"
-          columns {
-              location type: org.hibernate.spatial.GeometryType
-          }
-         wktLocation(type: 'text')
+        id generator: "assigned"
+        columns {
+            location type: org.hibernate.spatial.GeometryType
+        }
+        wktLocation(type: 'text')
         sort "id"
-      }
+    }
 
 
     def beforeInsert() {
@@ -74,7 +76,7 @@ class UserAnnotation extends AnnotationDomain implements Serializable {
      * @return True if annotation is linked with at least one review annotation
      */
     boolean hasReviewedAnnotation() {
-        return countReviewedAnnotations>0
+        return countReviewedAnnotations > 0
     }
 
     /**
@@ -82,8 +84,8 @@ class UserAnnotation extends AnnotationDomain implements Serializable {
      * @return Terms list
      */
     def terms() {
-        if(this.version!=null) {
-            AnnotationTerm.findAllByUserAnnotation(this).collect {it.term}
+        if (this.version != null) {
+            AnnotationTerm.findAllByUserAnnotation(this).collect { it.term }
         } else {
             return []
         }
@@ -95,9 +97,9 @@ class UserAnnotation extends AnnotationDomain implements Serializable {
      */
     def termsId() {
         if (user.algo()) {
-            return AlgoAnnotationTerm.findAllByAnnotationIdent(this.id).collect{it.term?.id}.unique()
+            return AlgoAnnotationTerm.findAllByAnnotationIdent(this.id).collect { it.term?.id }.unique()
         } else {
-            return terms().collect{it.id}.unique()
+            return terms().collect { it.id }.unique()
         }
 
     }
@@ -126,22 +128,13 @@ class UserAnnotation extends AnnotationDomain implements Serializable {
     }
 
     /**
-     * Get CROP (annotation image area) URL for this annotation
-     * @param cytomineUrl Cytomine base URL
-     * @return Full CROP Url
-     */
-    def getCropUrl() {
-        UrlApi.getUserAnnotationCropWithAnnotationId(id)
-    }
-
-    /**
      * Get a list of each term link with annotation
      * For each term, add all users that add this term
      * [{id: x, term: y, user: [a,b,c]}, {...]
      */
     def usersIdByTerm() {
         def results = []
-        if(this.version!=null) {
+        if (this.version != null) {
             AnnotationTerm.findAllByUserAnnotation(this).each { annotationTerm ->
                 def map = [:]
                 map.id = annotationTerm.id
@@ -165,27 +158,38 @@ class UserAnnotation extends AnnotationDomain implements Serializable {
      * @return Domain with json data filled
      */
     static UserAnnotation insertDataIntoDomain(def json, def domain = new UserAnnotation()) {
-        try {
-            domain.id = JSONUtils.getJSONAttrLong(json,'id',null)
-            domain.geometryCompression = JSONUtils.getJSONAttrDouble(json, 'geometryCompression', 0)
-            domain.created = JSONUtils.getJSONAttrDate(json, 'created')
-            domain.updated = JSONUtils.getJSONAttrDate(json, 'updated')
-            domain.location = new WKTReader().read(json.location)
-            domain.image = JSONUtils.getJSONAttrDomain(json, "image", new ImageInstance(), true)
-            //domain.imageId = Long.parseLong(json["image"].toString())
-            domain.project = JSONUtils.getJSONAttrDomain(json, "project", new Project(), true)
-            domain.user = JSONUtils.getJSONAttrDomain(json, "user", new SecUser(), true)
+        domain.id = JSONUtils.getJSONAttrLong(json, 'id', null)
+        domain.created = JSONUtils.getJSONAttrDate(json, 'created')
+        domain.updated = JSONUtils.getJSONAttrDate(json, 'updated')
 
-            if (!domain.location) {
-                throw new WrongArgumentException("Geo is null: 0 points")
-            }
-            if (domain.location.getNumPoints() < 1) {
-                throw new WrongArgumentException("Geometry is empty:" + domain.location.getNumPoints() + " points")
-            }
-        } catch (com.vividsolutions.jts.io.ParseException ex) {
-            throw new WrongArgumentException(ex.toString())
+        domain.slice = JSONUtils.getJSONAttrDomain(json, "slice", new SliceInstance(), true)
+        domain.image = JSONUtils.getJSONAttrDomain(json, "image", new ImageInstance(), true)
+        domain.project = JSONUtils.getJSONAttrDomain(json, "project", new Project(), true)
+        domain.user = JSONUtils.getJSONAttrDomain(json, "user", new SecUser(), true)
+
+        domain.geometryCompression = JSONUtils.getJSONAttrDouble(json, 'geometryCompression', 0)
+
+        if (json.location && json.location instanceof Geometry) {
+            domain.location = json.location
         }
-        return domain;
+        else {
+            try {
+                domain.location = new WKTReader().read(json.location)
+            }
+            catch (com.vividsolutions.jts.io.ParseException ex) {
+                throw new WrongArgumentException(ex.toString())
+            }
+        }
+
+        if (!domain.location) {
+            throw new WrongArgumentException("Geometry is null: 0 points")
+        }
+
+        if (domain.location.getNumPoints() < 1) {
+            throw new WrongArgumentException("Geometry is empty:" + domain.location.getNumPoints() + " points")
+        }
+
+        return domain
     }
 
     /**
@@ -193,13 +197,13 @@ class UserAnnotation extends AnnotationDomain implements Serializable {
      * @param domain Domain source for json value
      * @return Map with fields (keys) and their values
      */
-    static def getDataFromDomain(def domain) {
+    static def getDataFromDomain(UserAnnotation domain) {
         def returnArray = AnnotationDomain.getDataFromDomain(domain)
         ImageInstance imageinstance = domain?.image
         returnArray['cropURL'] = UrlApi.getUserAnnotationCropWithAnnotationId(domain?.id)
-        returnArray['smallCropURL'] = UrlApi.getUserAnnotationCropWithAnnotationIdWithMaxWithOrHeight(domain?.id, 256)
+        returnArray['smallCropURL'] = UrlApi.getUserAnnotationCropWithAnnotationIdWithMaxSize(domain?.id, 256)
         returnArray['url'] = UrlApi.getUserAnnotationCropWithAnnotationId(domain?.id)
-        returnArray['imageURL'] = UrlApi.getAnnotationURL(imageinstance?.project?.id, imageinstance?.id, domain?.id)
+        returnArray['imageURL'] = UrlApi.getAnnotationURL(imageinstance?.project?.id, imageinstance?.id, domain?.id) //TODO: slice
         returnArray['reviewed'] = domain?.hasReviewedAnnotation()
         return returnArray
     }
@@ -210,7 +214,7 @@ class UserAnnotation extends AnnotationDomain implements Serializable {
      * You need to override userDomainCreator() in domain class
      * @return Domain user
      */
-    public SecUser userDomainCreator() {
-        return user;
+    SecUser userDomainCreator() {
+        return user
     }
 }

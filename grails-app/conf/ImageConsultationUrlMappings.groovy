@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -32,7 +32,9 @@ class ImageConsultationUrlMappings {
         "/api/project/$project/user/$user/imageconsultation.$format"(controller:"restImageConsultation") {
             action = [GET : "listImageConsultationByProjectAndUser"]
         }
-
+        "/api/project/$project/imageconsultation/count.$format"(controller:"restImageConsultation") {
+            action = [GET : "countByProject"]
+        }
         "/api/imageconsultation/resume.$format" (controller:"restImageConsultation") {
             action = [GET : "resumeByUserAndProject"]
         }

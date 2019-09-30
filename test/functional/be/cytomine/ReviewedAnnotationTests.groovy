@@ -1,7 +1,7 @@
 package be.cytomine
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -59,6 +59,23 @@ class ReviewedAnnotationTests  {
 
     void testCountReviewedAnnotationWithCredential() {
         def result = ReviewedAnnotationAPI.countByUser(BasicInstanceBuilder.getUser1().id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+        assert json.total >= 0
+    }
+
+    void testCountAnnotationByProject() {
+        def result = ReviewedAnnotationAPI.countByProject(BasicInstanceBuilder.getProject().id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
+        assert 200 == result.code
+        def json = JSON.parse(result.data)
+        assert json instanceof JSONObject
+        assert json.total >= 0
+    }
+
+    void testCountAnnotationByProjectWithDates() {
+        Date startDate = new Date()
+        def result = ReviewedAnnotationAPI.countByProject(BasicInstanceBuilder.getProject().id, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD, startDate.getTime(), startDate.getTime() - 1000)
         assert 200 == result.code
         def json = JSON.parse(result.data)
         assert json instanceof JSONObject
@@ -588,6 +605,11 @@ class ReviewedAnnotationTests  {
         result = ReviewedAnnotationAPI.addReviewAnnotation(annotation.id, annotation.termsId(), Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         def json = JSON.parse(result.data)
         def idReviewAnnotation = json.reviewedannotation.id
+        assert 200 == result.code
+
+        annotation.refresh()
+        assert annotation.countReviewedAnnotations == 1
+        result = ReviewedAnnotationAPI.show(idReviewAnnotation, Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)
         assert 200 == result.code
 
         result = ReviewedAnnotationAPI.removeReviewAnnotation(annotation.id,Infos.SUPERADMINLOGIN, Infos.SUPERADMINPASSWORD)

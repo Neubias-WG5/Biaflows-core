@@ -5,9 +5,14 @@ import be.cytomine.Exception.ServerException
 import be.cytomine.ontology.AnnotationTerm
 import be.cytomine.ontology.Term
 import be.cytomine.ontology.UserAnnotation
+import be.cytomine.ontology.AlgoAnnotation
 import be.cytomine.project.Project
+import be.cytomine.social.AnnotationAction
+import be.cytomine.social.PersistentImageConsultation
+import be.cytomine.social.PersistentProjectConnection
 import be.cytomine.utils.ModelService
 import grails.transaction.Transactional
+import groovy.sql.Sql
 
 
 @Transactional
@@ -16,6 +21,7 @@ class StatsService extends ModelService {
     def secUserService
     def projectService
     def imageServerService
+    def dataSource
 
     def total(def domain){
         return ["total" : CytomineDomain.isAssignableFrom(domain)? domain.countByDeletedIsNull() : domain.count];
@@ -66,73 +72,86 @@ class StatsService extends ModelService {
         return list
     }
 
-    def statAnnotationEvolution(Project project, Term term, int daysRange){
+    def statAnnotationEvolution(Project project, Term term, int daysRange, Date startDate, Date endDate, boolean reverseOrder, boolean accumulate){
 
-        def data = []
-        int count = 0;
+        String request = "SELECT created " +
+                "FROM UserAnnotation " +
+                "WHERE project = $project.id " +
+                (term ? "AND id IN (SELECT userAnnotation.id FROM AnnotationTerm WHERE term = $term.id) " : "") +
+                (startDate ? "AND created > '$startDate'" : "") +
+                (endDate ? "AND created < '$endDate'" : "") +
+                "ORDER BY created ASC"
+        def annotations = UserAnnotation.executeQuery(request)
 
-        def annotations = null;
-        if(term) {
-            log.info "Search on term " + term.name
-            //find all annotation user for this project and this term
-            annotations = UserAnnotation.executeQuery("select b.created from UserAnnotation b where b.project = ? and b.id in (select x.userAnnotation.id from AnnotationTerm x where x.term = ?) order by b.created desc", [project,term])
-        }
-        else {
-            //find all annotation user for this project
-            annotations = UserAnnotation.executeQuery("select a.created from UserAnnotation a where a.project = ? order by a.created desc", [project])
-        }
-
-        //start a the project creation and stop today
-        Date creation = project.created
-        Date current = new Date()
-
-        //for each day (step = daysRange), compute annotation number
-        //start at the end date until the begining
-        while(current.getTime()>=creation.getTime()) {
-
-            def item = [:]
-            while(count<annotations.size()) {
-                //compute each annotation until the next step
-                if(annotations.get(count).getTime()<current.getTime()) break;
-                count++;
-            }
-
-            item.date = current.getTime()
-            item.size = annotations.size()-count;
-            data << item
-
-            //add a new step
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(current);
-            cal.add(Calendar.DATE, -daysRange);
-            current = cal.getTime();
+        def data = aggregateByPeriods(annotations, daysRange, startDate ?: project.created, endDate ?: new Date(), accumulate)
+        if(reverseOrder) {
+            return data.reverse()
         }
 
         return data
-
     }
 
-    def statUserSlide(Project project){
-        def terms = Term.findAllByOntology(project.getOntology())
-        if(terms.isEmpty()) {
-            return []
-        }
-        Map<Long, Object> result = new HashMap<Long, Object>()
+    def statAlgoAnnotationEvolution(Project project, Term term, int daysRange, Date startDate, Date endDate, boolean reverseOrder, boolean accumulate){
 
-        //numberOfAnnotationsByUserAndImage[0] = id image, numberOfAnnotationsByUserAndImage[1] = user, numberOfAnnotationsByUserAndImage[2] = number of annotation
-        def numberOfAnnotationsByUserAndImage = AnnotationTerm.createCriteria().list {
-            inList("term", terms)
-            join("userAnnotation")
-            createAlias("userAnnotation", "a")
+        String request = "SELECT created " +
+                "FROM AlgoAnnotation " +
+                "WHERE project = $project.id " +
+                (term ? "AND id IN (SELECT annotationIdent FROM AlgoAnnotationTerm WHERE term = $term.id) " : "") +
+                (startDate ? "AND created > '$startDate' " : "") +
+                (endDate ? "AND created < '$endDate' " : "") +
+                "ORDER BY created ASC"
+        def annotations = AlgoAnnotation.executeQuery(request)
+
+        def data = aggregateByPeriods(annotations, daysRange, startDate ?: project.created, endDate ?: new Date(), accumulate)
+        if(reverseOrder) {
+            return data.reverse()
+        }
+
+        return data
+    }
+
+    def statReviewedAnnotationEvolution(Project project, Term term, int daysRange, Date startDate, Date endDate, boolean reverseOrder, boolean accumulate){
+        // ReviewedAnnotationTerm not mapped => have to use SQL query
+        def sql = new Sql(dataSource)
+        String request = "SELECT created " +
+                "FROM reviewed_annotation " +
+                "WHERE project_id = $project.id " +
+                (term ? "AND id IN (SELECT reviewed_annotation_terms_id FROM reviewed_annotation_term WHERE term_id = $term.id) " : "") +
+                (startDate ? "AND created > '$startDate' " : "") +
+                (endDate ? "AND created < '$endDate' " : "") +
+                "ORDER BY created ASC"
+        def annotations = []
+
+        sql.eachRow(request) {
+            annotations << it.created
+        }
+
+        def data = aggregateByPeriods(annotations, daysRange, startDate ?: project.created, endDate ?: new Date(), accumulate)
+        if(reverseOrder) {
+            return data.reverse()
+        }
+
+        return data
+    }
+
+    def statUserSlide(Project project, Date startDate, Date endDate) {
+        //numberOfAnnotatedImagesByUser[0] = user id, numberOfAnnotatedImagesByUser[1] = number of annotated images
+        def numberOfAnnotatedImagesByUser = UserAnnotation.createCriteria().list {
+            eq("project", project)
+            if(startDate) {
+                gt("created", startDate)
+            }
+            if(endDate) {
+                lt("created", endDate)
+            }
             projections {
-                eq("a.project", project)
-                groupProperty("a.image.id")
-                groupProperty("a.user")
-                count("a.user")
+                groupProperty("user.id")
+                countDistinct("image.id")
             }
         }
 
-        //build empty result table
+        // Build empty result table
+        Map<Long, Object> result = new HashMap<Long, Object>()
         secUserService.listLayers(project).each { user ->
             def item = [:]
             item.id = user.id
@@ -141,38 +160,19 @@ class StatsService extends ModelService {
             result.put(item.id, item)
         }
 
-        //Fill result table
-        numberOfAnnotationsByUserAndImage.each { item ->
-            def user = result.get(item[1].id)
-            if(user) user.value++;
+        // Fill result table
+        numberOfAnnotatedImagesByUser.each { item ->
+            def user = result.get(item[0])
+            if(user) user.value = item[1]
         }
 
         return result.values()
     }
 
-    def statTermSlide(Project project){
+    def statTermSlide(Project project, Date startDate, Date endDate) {
         Map<Long, Object> result = new HashMap<Long, Object>()
         //Get project term
         def terms = Term.findAllByOntology(project.getOntology())
-
-        //Check if there are user layers
-        def userLayers = secUserService.listLayers(project)
-        if(terms.isEmpty() || userLayers.isEmpty()) {
-            return []
-        }
-
-        def annotationsNumber = AnnotationTerm.createCriteria().list {
-            inList("term", terms)
-            inList("user", userLayers)
-            join("userAnnotation")
-            createAlias("userAnnotation", "a")
-            projections {
-                eq("a.project", project)
-                groupProperty("a.image.id")
-                groupProperty("term.id")
-                count("term.id")
-            }
-        }
 
         //build empty result table
         terms.each { term ->
@@ -184,20 +184,29 @@ class StatsService extends ModelService {
             result.put(item.id, item)
         }
 
-        //Fill result table
-        annotationsNumber.each { item ->
-            def term = item[1]
-            result.get(term).value++;
+        //add an item for the annotations not associated to any term
+        result[null] = [id: null, value: 0]
+
+        //Get the number of annotation for each term
+        def sql = new Sql(dataSource)
+        sql.eachRow("" +
+                "SELECT at.term_id, count(DISTINCT ua.image_id) " +
+                "FROM user_annotation ua " +
+                "LEFT JOIN annotation_term at " +
+                "ON at.user_annotation_id = ua.id " +
+                "WHERE ua.project_id = $project.id " +
+                (startDate ? "AND ua.created > '$startDate' " : "") +
+                (endDate ? "AND ua.created < '$endDate' " : "") +
+                "GROUP BY at.term_id ") {
+            result.get(it[0]).value = it[1]
         }
+
         return result.values()
     }
 
-    def statTerm(Project project) {
+    def statTerm(Project project, Date startDate, Date endDate, boolean leafsOnly) {
         //Get leaf term (parent term cannot be map with annotation)
-        def terms = project.ontology.leafTerms()
-
-        //Get the number of annotation for each term
-        def numberOfAnnotationForEachTerm = UserAnnotation.executeQuery('select t.term.id, count(t) from AnnotationTerm as t, UserAnnotation as b where b.id=t.userAnnotation.id and b.project = ? group by t.term.id', [project])
+        def terms = leafsOnly ? project.ontology.leafTerms() : project.ontology.terms()
 
         def stats = [:]
         def color = [:]
@@ -213,10 +222,24 @@ class StatsService extends ModelService {
             idsRevert[term.id] = term.name
         }
 
-        //init result table with data
-        numberOfAnnotationForEachTerm .each { result ->
-            def name = idsRevert[result[0]]
-            if(name) stats[name]=result[1]
+        //add an item for the annotations not associated to any term
+        stats[null] = 0
+
+        //Get the number of annotation for each term
+        def sql = new Sql(dataSource)
+        sql.eachRow("" +
+                "SELECT at.term_id, count(*) " +
+                "FROM user_annotation ua " +
+                "LEFT JOIN annotation_term at " +
+                "ON at.user_annotation_id = ua.id " +
+                "WHERE ua.project_id = $project.id " +
+                (startDate ? "AND ua.created > '$startDate' " : "") +
+                (endDate ? "AND ua.created < '$endDate' " : "") +
+                "GROUP BY at.term_id ") {
+
+            //init result table with data
+            def name = idsRevert[it[0]]
+            stats[name]=it[1]
         }
 
         //fill results stats tabble
@@ -281,11 +304,17 @@ class StatsService extends ModelService {
 
     }
 
-    def statUser(Project project){
+    def statUser(Project project, Date startDate, Date endDate){
         Map<Long, Object> result = new HashMap<Long, Object>()
         //compute number of annotation for each user
         def userAnnotations = UserAnnotation.createCriteria().list {
             eq("project", project)
+            if(startDate) {
+                gt("created", startDate)
+            }
+            if(endDate) {
+                lt("created", endDate)
+            }
             join("user")  //right join possible ? it will be sufficient
             projections {
                 countDistinct('id')
@@ -313,22 +342,117 @@ class StatsService extends ModelService {
     }
 
     def statUsedStorage(){
-        def spaces = imageServerService.getStorageSpaces()
-        Long used = 0;
-        Long available = 0;
+        def spaces = imageServerService.list()
+        if(spaces.isEmpty())
+            throw new ServerException("No Image Server found!")
 
-        if(spaces.isEmpty()) throw new ServerException("No Image Server found!");
-
+        Long used = 0
+        Long available = 0
         spaces.each {
-            used+=it.used
-            available+=it.available
+            def size = imageServerService.storageSpace(it)
+            used += size.used
+            available += size.available
         }
 
-        Long total = used+available
+        Long total = used + available
+        return [total : total, available : available, used : used, usedP:(double)(used/total)]
+    }
 
+    def statConnectionsEvolution(Project project, int daysRange, Date startDate, Date endDate, boolean accumulate=false) {
+        def connections = PersistentProjectConnection.createCriteria().list(sort: "created", order: "asc") {
+            eq("project", project)
+            if(startDate) {
+                gt("created", startDate)
+            }
+            if(endDate) {
+                lt("created", endDate)
+            }
+            projections {
+                property("created")
+            }
+        }
 
-        return [total : total, available : available, used : used, usedP:(double)(used/total)];
+        return this.aggregateByPeriods(sortPageResult(connections), daysRange, startDate ?: project.created, endDate ?: new Date(), accumulate)
+    }
 
+    def statImageConsultationsEvolution(Project project, int daysRange, Date startDate, Date endDate, boolean accumulate=false) {
+        def consultations = PersistentImageConsultation.createCriteria().list(sort: "created", order: "asc") {
+            eq("project", project)
+            if(startDate) {
+                gt("created", startDate)
+            }
+            if(endDate) {
+                lt("created", endDate)
+            }
+            projections {
+                property("created")
+            }
+        }
+
+        return aggregateByPeriods(sortPageResult(consultations), daysRange, startDate ?: project.created, endDate ?: new Date(), accumulate)
+    }
+
+    def statAnnotationActionsEvolution(Project project, int daysRange, Date startDate, Date endDate, boolean accumulate=false, String type=null) {
+        def actions = AnnotationAction.createCriteria().list(sort: "created", order: "asc") {
+            eq("project", project)
+            if(startDate) {
+                gt("created", startDate)
+            }
+            if(endDate) {
+                lt("created", endDate)
+            }
+            if(type) {
+                eq("action", type)
+            }
+            projections {
+                property("created")
+            }
+        }
+
+        return aggregateByPeriods(sortPageResult(actions), daysRange, startDate ?: project.created, endDate ?: new Date(), accumulate)
+    }
+
+    // Temporary HACK due to incorrect handling of sorting when properties are used - fixed in grails v3
+    // (see https://stackoverflow.com/questions/20188249/grails-projections-ignoring-sort-order-with-mongodb )
+    private def sortPageResult(result) {
+        return result.toArray(new Date[0]).sort{it.getTime()}
+    }
+
+    private def aggregateByPeriods(def creationDates, int daysRange,  Date startDate, Date endDate, boolean accumulate) {
+        def data = []
+        int nbItems = creationDates.size()
+        int count = 0
+        int idx = 0
+
+        Date current = startDate
+        Long endTime = endDate.getTime()
+        Calendar cal = Calendar.getInstance()
+
+        //for each period (of duration daysRange), compute the number of items
+        while(current.getTime() <= endTime) {
+            def item = [:]
+            item.date = current.getTime()
+
+            //add a new step
+            cal.setTime(current)
+            cal.add(Calendar.DATE, daysRange)
+            current = cal.getTime()
+
+            if(!accumulate) {
+                count = 0
+            }
+
+            while(idx < nbItems && creationDates[idx].getTime() < current.getTime()) {
+                idx++
+                count++
+            }
+
+            item.endDate = endTime ? Math.min(current.getTime(), endTime) : current.getTime()
+            item.size = count
+            data << item
+        }
+
+        return data
     }
 
 }

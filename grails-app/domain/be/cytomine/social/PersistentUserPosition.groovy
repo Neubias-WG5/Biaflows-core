@@ -1,7 +1,7 @@
 package be.cytomine.social
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package be.cytomine.social
 
 import be.cytomine.CytomineDomain
 import be.cytomine.image.ImageInstance
+import be.cytomine.image.SliceInstance
 import be.cytomine.project.Project
 import be.cytomine.security.SecUser
 import com.vividsolutions.jts.geom.Coordinate
@@ -37,10 +38,11 @@ class PersistentUserPosition extends CytomineDomain {
 
     static transients = ['id','updated','deleted','class']
 
-    static belongsTo = [user : SecUser, image : ImageInstance, project: Project]
+    static belongsTo = [user: SecUser, image: ImageInstance, slice: SliceInstance, project: Project]
 
     SecUser user
     ImageInstance image
+    SliceInstance slice
     Project project
     String session
 
@@ -58,6 +60,11 @@ class PersistentUserPosition extends CytomineDomain {
 
     float  rotation
 
+    /**
+     * Whether or not the user has decided to broadcast its position
+     */
+    boolean broadcast
+
     static constraints = {
         project nullable: true
     }
@@ -66,8 +73,8 @@ class PersistentUserPosition extends CytomineDomain {
         version false
         stateless true //don't store data in memory after read&co. These data don't need to be update.
         image index:true
-        compoundIndex user:1, image:1, created:-1
-        compoundIndex location:"2d", indexAttributes:[min:Integer.MIN_VALUE, max:Integer.MAX_VALUE], image:1
+        compoundIndex user:1, image:1, slice:1, created:-1
+        compoundIndex location:"2d", indexAttributes:[min:Integer.MIN_VALUE, max:Integer.MAX_VALUE], image:1, slice:1
     }
 
     /**
@@ -80,9 +87,11 @@ class PersistentUserPosition extends CytomineDomain {
         returnArray.created = domain?.created
         returnArray.user = domain?.user?.id
         returnArray.image = domain?.image?.id
+        returnArray.slice = domain?.slice?.id
         returnArray.project = domain?.project?.id
         returnArray.zoom = domain?.zoom
         returnArray.rotation = domain?.rotation
+        returnArray.broadcast = domain?.broadcast
         Polygon polygon = getPolygonFromMongo(domain?.location)
         returnArray.location = polygon.toString()
         returnArray.x = polygon.getCentroid().getX()

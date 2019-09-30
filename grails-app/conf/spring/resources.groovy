@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -18,9 +18,14 @@
 import be.cytomine.ldap.CustomUserContextMapper
 import be.cytomine.security.CASLdapUserDetailsService
 import be.cytomine.security.SimpleUserDetailsService
+import be.cytomine.spring.CustomAjaxAwareAuthenticationEntryPoint
+import be.cytomine.spring.CustomDefaultRedirectStrategy
+import be.cytomine.spring.CustomSavedRequestAwareAuthenticationSuccessHandler
 import be.cytomine.web.CytomineMultipartHttpServletRequest
 import grails.plugin.springsecurity.SpringSecurityUtils
+import grails.util.Holders
 import org.springframework.cache.ehcache.EhCacheFactoryBean
+import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler
 
 //import grails.plugin.springsecurity.SpringSecurityUtils
 // Place your Spring DSL code here
@@ -45,6 +50,28 @@ beans = {
     def config = SpringSecurityUtils.securityConfig
     SpringSecurityUtils.loadSecondaryConfig 'DefaultLdapSecurityConfig'
     config = SpringSecurityUtils.securityConfig
+
+
+    redirectStrategy(CustomDefaultRedirectStrategy) {
+        contextRelative = true
+    }
+    successRedirectHandler(CustomSavedRequestAwareAuthenticationSuccessHandler) {
+        alwaysUseDefaultTargetUrl = false
+        //defaultTargetUrl = '/'
+    }
+
+    authenticationEntryPoint(CustomAjaxAwareAuthenticationEntryPoint, config.auth.loginFormUrl) {
+        grailsApplication = ref('grailsApplication')
+        ajaxLoginFormUrl = '/login/authAjax'
+        forceHttps = false
+        useForward = false
+        portMapper = ref('portMapper')
+        portResolver = ref('portResolver')
+    }
+
+    logoutSuccessHandler(SimpleUrlLogoutSuccessHandler) {
+        defaultTargetUrl = Holders.getGrailsApplication().config.grails.UIURL?: '/'
+    }
 
 
     if(config.ldap.active){

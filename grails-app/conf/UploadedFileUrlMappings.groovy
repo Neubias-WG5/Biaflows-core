@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -31,12 +31,13 @@ class UploadedFileUrlMappings {
             action = [GET:"show",PUT:"update", DELETE:"delete"]
         }
 
-        "/api/uploadedfile/image/$idimage.$format"(controller:"restUploadedFile"){
-            action = [GET:"getByAbstractImage"]
-        }
+        //DEPRECATED: now an image has a direct link to an uploaded file
+//        "/api/uploadedfile/image/$idimage.$format"(controller:"restUploadedFile"){
+//            action = [GET:"getByAbstractImage"]
+//        }
 
         "/api/uploadedfile/$id/download"(controller:"restUploadedFile"){
-            action = [GET:"downloadUploadedFile"]
+            action = [GET:"download"]
         }
 
 //        "/uploadedfile" (controller:"restUploadedFile"){

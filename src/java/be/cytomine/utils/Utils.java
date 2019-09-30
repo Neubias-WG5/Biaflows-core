@@ -1,7 +1,7 @@
 package be.cytomine.utils;
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,25 +16,29 @@ package be.cytomine.utils;
 * limitations under the License.
 */
 
-import java.util.*;
+import org.joda.time.DateTime;
 
-/**
- * User: lrollus
- * Date: 6/02/12
- * This class implement method
- */
+import java.util.*;
+import org.joda.time.DateTime;
+
 public class Utils {
 
     /**
-     * Add seconds to the actual date (seconds may be '-x')
+     * Add seconds to the actual date
      * @param secondes Number of seconds to add
      * @return Date equal to now + secondes
      */
     public static Date getDatePlusSecond(int secondes) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Date());
-        cal.add(Calendar.SECOND, secondes);
-        return cal.getTime();
+        return new DateTime().plusSeconds(secondes).toDate();
+    }
+
+    /**
+     * Substract seconds to the actual date
+     * @param secondes Number of seconds to substract
+     * @return Date equal to now - secondes
+     */
+    public static Date getDateMinusSecond(int secondes) {
+        return new DateTime().minusSeconds(secondes).toDate();
     }
 
     /**

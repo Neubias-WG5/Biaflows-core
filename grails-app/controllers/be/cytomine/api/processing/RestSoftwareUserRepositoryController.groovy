@@ -69,6 +69,21 @@ class RestSoftwareUserRepositoryController extends RestController {
         delete(softwareUserRepositoryService, JSON.parse("{id : $params.id}"), null)
     }
 
+    @RestApiMethod(description = "Refresh the given software user repository")
+    @RestApiParams(params = [
+            @RestApiParam(name = "id", type = "long", paramType = RestApiParamType.PATH, description = "The software user repository id")
+    ])
+    def refresh() {
+        def repo = softwareUserRepositoryService.read(params.long('id'))
+        if (repo) {
+            softwareUserRepositoryService.refresh(repo)
+            responseSuccess(["message": "Software repositories refreshing has been asked!"])
+        }
+        else {
+            responseNotFound("SoftwareUserRepository", params.id)
+        }
+    }
+
     @RestApiMethod(description = "Refresh the software user repositories loaded by the software-router")
     def refreshUserRepositories() {
         softwareUserRepositoryService.refreshRepositories()

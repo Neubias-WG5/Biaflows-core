@@ -1,7 +1,7 @@
 package be.cytomine.image.multidim
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ class ImageGroup extends CytomineDomain implements Serializable {
         returnArray['name'] = domain?.name
         returnArray['project'] = domain?.project?.id
         try {
-            returnArray['thumb'] = UrlApi.getThumbMultiDimImage(domain.id, 512)
+            returnArray['thumb'] = UrlApi.getImageGroupThumbUrlWithMaxSize(domain.id, 512)
         } catch (Exception e) {
             returnArray['thumb'] = 'NO THUMB:' + e.toString()
         }

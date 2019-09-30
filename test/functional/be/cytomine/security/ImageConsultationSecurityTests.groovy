@@ -1,7 +1,7 @@
 package be.cytomine.security
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -67,8 +67,10 @@ class ImageConsultationSecurityTests extends SecurityTestsAbstract{
       assert 200 == result.code
       result = ImageConsultationAPI.create(image.id,consultation.encodeAsJSON(),SecurityTestsAbstract.USERNAMEADMIN,SecurityTestsAbstract.PASSWORDADMIN)
       assert 200 == result.code
-
-      assert (200 == ImageConsultationAPI.listImageConsultationByProjectAndUser(project.id, user1.id, SecurityTestsAbstract.USERNAMEADMIN,SecurityTestsAbstract.PASSWORDADMIN).code)
+      result = ImageConsultationAPI.listImageConsultationByProjectAndUser(project.id, user1.id, SecurityTestsAbstract.USERNAMEADMIN,SecurityTestsAbstract.PASSWORDADMIN)
+      assert 200 == result.code
+      result = ImageConsultationAPI.countByProject(project.id, SecurityTestsAbstract.USERNAMEADMIN, SecurityTestsAbstract.PASSWORDADMIN)
+      assert 200 == result.code
   }
 
     void testImageConsultationSecurityForProjectAdmin() {
@@ -106,8 +108,10 @@ class ImageConsultationSecurityTests extends SecurityTestsAbstract{
         assert 200 == result.code
         result = ImageConsultationAPI.create(image.id,consultation.encodeAsJSON(),SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2)
         assert 200 == result.code
-
-        assert (200 == ImageConsultationAPI.listImageConsultationByProjectAndUser(project.id, user1.id, SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2).code)
+        result = ImageConsultationAPI.listImageConsultationByProjectAndUser(project.id, user1.id, SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2)
+        assert 200 == result.code
+        result = ImageConsultationAPI.countByProject(project.id, SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2)
+        assert 200 == result.code
     }
 
   void testImageConsultationSecurityForProjectUser() {
@@ -131,7 +135,7 @@ class ImageConsultationSecurityTests extends SecurityTestsAbstract{
       ImageInstance image = BasicInstanceBuilder.getImageInstanceNotExist()
       image.project = project
       //check if admin user can access/update/delete
-      result = ImageInstanceAPI.create(image.encodeAsJSON(),SecurityTestsAbstract.USERNAME1,SecurityTestsAbstract.PASSWORD1)
+      result = ImageInstanceAPI.create(image.encodeAsJSON(),SecurityTestsAbstract.USERNAME1, SecurityTestsAbstract.PASSWORD1)
       assert 200 == result.code
       image = result.data
 
@@ -140,13 +144,15 @@ class ImageConsultationSecurityTests extends SecurityTestsAbstract{
       consultation.project = project.id
       consultation.image = image.id
 
-      //check if admin user can access/update/delete
+      //check if contributor user can access/update/delete
       result = ProjectConnectionAPI.create(project.id,consultation.encodeAsJSON(),SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2)
       assert 200 == result.code
       result = ImageConsultationAPI.create(image.id,consultation.encodeAsJSON(),SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2)
       assert 200 == result.code
-
-      assert (403 == ImageConsultationAPI.listImageConsultationByProjectAndUser(project.id, user1.id, SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2).code)
+      result = ImageConsultationAPI.listImageConsultationByProjectAndUser(project.id, user1.id, SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2)
+      assert 403 == result.code
+      result = ImageConsultationAPI.countByProject(project.id, SecurityTestsAbstract.USERNAME2, SecurityTestsAbstract.PASSWORD2)
+      assert 200 == result.code
   }
 
   void testImageConsultationSecurityForSimpleUser() {
@@ -176,13 +182,15 @@ class ImageConsultationSecurityTests extends SecurityTestsAbstract{
       consultation.project = project.id
       consultation.image = image.id
 
-      //check if admin user can access/update/delete
+      //check if user not in project can access/update/delete
       result = ProjectConnectionAPI.create(project.id,consultation.encodeAsJSON(),SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2)
       assert 403 == result.code
       result = ImageConsultationAPI.create(image.id,consultation.encodeAsJSON(),SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2)
       assert 403 == result.code
-
-      assert (403 == ImageConsultationAPI.listImageConsultationByProjectAndUser(project.id, user1.id, SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2).code)
+      result = ImageConsultationAPI.listImageConsultationByProjectAndUser(project.id, user1.id, SecurityTestsAbstract.USERNAME2,SecurityTestsAbstract.PASSWORD2)
+      assert 403 == result.code
+      result = ImageConsultationAPI.countByProject(project.id, SecurityTestsAbstract.USERNAME2, SecurityTestsAbstract.PASSWORD2)
+      assert 403 == result.code
   }
 
 }

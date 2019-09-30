@@ -1,7 +1,7 @@
 package be.cytomine.utils
 
 /*
-* Copyright (c) 2009-2017. Authors: see NOTICE file.
+* Copyright (c) 2009-2019. Authors: see NOTICE file.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import be.cytomine.project.Project
 import be.cytomine.sql.AnnotationListing
 import be.cytomine.sql.ReviewedAnnotationListing
 import be.cytomine.sql.UserAnnotationListing
+import be.cytomine.sql.AlgoAnnotationListing
 
 import java.text.SimpleDateFormat
 
@@ -41,7 +42,7 @@ class ReportService {
     def exportService
     def secUserService
 
-    def createAnnotationDocuments(Long idProject, def termsParam, def noTerm, def multipleTerms, def usersParam, def imagesParam, def format,def response, String type) {
+    def createAnnotationDocuments(Long idProject, def termsParam, def noTerm, def multipleTerms, def usersParam, def imagesParam, Long afterThan, Long beforeThan, def format,def response, String type) {
 
         Project project = projectService.read(idProject)
 
@@ -69,7 +70,7 @@ class ReportService {
 
         AnnotationListing al = new UserAnnotationListing()
         if(type=="ALGOANNOTATION") {
-            al = new UserAnnotationListing()
+            al = new AlgoAnnotationListing()
         } else if(type=="REVIEWEDANNOTATION") {
             al = new ReviewedAnnotationListing()
         }
@@ -78,8 +79,19 @@ class ReportService {
 
         al.project = project.id
         al.images = images
-        al.usersForTerm = users
+        if(type=="REVIEWEDANNOTATION") {
+            al.reviewUsers = users
+        }
+        else {
+            al.users = users
+        }
         al.terms = terms
+        if(afterThan) {
+            al.afterThan = new Date(afterThan)
+        }
+        if(beforeThan) {
+            al.beforeThan = new Date(beforeThan)
+        }
 
         def exportResult = []
         def termNameUsed = []
@@ -101,7 +113,7 @@ class ReportService {
             data.filename = annotation.originalfilename
             data.user = annotation.creator
             data.term = annotation.term.collect{termsName.get(it)}.join(", ")
-            data.cropURL = UrlApi.getAnnotationCropWithAnnotationId(annotation.id)
+            data.cropURL = UrlApi.getCompleteAnnotationCropDrawedWithAnnotationId(annotation.id)
             data.cropGOTO = UrlApi.getAnnotationURL(annotation.project, annotation.image, annotation.id)
             exportResult.add(data)
             annotation.term.each{termNameUsed << termsName.get(it)}
@@ -125,7 +137,7 @@ class ReportService {
                 data.filename = annotation.originalfilename
                 data.user = annotation.creator
                 data.term = annotation.term.collect{termsName.get(it)}.join(", ")
-                data.cropURL = UrlApi.getAnnotationCropWithAnnotationId(annotation.id)
+                data.cropURL = UrlApi.getCompleteAnnotationCropDrawedWithAnnotationId(annotation.id)
                 data.cropGOTO = UrlApi.getAnnotationURL(annotation.project, annotation.image, annotation.id)
                 exportResult.add(data)
                 annotation.term.each{termNameUsed << termsName.get(it)}
@@ -155,7 +167,7 @@ class ReportService {
                 data.filename = annotation.originalfilename
                 data.user = annotation.creator
                 data.term = annotation.term.collect{termsName.get(it)}.join(", ")
-                data.cropURL = UrlApi.getAnnotationCropWithAnnotationId(annotation.id)
+                data.cropURL = UrlApi.getCompleteAnnotationCropDrawedWithAnnotationId(annotation.id)
                 data.cropGOTO = UrlApi.getAnnotationURL(annotation.project, annotation.image, annotation.id)
                 exportResult.add(data)
                 annotation.term.each{termNameUsed << termsName.get(it)}
