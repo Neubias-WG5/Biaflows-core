@@ -34,6 +34,7 @@ class BootstrapDataService {
     def amqpQueueConfigService
 
     def initData() {
+
         recreateTableFromNotDomainClass()
         amqpQueueConfigService.initAmqpQueueConfigDefaultValues()
 

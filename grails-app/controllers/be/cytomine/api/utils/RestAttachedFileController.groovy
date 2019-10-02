@@ -113,6 +113,7 @@ class RestAttachedFileController extends RestController {
         log.info "Upload attached file"
         Long domainIdent = params.long("domainIdent")
         String domainClassName = params.get("domainClassName")
+
         if(request instanceof AbstractMultipartHttpServletRequest) {
             def f = ((AbstractMultipartHttpServletRequest) request).getFile('files[]')
 

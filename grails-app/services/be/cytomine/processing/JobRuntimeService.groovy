@@ -142,7 +142,7 @@ class JobRuntimeService {
         ProcessingServer currentProcessingServer = processingServer == null ? job.software.defaultProcessingServer : processingServer
 
         job.processingServer = currentProcessingServer
-        job.save(failOnError: true, flush: true)
+        job.save(failOnError: true)
 
         String queueName = amqpQueueService.queuePrefixProcessingServer + currentProcessingServer.name.capitalize()
 

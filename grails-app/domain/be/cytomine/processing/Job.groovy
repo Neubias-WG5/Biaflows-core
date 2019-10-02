@@ -152,7 +152,6 @@ class Job extends CytomineDomain  {
         domain.software = JSONUtils.getJSONAttrDomain(json, "software", new Software(), true)
         domain.rate = JSONUtils.getJSONAttrDouble(json, 'rate', -1)
         domain.dataDeleted =  JSONUtils.getJSONAttrBoolean(json,'dataDeleted', false)
-        domain.favorite = JSONUtils.getJSONAttrBoolean(json, 'favorite', false)
         domain.created = JSONUtils.getJSONAttrDate(json, 'created')
         domain.updated = JSONUtils.getJSONAttrDate(json, 'updated')
         return domain

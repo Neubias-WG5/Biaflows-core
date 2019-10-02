@@ -85,7 +85,7 @@ class SearchEngineController extends RestController {
         } else if (className == AbstractImage.class.name) {
             url = UrlApi.getAbstractImageThumbUrlWithMaxSize(AbstractImage.read(id).id, max)
         } else if (className == Project.class.name) {
-            List<ImageInstance> images = imageInstanceService.list(Project.read(id), true)
+            List<ImageInstance> images = imageInstanceService.list(Project.read(id))
             images = images.sort { it.id }
             if (!images.isEmpty()) {
                 url = UrlApi.getAbstractImageThumbUrlWithMaxSize(images.last().baseImage.id, max)

@@ -191,7 +191,7 @@ class ImageInstanceService extends ModelService {
 
         def data = []
         images.each { image ->
-            data << [id: image.id, instanceFilename: image.instanceFilename, blindedName: image.blindedName]
+            data << [id: image.id, instanceFilename: image.blindInstanceFilename, blindedName: image.blindedName]
         }
         return data
     }

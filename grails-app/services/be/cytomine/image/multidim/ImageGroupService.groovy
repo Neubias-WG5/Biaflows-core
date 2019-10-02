@@ -52,27 +52,9 @@ class ImageGroupService extends ModelService {
         image
     }
 
-    def readMany(def ids) {
-        def images = ImageGroup.findAllByIdInList(ids)
-        if(images) {
-            images.each { image ->
-                securityACLService.check(image.container(),READ)
-                checkDeleted(image)
-            }
-        }
-        images
-    }
-
-    def list(Project project, def withoutLabel) {
+    def list(Project project) {
         securityACLService.check(project,READ)
-        String _noLabel = (withoutLabel) ? "%_lbl.%" : ""
-        return ImageGroup.createCriteria().list {
-            eq("project", project)
-            isNull("deleted")
-            not {
-                ilike("name", _noLabel)
-            }
-        }
+        return ImageGroup.findAllByProject(project)
     }
 
 
@@ -166,11 +148,5 @@ class ImageGroupService extends ModelService {
         def sequence = imageSequenceService.get(imageGroup, characteristics.channel[0], zMean, characteristics.slice[0], characteristics.time[0])
 
         return imageServerService.thumb(sequence.image.baseImage, [maxSize:maxSize])
-    }
-
-    def downloadURI(Long id) {
-        ImageGroup imageGroup = ImageGroup.get(id)
-        def sequence = ImageSequence.findByImageGroup(imageGroup)
-        return abstractImageService.downloadURI(sequence.image.baseImage, true)
     }
 }
