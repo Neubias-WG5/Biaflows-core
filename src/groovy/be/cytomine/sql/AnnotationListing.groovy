@@ -842,11 +842,11 @@ class AlgoAnnotationListing extends AnnotationListing {
             from += "LEFT OUTER JOIN annotation_track atr ON a.id = atr.annotation_ident "
         }
 
-        if (columnToPrint.contains('image')) {
+        if (columnToPrint.contains('image') || tracks || track) {
             from += "INNER JOIN image_instance ii ON a.image_id = ii.id INNER JOIN abstract_image ai ON ii.base_image_id = ai.id "
         }
 
-        if (columnToPrint.contains('slice')) {
+        if (columnToPrint.contains('slice') || tracks || track) {
             from += "INNER JOIN slice_instance si ON a.slice_id = si.id INNER JOIN abstract_slice asl ON si.base_slice_id = asl.id "
         }
 
@@ -898,15 +898,11 @@ class AlgoAnnotationListing extends AnnotationListing {
         if (kmeansValue < 3) return ""
         if (orderBy) {
             return "ORDER BY " + orderBy.collect { it.key + " " + it.value }.join(", ")
+        } else if (!orderBy) {
+            def order = (track || tracks) ? "rank asc" : "a.id desc "
+            return "ORDER BY "+ order + ((term || terms || columnToPrint.contains("term")) ? ", aat.term_id " : "") + ((track || tracks || columnToPrint.contains("track")) ? ", atr.track_id " : "")
         } else {
-            def termOrder = (columnToPrint.contains("term") ? "aat.rate desc ," : "")
-            def sliceOrder = ""
-            if (sliceDimension && (beforeSlice || afterSlice)) {
-                if (sliceDimension == 'C') sliceOrder = ' asl.channel asc, '
-                else if (sliceDimension == 'Z') sliceOrder = ' asl.z_stack asc, '
-                else if (sliceDimension == 'T') sliceOrder = ' asl.time asc, '
-            }
-            return "ORDER BY " + termOrder + sliceOrder + " a.id desc "
+            return "ORDER BY " + orderBy.collect { it.key + " " + it.value }.join(", ")
         }
     }
 }
