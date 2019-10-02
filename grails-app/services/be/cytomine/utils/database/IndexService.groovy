@@ -179,14 +179,25 @@ class IndexService {
             createIndex("annotation_track", "slice_id")
             createIndex("annotation_track", "annotation_ident")
 
-            // TODO
             // User Job
+            createIndex("sec_user", "job_id")
+            createIndex("sec_user", "user_id")
+
             // Job
+            createIndex("job", "project_id")
+            createIndex("job", "software_id")
+            createIndex("job", "processing_server_id")
+
             // JobParameter
-            // Software
+            createIndex("job_parameter", "job_id")
+            createIndex("job_parameter", "software_parameter_id")
+
             // Software Parameter
+            createIndex("software_parameter", "software_id")
+
             // Software project
-            // Software user repository
+            createIndex("software_project", "software_id")
+            createIndex("software_project", "project_id")
 
             // User group
             createIndex("user_group", "user_id")
