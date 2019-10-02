@@ -219,8 +219,14 @@ class SecUserService extends ModelService {
 
     def listAdmins(Project project) {
         securityACLService.check(project,READ)
-        def users = SecUser.executeQuery("select distinct secUser from AclObjectIdentity as aclObjectId, AclEntry as aclEntry, AclSid as aclSid, SecUser as secUser "+
-                "where aclObjectId.objectId = "+project.id+" and aclEntry.aclObjectIdentity = aclObjectId.id and aclEntry.mask = 16 and aclEntry.sid = aclSid.id and aclSid.sid = secUser.username and secUser.class = 'be.cytomine.security.User'")
+        def users = SecUser.executeQuery("select distinct secUser " +
+                "from AclObjectIdentity as aclObjectId, AclEntry as aclEntry, AclSid as aclSid, SecUser as secUser "+
+                "where aclObjectId.objectId = "+project.id+" " +
+                "and aclEntry.aclObjectIdentity = aclObjectId.id " +
+                "and aclEntry.mask = 16 " +
+                "and aclEntry.sid = aclSid.id " +
+                "and aclSid.sid = secUser.username " +
+                "and secUser.class = 'be.cytomine.security.User'")
         return users
     }
 
@@ -277,7 +283,9 @@ class SecUserService extends ModelService {
 
     private def getUserJobImage(ImageInstance image) {
 
-        String request = "SELECT u.id as id, u.username as username, s.name as softwareName, s.software_version as softwareVersion, j.created as created, u.job_id as job, j.favorite as favorite " +
+        String request = "SELECT DISTINCT u.id as id, u.username as username, " +
+                "s.name as softwareName, s.software_version as softwareVersion, " +
+                "j.created as created, u.job_id as job, j.favorite as favorite " +
                 "FROM annotation_index ai " +
                 "RIGHT JOIN slice_instance si ON ai.slice_id = si.id " + 
                 "RIGHT JOIN sec_user u ON ai.user_id = u.id " +
@@ -314,50 +322,35 @@ class SecUserService extends ModelService {
      * If project has private layer, just get current user layer
      */
     def listLayers(Project project, ImageInstance image = null) {
-        securityACLService.check(project,READ)
+        securityACLService.check(project, READ)
         SecUser currentUser = cytomineService.getCurrentUser()
-        def users = []
-        def humans = listUsers(project)
 
-        if(image) {
-            humans.each {
-                users << User.getDataFromDomain(it)
-            }
+        def humanAdmins = listAdmins(project)
+        def humanUsers = listUsers(project)
+        def humanUsersFormatted = humanUsers.collect { User.getDataFromDomain(it) }
 
-        def jobs = []
-        if(image) {
-            jobs = getUserJobImage(image)
-            users.addAll(jobs)
+        def layersFormatted = []
+        if (project.checkPermission(ADMINISTRATION, currentRoleServiceProxy.isAdminByNow(currentUser))
+                || (!project.hideAdminsLayers && !project.hideUsersLayers)) {
+            layersFormatted.addAll(humanUsersFormatted)
         }
-        def  admins = listAdmins(project)
+        else if (project.hideAdminsLayers && !project.hideUsersLayers) {
+            def humanAdminsIds = humanAdmins.collect { it.id }
+            layersFormatted.addAll(humanUsersFormatted.findAll { !humanAdminsIds.contains(it.id) })
+        }
+        else if (!project.hideAdminsLayers && project.hideUsersLayers) {
+            layersFormatted.addAll(humanAdmins.collect { User.getDataFromDomain(it) })
+        }
 
+        if (humanUsers.contains(currentUser) && !layersFormatted.find { it.id == currentUser.id }) {
+            def currentUserFormatted = User.getDataFromDomain(currentUser)
+            layersFormatted.add(currentUserFormatted)
+        }
 
-        if(project.checkPermission(ADMINISTRATION,currentRoleServiceProxy.isAdminByNow(currentUser))) {
-            return users
-        } else if(project.hideAdminsLayers && project.hideUsersLayers && humans.contains(currentUser)) {
-            return jobs
-        } else if(project.hideAdminsLayers && !project.hideUsersLayers && humans.contains(currentUser)) {
-            def adminsId = admins.collect{it.id}
-            users.removeAll{adminsId.contains(it.id)}
-            return users
-        } else if(!project.hideAdminsLayers && project.hideUsersLayers && humans.contains(currentUser)) {
-//            admins.add(currentUser)
-            return admins
-         }else if(!project.hideAdminsLayers && !project.hideUsersLayers && humans.contains(currentUser)) {
-            return users
-         }else { //should no arrive but possible if user is admin and not in project
-             []
-         }
+        def jobUsersFormatted = (image) ? getUserJobImage(image) : []
+        layersFormatted.addAll(jobUsersFormatted)
 
-//
-//        //if user is admin of the project, show all layers
-//        if (!project.checkPermission(ADMINISTRATION) && project.privateLayer && users.contains(currentUser)) {
-//            return [currentUser]
-//        } else if (!project.privateLayer || project.checkPermission(ADMINISTRATION)) {
-//            return  users
-//        } else { //should no arrive but possible if user is admin and not in project
-//            []
-//        }
+        return layersFormatted
     }
 
     /**
