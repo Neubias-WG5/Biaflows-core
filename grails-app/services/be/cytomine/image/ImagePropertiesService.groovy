@@ -56,8 +56,8 @@ class ImagePropertiesService implements Serializable {
         try {
             def properties = imageServerService.properties(image)
             properties.each {
-                String key = it.key.trim()
-                String value = it.value.trim()
+                String key = it?.key?.toString()?.trim()
+                String value = it?.value?.toString()?.trim()
                 if (key && value) {
                     def property = Property.findByDomainIdentAndKey(image.id, key)
                     if (!property) {
@@ -82,5 +82,11 @@ class ImagePropertiesService implements Serializable {
 
             image.save(flush: true, failOnError: true)
         }
+    }
+
+    def regenerate(AbstractImage image) {
+        clear(image)
+        populate(image)
+        extractUseful(image)
     }
 }

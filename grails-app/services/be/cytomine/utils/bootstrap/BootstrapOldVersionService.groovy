@@ -1,9 +1,12 @@
 package be.cytomine.utils.bootstrap
 
 import be.cytomine.image.AbstractImage
+import be.cytomine.image.AbstractSlice
+import be.cytomine.image.ImageInstance
+import be.cytomine.image.Mime
+import be.cytomine.image.SliceInstance
 import be.cytomine.image.multidim.ImageGroup
 import be.cytomine.image.multidim.ImageSequence
-import be.cytomine.image.Mime
 import be.cytomine.middleware.ImageServer
 
 /*
@@ -26,7 +29,9 @@ import be.cytomine.image.server.Storage
 import be.cytomine.image.server.StorageAbstractImage
 import be.cytomine.image.UploadedFile
 import be.cytomine.middleware.AmqpQueue
+import be.cytomine.ontology.AnnotationTrack
 import be.cytomine.ontology.Property
+import be.cytomine.ontology.Track
 import be.cytomine.processing.ImageFilter
 import be.cytomine.project.Project
 import be.cytomine.security.SecRole
@@ -106,131 +111,116 @@ class BootstrapOldVersionService {
         Version.setCurrentVersion(Long.parseLong(grailsApplication.metadata.'app.versionDate'), grailsApplication.metadata.'app.version')
     }
 
-    void initv1_3_3() {
-        log.info "20190204"
+//    void initv1_3_2() {
+//        log.info "1.3.2"
+//        new Sql(dataSource).executeUpdate("ALTER TABLE project ALTER COLUMN ontology_id DROP NOT NULL;")
+//
+//        new Sql(dataSource).executeUpdate("UPDATE sec_user SET language = 'ENGLISH';")
+//        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user ALTER COLUMN language SET DEFAULT 'ENGLISH';")
+//        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user ALTER COLUMN language SET NOT NULL;")
+//        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user DROP COLUMN IF EXISTS skype_account;")
+//        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user DROP COLUMN IF EXISTS sipAccount;")
+//
+//        new Sql(dataSource).executeUpdate("DROP VIEW user_image;")
+//        tableService.initTable()
+//    }
+//
 
-        boolean exists = new Sql(dataSource).rows("SELECT column_name " +
-                "FROM information_schema.columns " +
-                "WHERE table_name='job' and column_name='favorite';").size() == 1;
-        if (!exists) {
-            new Sql(dataSource).executeUpdate("ALTER TABLE job ADD COLUMN favorite boolean NOT NULL DEFAULT false;")
-        }
-    }
+    def initv1_6_0() {
+        log.info "v1.6.0"
+        if (Track.count() == 0) {
+            def lastImageId = 0
+            def lastGroupId = -1
+            def trackId = 0
+            def sql = new Sql(dataSource)
+            sql.eachRow("select p.created, domain_ident, image_id, slice_id, key, value, " +
+                    "(select value from property pp where pp.domain_ident = p.domain_ident " +
+                    "and pp.key = 'CUSTOM_ANNOTATION_DEFAULT_COLOR') as color, project_id \n" +
+                    "from property p\n" +
+                    "join algo_annotation a on a.id = p.domain_ident\n" +
+                    "where p.key = 'ANNOTATION_GROUP_ID'\n" +
+                    "order by image_id asc, value asc;") {
+                if (Integer.parseInt(it[5]) < 1000) {
+                    if (it[2] != lastImageId || it[5] != lastGroupId ) {
+                        lastImageId = it[2]
+                        lastGroupId = it[5]
+                        log.info "Add track ${lastGroupId} for image ${lastImageId}"
+                        trackId = sql.executeInsert("INSERT INTO track(id, created, version, name, color, image_id, project_id)" +
+                                "VALUES (nextval('hibernate_sequence'), '${it[0]}', 0, 'Track #${it[5]}', " +
+                                "'${it[6]}', ${it[2]}, ${it[7]});")[0][0]
+                    }
 
-    void initv1_3_2() {
-        log.info "1.3.2"
-        new Sql(dataSource).executeUpdate("ALTER TABLE project ALTER COLUMN ontology_id DROP NOT NULL;")
-
-        new Sql(dataSource).executeUpdate("UPDATE sec_user SET language = 'ENGLISH';")
-        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user ALTER COLUMN language SET DEFAULT 'ENGLISH';")
-        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user ALTER COLUMN language SET NOT NULL;")
-        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user DROP COLUMN IF EXISTS skype_account;")
-        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user DROP COLUMN IF EXISTS sipAccount;")
-
-        new Sql(dataSource).executeUpdate("DROP VIEW user_image;")
-        tableService.initTable()
-    }
-
-    void initv1_3_1() {
-        log.info "1.3.1"
-        new Sql(dataSource).executeUpdate("ALTER TABLE storage DROP COLUMN IF EXISTS base_path;")
-        new Sql(dataSource).executeUpdate("ALTER TABLE image_server DROP COLUMN IF EXISTS service;")
-        new Sql(dataSource).executeUpdate("ALTER TABLE image_server DROP COLUMN IF EXISTS class_name;")
-        new Sql(dataSource).executeUpdate("ALTER TABLE abstract_image DROP COLUMN IF EXISTS path;")
-        new Sql(dataSource).executeUpdate("ALTER TABLE uploaded_file DROP COLUMN IF EXISTS image_id;")
-        new Sql(dataSource).executeUpdate("ALTER TABLE uploaded_file DROP COLUMN IF EXISTS path;")
-        new Sql(dataSource).executeUpdate("ALTER TABLE uploaded_file DROP COLUMN IF EXISTS converted;")
-        new Sql(dataSource).executeUpdate("ALTER TABLE uploaded_file DROP COLUMN IF EXISTS storages;")
-        new Sql(dataSource).executeUpdate("ALTER TABLE abstract_image DROP COLUMN IF EXISTS mime_id;")
-
-        def sql = new Sql(dataSource)
-        sql.eachRow("select constraint_name from information_schema.table_constraints where table_name = 'abstract_image' and constraint_type = 'UNIQUE'") {
-            log.info it.constraint_name
-            sql.executeUpdate("ALTER TABLE abstract_image DROP CONSTRAINT "+ it.constraint_name +";")
-        }
-        sql.executeUpdate("ALTER TABLE abstract_image ALTER COLUMN filename DROP NOT NULL;")
-//        sql.executeUpdate("ALTER TABLE abstract_image DROP COLUMN IF EXISTS filename;")
-        // TODO: fix view user_image to delete column
-
-        def pyrTiffMime = Mime.findByMimeType("image/pyrtiff")
-        def mimeToRemove = ["image/tiff", "image/tif", "zeiss/zvi"]
-        mimeToRemove.each {
-            def mime = Mime.findByMimeType(it)
-            if (mime) {
-                new Sql(dataSource).executeUpdate("UPDATE abstract_slice SET mime_id = ${pyrTiffMime.id} WHERE mime_id = ${mime.id}")
-                new Sql(dataSource).executeUpdate("DELETE FROM mime_image_server WHERE mime_id = ${mime.id}")
-                mime.delete()
+                    sql.executeInsert("INSERT INTO annotation_track(id, created, version, annotation_class_name, " +
+                            "annotation_ident, track_id, slice_id) VALUES " +
+                            "(nextval('hibernate_sequence'), '${it[0]}', 0, 'be.cytomine.ontology.AlgoAnnotation', " +
+                            "${it[1]}, ${trackId}, ${it[3]});")
+                }
             }
         }
-
-        [[old: 1, "new": 104],
-            [old: 2, "new": 100],
-            [old: 3, "new": 11],
-            [old: 4, "new": 31],
-            [old: 5, "new": 20],
-            [old: 6, "new": 40],
-            [old: 7, "new": 20],
-            [old: 8, "new": 41]].each {
-            new Sql(dataSource).executeUpdate("UPDATE uploaded_file SET status = ${it["new"]} WHERE status = ${it["old"]}")
-        }
     }
 
-    void initv1_3_0() {
-        log.info "1.3.0"
-        List<Configuration> configurations = Configuration.findAllByKeyLike("%.%")
+    def checkSqlColumnExistence(def column, def table) {
+        def sql = new Sql(dataSource)
+        boolean exists = sql.rows("SELECT column_name " +
+                "FROM information_schema.columns " +
+                "WHERE table_name='${table}' and column_name='${column}';").size() == 1;
+        sql.close()
+        return exists
+    }
 
+    def imagePropertiesService
+    void initv1_5_0() {
+        log.info "1.5.0"
+        log.info "Update configurations"
+        List<Configuration> configurations = Configuration.findAllByKeyLike("%.%")
         for(int i = 0; i<configurations.size(); i++){
             configurations[i].key = configurations[i].key.replace(".","_")
             configurations[i].save()
         }
-
         bootstrapUtilsService.createConfigurations(true)
-    }
 
-    void init20190228() {
-        log.info "20190228"
-
-        // Move old Long[] storages to many-to-one.
+        // Move old Long[] storages to one storage (only first one is kept)
         def sql = new Sql(dataSource)
-        if (!sql.rows("select uploaded_file_storages_id from uploaded_file_storage")) {
-            def inserts = []
-            def i = 0
-            def request = "INSERT INTO uploaded_file_storage (uploaded_file_storages_id, storage_id) VALUES "
+        if (checkSqlColumnExistence('storages', 'uploaded_file')) {
+            log.info "Update storage references in uploaded_file"
             sql.eachRow("select id, storages from uploaded_file") {
                 def ufId = it[0]
                 ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(it[1] as byte[]))
                 Long[] storages = (Long[]) ois.readObject()
-                inserts += storages.collect{ "($ufId, $it)" }
-
-                if (i > 0 && i % 2000 == 0) {
-                    sql.execute(request + inserts.join(",") + ";")
-                    inserts = []
-                }
-                i++
+                sql.execute("UPDATE uploaded_file SET storage_id = ${storages.first()} WHERE id = ${ufId};")
             }
-
-            if (inserts.size() > 0) {
-                sql.execute(request + inserts.join(",") + ";")
-            }
+            sql.executeUpdate("ALTER TABLE uploaded_file DROP COLUMN IF EXISTS storages;")
         }
 
+        //TODO:
+        def server = ImageServer.first()
+        server.url = "https://localhost-ims"
+        server.basePath = "/data/images"
+        server.save(flush: true)
+
         // Add image server to uploaded file (TODO: use old ImageServerStorage and StorageAbstractImage)
+        log.info "Update image server reference in uploaded_file"
         UploadedFile.executeUpdate("update UploadedFile uf set uf.imageServer = ? where uf.imageServer is null",
-                [ImageServer.first()])
+                [server])
 
         // Update all image servers with known base path
+        log.info "Update base path in image_server"
         ImageServer.executeUpdate("update ImageServer i set i.basePath = ? where i.basePath is null",
                 [grailsApplication.config.storage_path])
+        sql.executeUpdate("ALTER TABLE image_server DROP COLUMN IF EXISTS service;")
+        sql.executeUpdate("ALTER TABLE image_server DROP COLUMN IF EXISTS class_name;")
+        sql.executeUpdate("ALTER TABLE storage DROP COLUMN IF EXISTS base_path;")
 
-        // Create a (0,0,0) abstract slice for all abstract images
-        if (!sql.rows("select id from abstract_slice")) {
+        if (AbstractSlice.count() == 0) {
+            log.info "Add (0,0,0) abstract slice for all abstract images which are not in an image group"
             def inserts = []
             def i = 0
             def request = "INSERT INTO abstract_slice (id, created, version, image_id, uploaded_file_id, mime_id, channel, z_stack, time) VALUES "
             sql.eachRow("select uploaded_file.id, image_id, mime_id, abstract_image.created " +
                     "from uploaded_file " +
                     "left join abstract_image on abstract_image.id = uploaded_file.image_id " +
-                    "where image_id is not null") {
+                    "where image_id is not null " +
+                    "and image_id not in (select base_image_id from image_instance ii right join image_sequence seq on ii.id = seq.image_id)") {
                 inserts << "(nextval('hibernate_sequence'), '${it[3]}', 0, ${it[1]}, ${it[0]}, ${it[2]}, 0, 0, 0)"
                 if (i > 0 && i % 2000 == 0) {
                     sql.execute(request + inserts.join(",") + ";")
@@ -244,19 +234,8 @@ class BootstrapOldVersionService {
             }
         }
 
-        // Change direction of UF - AI relation and use the root as AI uploaded file
-        boolean exists = sql.rows("SELECT column_name " +
-                "FROM information_schema.columns " +
-                "WHERE table_name='uploaded_file' and column_name='image_id';").size() == 1;
-        if (exists) {
-            sql.executeUpdate("update abstract_image " +
-                    "set uploaded_file_id = cast(ltree2text(subltree(uploaded_file.l_tree, 0, 1)) as bigint) " +
-                    "from uploaded_file " +
-                    "where abstract_image.id = image_id and uploaded_file_id is null;")
-        }
-
-        // Add (0,0,0) slice instances for all image instances which are not in an image group
-        if (!sql.rows("select id from slice_instance")) {
+        if (SliceInstance.count() == 0) {
+            log.info "Add (0,0,0) slice instance for all abstract images which are not in an image group"
             def inserts = []
             def i = 0
             def request = "INSERT INTO slice_instance(id, created, version, base_slice_id, image_id, project_id) VALUES "
@@ -265,7 +244,7 @@ class BootstrapOldVersionService {
                     "left join abstract_image on abstract_image.id = image_instance.base_image_id " +
                     "left join abstract_slice on abstract_slice.image_id = abstract_image.id " +
                     "left join image_sequence on image_sequence.image_id = image_instance.id " +
-                    "where abstract_slice.channel = 0 and abstract_slice.z_stack = 0 and abstract_slice.time = 0" +
+                    "where abstract_slice.channel = 0 and abstract_slice.z_stack = 0 and abstract_slice.time = 0 " +
                     "and image_sequence.id is null;") {
                 inserts << "(nextval('hibernate_sequence'), '${it[3]}', 0, ${it[1]}, ${it[0]}, ${it[2]})"
                 if (i > 0 && i % 2000 == 0) {
@@ -280,6 +259,210 @@ class BootstrapOldVersionService {
             }
         }
 
+        sql.eachRow("select constraint_name from information_schema.table_constraints " +
+                "where table_name = 'abstract_image' and constraint_type = 'UNIQUE';") {
+            sql.executeUpdate("ALTER TABLE abstract_image DROP CONSTRAINT "+ it.constraint_name +";")
+        }
+
+        if (checkSqlColumnExistence('filename', 'abstract_image'))
+            sql.executeUpdate("ALTER TABLE abstract_image ALTER COLUMN filename DROP NOT NULL;")
+
+        if (checkSqlColumnExistence('mime_id', 'abstract_image'))
+            sql.executeUpdate("ALTER TABLE abstract_image ALTER COLUMN mime_id DROP NOT NULL;")
+
+        if (checkSqlColumnExistence('path', 'abstract_image'))
+            sql.executeUpdate("ALTER TABLE abstract_image ALTER COLUMN path DROP NOT NULL;")
+
+        def imageInstancesToSlicesMapping = [:]
+        def abstractImagesToSlicesMapping = [:]
+        def imageGroupsToImageInstancesMapping = [:]
+
+        if (ImageGroup.count() > 0) {
+            log.info "Convert image groups"
+            ImageGroup.findAll().each { group ->
+                log.info "Convert group ${group.name}"
+                def sequence = ImageSequence.findByImageGroup(group)
+                def ufId = sql.firstRow("SELECT cast(ltree2text(subltree(l_tree, 0, 1)) as bigint) " +
+                        "FROM uploaded_file WHERE image_id = :id", [id: sequence.image.baseImage.id])[0]
+                UploadedFile uf = UploadedFile.read(ufId)
+
+                def image = new AbstractImage(uploadedFile: uf, originalFilename: uf.originalFilename).save(failOnError: true, flush: true)
+                imagePropertiesService.regenerate(image)
+
+                def project = group.project
+                def imageInstance = new ImageInstance(baseImage: image, project: project, user: sequence.image.user).save(failOnError: true, flush: true)
+
+                imageGroupsToImageInstancesMapping << [(group.id): imageInstance.id]
+
+                sql.executeUpdate("update attached_file set domain_class_name = 'be.cytomine.image.ImageInstance', " +
+                        "domain_ident = ${imageInstance.id} where domain_ident = ${group.id}")
+
+                sql.executeUpdate("update metric_result set image_instance_id = ${imageInstance.id}, image_group_id = NULL where image_group_id = ${group.id}")
+
+                sql.eachRow("SELECT ai.created, uf.id as ufid, ai.mime_id, seq.channel, seq.z_stack, seq.time, " +
+                        "seq.image_id as iiid , ai.id as aiid " +
+                        "FROM image_sequence seq " +
+                        "LEFT JOIN image_instance ii ON seq.image_id = ii.id " +
+                        "LEFT JOIN abstract_image ai ON ii.base_image_id = ai.id " +
+                        "LEFT JOIN uploaded_file uf ON ai.id = uf.image_id " +
+                        "WHERE seq.image_group_id = :group", [group: group.id]) {
+                    // 1) create abstract slice
+                    def absSlice = sql.executeInsert("INSERT INTO abstract_slice(id, created, version, image_id, uploaded_file_id," +
+                            " mime_id, channel, z_stack, time) VALUES " +
+                            "(nextval('hibernate_sequence'), '${it[0]}', 0, ${image.id}, ${it[1]}, ${it[2]}, " +
+                            "${it[3]}, ${it[4]}, ${it[5]})")
+                    abstractImagesToSlicesMapping << [(it[7]): absSlice[0][0]]
+
+                    // 2) create slice_instance
+                    def slice = sql.executeInsert("INSERT INTO slice_instance(id, created, version, project_id, " +
+                            "image_id, base_slice_id) VALUES " +
+                            "(nextval('hibernate_sequence'), '${it[0]}', 0, ${project.id}, " +
+                            "${imageInstance.id}, ${absSlice[0][0]})")
+                    imageInstancesToSlicesMapping << [(it[6]): [slice: slice[0][0], image:imageInstance.id]]
+                }
+            }
+        }
+
+        if (checkSqlColumnExistence('image_id', "uploaded_file")) {
+            def len = abstractImagesToSlicesMapping.size()
+            log.info len
+            log.info("Change direction of UF - AI relation and use the root as AI uploaded file")
+            sql.executeUpdate("update abstract_image " +
+                    "set uploaded_file_id = cast(ltree2text(subltree(uploaded_file.l_tree, 0, 1)) as bigint) " +
+                    "from uploaded_file " +
+                    "where abstract_image.id = image_id " +
+                    "and uploaded_file_id is null " +
+                    "and cast(ltree2text(subltree(uploaded_file.l_tree, 0, 1)) as bigint) IN (SELECT id FROM uploaded_file) " +
+                    ((len > 0) ? "and abstract_image.id NOT IN (${abstractImagesToSlicesMapping.keySet().join(',')}); " : ";"))
+        }
+
+        imageInstancesToSlicesMapping.each { o, n ->
+            log.info "Update annotation references to slices for old image instance $o that was linked to image group"
+            sql.executeUpdate("update algo_annotation set image_id = ${n.image}, slice_id = ${n.slice} where image_id = ${o};")
+            sql.executeUpdate("update user_annotation set image_id = ${n.image}, slice_id = ${n.slice} where image_id = ${o};")
+            sql.executeUpdate("update reviewed_annotation set image_id = ${n.image}, slice_id = ${n.slice} where image_id = ${o};")
+            sql.executeUpdate("update annotation_index set image_id = ${n.image}, slice_id = ${n.slice} where image_id = ${o};")
+        }
+
+        log.info "Update annotation references to slices for 2D images"
+        sql.executeUpdate("update algo_annotation " +
+                "set slice_id = slice.id " +
+                "from slice_instance slice " +
+                "where slice.image_id = algo_annotation.image_id " +
+                "and slice_id IS NULL")
+
+        sql.executeUpdate("update user_annotation " +
+                "set slice_id = slice.id " +
+                "from slice_instance slice " +
+                "where slice.image_id = user_annotation.image_id " +
+                "and slice_id IS NULL")
+
+        sql.executeUpdate("update reviewed_annotation " +
+                "set slice_id = slice.id " +
+                "from slice_instance slice " +
+                "where slice.image_id = reviewed_annotation.image_id " +
+                "and slice_id IS NULL")
+
+        if (checkSqlColumnExistence('image_id', 'annotation_index')) {
+            sql.executeUpdate("update annotation_index " +
+                    "set slice_id = slice.id " +
+                    "from slice_instance slice " +
+                    "where slice.image_id = annotation_index.image_id " +
+                    "and slice_id IS NULL")
+        }
+
+        if (imageInstancesToSlicesMapping.size() > 0) {
+            log.info "Delete old image instances used in image groups"
+            sql.executeUpdate("DELETE FROM image_sequence " +
+                    "where image_id IN (${imageInstancesToSlicesMapping.keySet().join(',')})")
+            sql.executeUpdate("DELETE FROM image_instance " +
+                    "where id IN (${imageInstancesToSlicesMapping.keySet().join(',')})")
+            sql.executeUpdate("DELETE FROM image_group;")
+        }
+
+        log.info "Drop no more used columns"
+        sql.executeUpdate("ALTER TABLE abstract_image DROP COLUMN IF EXISTS filename;")
+        sql.executeUpdate("ALTER TABLE abstract_image DROP COLUMN IF EXISTS path;")
+        sql.executeUpdate("ALTER TABLE uploaded_file DROP COLUMN IF EXISTS image_id;")
+        sql.executeUpdate("ALTER TABLE uploaded_file DROP COLUMN IF EXISTS path;")
+        sql.executeUpdate("ALTER TABLE uploaded_file DROP COLUMN IF EXISTS converted;")
+        sql.executeUpdate("ALTER TABLE abstract_image DROP COLUMN IF EXISTS mime_id;")
+        sql.executeUpdate("ALTER TABLE annotation_index DROP COLUMN IF EXISTS image_id;")
+//        sql.executeUpdate("ALTER TABLE metric_result DROP COLUMN IF EXISTS image_group_id;")
+
+        log.info "Delete old image references"
+        sql.executeUpdate("DELETE FROM storage_abstract_image;")
+        sql.executeUpdate("delete from image_instance where id not in (select image_id from slice_instance);")
+        sql.executeUpdate("delete from abstract_image where id not in (select image_id from abstract_slice);")
+
+//        AbstractImage.findAllByDurationIsNull().each {
+//            log.info "Regenerate properties for ${it}"
+//            imagePropertiesService.regenerate(it)
+//        }
+        log.info sql.firstRow("select count(*) from abstract_image where depth is not null;")[0]
+        sql.executeUpdate("update abstract_image set depth = 1 where depth is null;")
+        sql.executeUpdate("update abstract_image set duration = 1 where duration is null;")
+        sql.executeUpdate("update abstract_image set channels = 1 where channels is null;")
+
+        log.info "Update mime reference"
+        def pyrTiffMime = Mime.findByMimeType("image/pyrtiff")
+        def mimeToRemove = ["image/tiff", "image/tif", "zeiss/zvi"]
+        mimeToRemove.each {
+            def mime = Mime.findByMimeType(it)
+            if (mime) {
+                sql.executeUpdate("UPDATE abstract_slice SET mime_id = ${pyrTiffMime.id} WHERE mime_id = ${mime.id}")
+                sql.executeUpdate("DELETE FROM mime_image_server WHERE mime_id = ${mime.id}")
+                mime.delete()
+            }
+        }
+
+        log.info "Update uploaded file status"
+        [[old: 1, "new": 104],
+            [old: 2, "new": 100],
+            [old: 3, "new": 11],
+            [old: 4, "new": 31],
+            [old: 5, "new": 20],
+            [old: 6, "new": 40],
+            [old: 7, "new": 20],
+            [old: 8, "new": 41],
+            [old: 9, "new": 41]].each {
+            sql.executeUpdate("UPDATE uploaded_file SET status = ${it["new"]} WHERE status = ${it["old"]}")
+        }
+
+        log.info "Clean uploaded_file by deleting all not finished uploads"
+        try {
+            sql.executeUpdate("delete from abstract_slice a where uploaded_file_id in (select id from uploaded_file where status < 100);")
+            sql.executeUpdate("delete from abstract_image a where uploaded_file_id in (select id from uploaded_file where status < 100);")
+        }
+        catch(Exception e) {
+            log.error("Error during uploaded_file cleaning: ${e}")
+        }
+
+        log.info("Recompute project and image counters")
+        sql.executeUpdate("UPDATE project p SET " +
+                "count_images = (select count(*) from image_instance ii where ii.deleted is null and ii.project_id = p.id), " +
+                "count_annotations = (select count(*) from user_annotation ua left join image_instance ii on ii.id = ua.image_id where ua.deleted is null and ua.project_id = p.id and ii.deleted is null), " +
+                "count_job_annotations = (select count(*) from algo_annotation aa left join image_instance ii on ii.id = aa.image_id where aa.deleted is null and ii.deleted is null and aa.project_id = p.id), " +
+                "count_reviewed_annotations = (select count(*) from reviewed_annotation ra left join image_instance ii on ii.id = ra.image_id where ra.deleted is null and ii.deleted is null and ra.project_id = p.id);")
+
+        sql.executeUpdate("UPDATE image_instance ii SET " +
+                "count_image_annotations = (select count(*) from user_annotation ua where ua.deleted is null and ua.image_id = ii.id), " +
+                "count_image_job_annotations = (select count(*) from algo_annotation aa where aa.deleted is null and aa.image_id = ii.id), " +
+                "count_image_reviewed_annotations = (select count(*) from reviewed_annotation ra where ra.deleted is null and ra.image_id = ii.id);")
+
+        log.info("Delete old attached file thumbs")
+        sql.executeUpdate("delete from attached_file where domain_class_name = 'be.cytomine.image.AbstractImage' and name = 'thumb';")
+
+        log.info("Update reference of attached files that are used in description (only for project)")
+        sql.executeUpdate("update attached_file set domain_class_name = 'be.cytomine.utils.Description', " +
+                "domain_ident = description.id " +
+                "from description " +
+                "where attached_file.domain_ident = description.domain_ident " +
+                "and attached_file.domain_class_name = 'be.cytomine.project.Project';")
+
+        log.info("Update attached files names of job logs to be displayed in webUI")
+        sql.executeUpdate("update attached_file set filename = 'log.out', name = 'log.out' " +
+                "where domain_class_name = 'be.cytomine.processing.Job' and filename like '%.out';")
 
         sql.close()
     }
