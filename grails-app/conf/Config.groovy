@@ -306,8 +306,8 @@ environments {
         grails.resources.adhoc.patterns = ['/images/*', '/js/*','/css/jsondoc/*']
     }
     development {
-        grails.UIURL = "http://localhost"
-        grails.serverURL = "http://localhost-core"
+        grails.UIURL = "https://localhost:8081"
+        grails.serverURL = "https://localhost-core"
         grails.uploadURL = "http://localhost-upload"
         grails.imageServerURL = ["http://localhost-ims"]
         grails.retrievalServerURL = ["http://localhost-retrieval"]

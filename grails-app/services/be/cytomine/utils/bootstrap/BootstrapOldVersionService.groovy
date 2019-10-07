@@ -113,16 +113,7 @@ class BootstrapOldVersionService {
 
 //    void initv1_3_2() {
 //        log.info "1.3.2"
-//        new Sql(dataSource).executeUpdate("ALTER TABLE project ALTER COLUMN ontology_id DROP NOT NULL;")
-//
-//        new Sql(dataSource).executeUpdate("UPDATE sec_user SET language = 'ENGLISH';")
-//        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user ALTER COLUMN language SET DEFAULT 'ENGLISH';")
-//        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user ALTER COLUMN language SET NOT NULL;")
-//        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user DROP COLUMN IF EXISTS skype_account;")
-//        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user DROP COLUMN IF EXISTS sipAccount;")
-//
-//        new Sql(dataSource).executeUpdate("DROP VIEW user_image;")
-//        tableService.initTable()
+
 //    }
 //
 
@@ -157,6 +148,16 @@ class BootstrapOldVersionService {
                 }
             }
         }
+
+        new Sql(dataSource).executeUpdate("ALTER TABLE project ALTER COLUMN ontology_id DROP NOT NULL;")
+        new Sql(dataSource).executeUpdate("UPDATE sec_user SET language = 'ENGLISH' WHERE language IS NULL;")
+        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user ALTER COLUMN language SET DEFAULT 'ENGLISH';")
+        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user ALTER COLUMN language SET NOT NULL;")
+        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user DROP COLUMN IF EXISTS skype_account;")
+        new Sql(dataSource).executeUpdate("ALTER TABLE sec_user DROP COLUMN IF EXISTS sip_account;")
+
+        new Sql(dataSource).executeUpdate("DROP VIEW user_image;")
+        tableService.initTable()
     }
 
     def checkSqlColumnExistence(def column, def table) {
@@ -194,9 +195,6 @@ class BootstrapOldVersionService {
 
         //TODO:
         def server = ImageServer.first()
-        server.url = "https://localhost-ims"
-        server.basePath = "/data/images"
-        server.save(flush: true)
 
         // Add image server to uploaded file (TODO: use old ImageServerStorage and StorageAbstractImage)
         log.info "Update image server reference in uploaded_file"

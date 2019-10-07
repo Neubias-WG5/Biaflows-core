@@ -52,26 +52,26 @@ beans = {
     config = SpringSecurityUtils.securityConfig
 
 
-    redirectStrategy(CustomDefaultRedirectStrategy) {
-        contextRelative = true
-    }
-    successRedirectHandler(CustomSavedRequestAwareAuthenticationSuccessHandler) {
-        alwaysUseDefaultTargetUrl = false
-        //defaultTargetUrl = '/'
-    }
-
-    authenticationEntryPoint(CustomAjaxAwareAuthenticationEntryPoint, config.auth.loginFormUrl) {
-        grailsApplication = ref('grailsApplication')
-        ajaxLoginFormUrl = '/login/authAjax'
-        forceHttps = false
-        useForward = false
-        portMapper = ref('portMapper')
-        portResolver = ref('portResolver')
-    }
-
-    logoutSuccessHandler(SimpleUrlLogoutSuccessHandler) {
-        defaultTargetUrl = Holders.getGrailsApplication().config.grails.UIURL?: Holders.getGrailsApplication().config.grails.serverURL ?: '/'
-    }
+//    redirectStrategy(CustomDefaultRedirectStrategy) {
+//        contextRelative = true
+//    }
+//    successRedirectHandler(CustomSavedRequestAwareAuthenticationSuccessHandler) {
+//        alwaysUseDefaultTargetUrl = false
+//        //defaultTargetUrl = '/'
+//    }
+//
+//    authenticationEntryPoint(CustomAjaxAwareAuthenticationEntryPoint, config.auth.loginFormUrl) {
+//        grailsApplication = ref('grailsApplication')
+//        ajaxLoginFormUrl = '/login/authAjax'
+//        forceHttps = false
+//        useForward = false
+//        portMapper = ref('portMapper')
+//        portResolver = ref('portResolver')
+//    }
+//
+//    logoutSuccessHandler(SimpleUrlLogoutSuccessHandler) {
+//        defaultTargetUrl = Holders.getGrailsApplication().config.grails.UIURL?: Holders.getGrailsApplication().config.grails.serverURL ?: '/'
+//    }
 
 
     if(config.ldap.active){
