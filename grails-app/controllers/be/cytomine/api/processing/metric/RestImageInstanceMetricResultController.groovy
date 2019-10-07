@@ -54,7 +54,7 @@ class RestImageInstanceMetricResultController extends RestController {
         }
 
         def jobs = (jobIds) ? jobService.readMany(jobIds) : jobService.list([project])
-        def images = (imageIds) ? imageInstanceService.readMany(imageIds) : imageInstanceService.list(project, true)
+        def images = (imageIds) ? imageInstanceService.readMany(imageIds) : imageInstanceService.list(project)
 
         responseSuccess(imageInstanceMetricResultService.list(jobs, images, aggregate))
     }

@@ -68,6 +68,17 @@ class ImageInstanceService extends ModelService {
         image
     }
 
+    def readMany(def ids) {
+        def images = ImageInstance.findAllByIdInList(ids)
+        if(images) {
+            images.each { image ->
+                securityACLService.check(image.container(),READ)
+                checkDeleted(image)
+            }
+        }
+        images
+    }
+
     def list(Project project) {
         securityACLService.check(project, READ)
 
