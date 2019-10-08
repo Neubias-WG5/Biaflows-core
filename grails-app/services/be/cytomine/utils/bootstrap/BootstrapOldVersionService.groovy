@@ -386,7 +386,8 @@ class BootstrapOldVersionService {
         sql.executeUpdate("ALTER TABLE uploaded_file DROP COLUMN IF EXISTS converted;")
         sql.executeUpdate("ALTER TABLE abstract_image DROP COLUMN IF EXISTS mime_id;")
         sql.executeUpdate("ALTER TABLE annotation_index DROP COLUMN IF EXISTS image_id;")
-//        sql.executeUpdate("ALTER TABLE metric_result DROP COLUMN IF EXISTS image_group_id;")
+        sql.executeUpdate("ALTER TABLE metric_result DROP COLUMN IF EXISTS image_group_id;")
+        sql.executeUpdate("update metric_result set class = 'be.cytomine.processing.metric.ImageInstanceMetricResult';")
 
         log.info "Delete old image references"
         sql.executeUpdate("DELETE FROM storage_abstract_image;")
