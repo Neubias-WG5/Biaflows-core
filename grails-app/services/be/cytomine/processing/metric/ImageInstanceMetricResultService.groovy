@@ -70,7 +70,7 @@ class ImageInstanceMetricResultService extends ModelService {
                     ", max(value) as maximum" +
                     ", avg(value) as average" +
                     ", COALESCE(stddev_samp(value),0) as stddev " +
-                    ", COALESCE(median(value),0) as median "
+                    ", COALESCE(percentile_cont(0.5) within group (order by value),0) as median "
 
             def query = select + from + where + groupby
 
