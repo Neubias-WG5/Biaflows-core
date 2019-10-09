@@ -26,6 +26,7 @@ import be.cytomine.processing.JobData
 import be.cytomine.processing.ProcessingServer
 import be.cytomine.processing.Software
 import be.cytomine.processing.SoftwareProject
+import be.cytomine.processing.metric.ImageInstanceMetricResult
 import be.cytomine.project.Project
 import be.cytomine.security.UserJob
 import be.cytomine.utils.JSONUtils
@@ -54,6 +55,8 @@ class RestJobController extends RestController {
     def cytomineService
     def securityACLService
     def jobRuntimeService
+    def imageInstanceMetricResultService
+
 
     /**
      * List all job
@@ -261,6 +264,8 @@ class RestJobController extends RestController {
         }
     }
 
+    def transactionService
+
     /**
      * Delete the full data set build by the job
      * This method will delete: annotation prediction, uploaded files,...
@@ -305,8 +310,16 @@ class RestJobController extends RestController {
                 taskService.updateTask(task, 85, "Delete all metrics...")
                 jobService.deleteAllMetrics(job)
 
-                taskService.finishTask(task)
-                delete(jobService, JSON.parse("{id : $params.id}"),task)
+                taskService.updateTask(task, 90, "Delete job...")
+                try {
+                    def result = jobService.delete(job, transactionService.start())
+                    taskService.finishTask(task)
+                    responseResult(result)
+                } catch (CytomineException e) {
+                    taskService.finishTask(task)
+                    log.error(e)
+                    response([success: false, errors: e.msg, errorValues : e.values], e.code)
+                }
             }
         }
     }
@@ -337,8 +350,18 @@ class RestJobController extends RestController {
             log.info "load all job data..."
             taskService.updateTask(task,75,"Looking for all job data...")
             List<JobData> jobDatas = jobDataService.list(job)
+
+            taskService.updateTask(task,90,"Looking for all job metrics...")
+            List<ImageInstanceMetricResult> jobMetrics = imageInstanceMetricResultService.list(job, false)
+
             taskService.finishTask(task)
-            responseSuccess([annotations:annotations.size(),annotationsTerm:annotationsTermNumber,jobDatas:jobDatas.size(), reviewed:reviewed.size()])
+            responseSuccess([
+                    annotations:annotations.size(),
+                    annotationsTerm:annotationsTermNumber,
+                    jobDatas:jobDatas.size(),
+                    reviewed:reviewed.size(),
+                    metrics:jobMetrics.size()
+            ])
 
         }
     }
