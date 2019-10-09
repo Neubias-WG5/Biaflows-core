@@ -134,7 +134,7 @@ class RestImageInstanceController extends RestController {
         def image = imageInstanceService.read(params.long('id'))
         def next = ImageInstance.findByProjectAndInstanceFilenameGreaterThanAndDeletedIsNull(image.project,image.instanceFilename,[sort:'instanceFilename',order:'asc'])
         if(next) {
-            responseSuccess(next.first())
+            responseSuccess(next)
         } else {
             responseSuccess([:])
         }
