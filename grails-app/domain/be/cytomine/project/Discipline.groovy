@@ -83,4 +83,8 @@ class Discipline extends CytomineDomain implements Serializable{
         return returnArray
     }
 
+    CytomineDomain container() {
+        return this;
+    }
+
 }

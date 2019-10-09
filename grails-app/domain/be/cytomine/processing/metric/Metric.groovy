@@ -78,9 +78,13 @@ class Metric extends CytomineDomain implements Serializable{
         domain.id = JSONUtils.getJSONAttrLong(json,'id',null)
         domain.name = JSONUtils.getJSONAttrStr(json, 'name')
         domain.shortName = JSONUtils.getJSONAttrStr(json, 'shortName')
-        json.disciplines?.each { it ->
-            def discipline = Discipline.read(it)
-            if (discipline) domain.addToDisciplines(discipline)
+
+        if (json.disciplines) {
+            domain.disciplines.clear();
+            json.disciplines?.each { it ->
+                def discipline = Discipline.read(it)
+                if (discipline) domain.addToDisciplines(discipline)
+            }
         }
         return domain;
     }
@@ -105,6 +109,10 @@ class Metric extends CytomineDomain implements Serializable{
                 idEq(discipline.id)
             }
         }
+    }
+
+    CytomineDomain container() {
+        return this;
     }
 
 }

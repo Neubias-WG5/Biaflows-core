@@ -81,7 +81,7 @@ class MetricService extends ModelService {
     def update(Metric metric, def jsonNewData) {
         SecUser currentUser = cytomineService.getCurrentUser()
         securityACLService.checkAdmin(currentUser)
-        json.disciplines?.each { disciplineId ->
+        jsonNewData.disciplines?.each { disciplineId ->
             def discipline = Discipline.read(disciplineId)
             if (!discipline)
                 throw new WrongArgumentException("Metric must have a valid set of disciplines: ${json.disciplines}")
