@@ -342,7 +342,9 @@ class SecUserService extends ModelService {
             layersFormatted.addAll(humanAdmins.collect { User.getDataFromDomain(it) })
         }
 
-        if (humanUsers.contains(currentUser) && !layersFormatted.find { it.id == currentUser.id }) {
+        if (((!project.hideUsersLayers && humanUsers.contains(currentUser))
+                    || (!project.hideAdminsLayers && humanAdmins.contains(currentUser)))
+                && !layersFormatted.find { it.id == currentUser.id }) {
             def currentUserFormatted = User.getDataFromDomain(currentUser)
             layersFormatted.add(currentUserFormatted)
         }
