@@ -12,7 +12,6 @@
     <facet type="web" name="GrailsWeb">
       <configuration>
         <webroots>
-          <root url="file://$MODULE_DIR$/web-app" relative="/" />
           <root url="file://$MODULE_DIR$/grails-app/views" relative="/" />
         </webroots>
         <sourceRoots />
@@ -32,15 +31,10 @@
       <sourceFolder url="file://$MODULE_DIR$/src/groovy" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/grails-app/domain" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/grails-app/taglib" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/scripts/yui-compressor-ant-task/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/grails-app/utils" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/scripts/yui-compressor-ant-task/build/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/test/selenium" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/scripts" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/grails-app/jobs" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/grails-app/controllers" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/scripts/yui-compressor-ant-task/vendor/yuicompressor-2.4.2/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/grails-app/conf" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/grails-app/services" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/unit" isTestSource="true" />
