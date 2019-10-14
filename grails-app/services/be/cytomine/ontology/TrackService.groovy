@@ -92,6 +92,35 @@ class TrackService extends ModelService {
             throw new WrongArgumentException("Track does not have a valid project.")
         }
 
+        if (!json.color) {
+            def count = Track.countByImage(image)
+            def colors = ["#e6194b",	//	Red
+                          "#3cb44b",	//	Green
+                          "#ffe119",	//	Yellow
+                          "#0082c8",	//	Blue
+                          "#f58231",	//	Orange
+                          "#911eb4",	//	Purple
+                          "#46f0f0",	//	Cyan
+                          "#f032e6",	//	Magenta
+                          "#d2f53c",	//	Lime
+                          "#fabebe",	//	Pink
+                          "#008080",	//	Teal
+                          "#e6beff",	//	Lavender
+                          "#aa6e28",	//	Brown
+                          "#fffac8",	//	Beige
+                          "#800000",	//	Maroon
+                          "#aaffc3",	//	Mint
+                          "#808000",	//	Olive
+                          "#ffd8b1",	//	Coral
+                          "#000080",	//	Navy
+                          "#808080",	//	Grey
+                          "#FFFFFF",	//	White
+                          "#000000"	//	Black
+            ]
+
+            json.color = colors[(int) (count%(colors.size()))]
+        }
+
         json.image = image.id
         json.project = project.id
 
