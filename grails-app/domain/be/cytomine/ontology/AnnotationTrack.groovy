@@ -54,10 +54,10 @@ class AnnotationTrack extends CytomineDomain {
                 throw new AlreadyExistException("AnnotationTrack linking ${annotationTrack?.annotationIdent} with ${annotationTrack.track} already exist!")
             }
 
-            annotationTrack = AnnotationTrack.findBySliceAndTrack(slice, track)
-            if (annotationTrack != null) {
-                throw new AlreadyExistException("An annotation on slice ${slice} is already linked to this track ${track} !")
-            }
+//            annotationTrack = AnnotationTrack.findBySliceAndTrack(slice, track)
+//            if (annotationTrack != null) {
+//                throw new AlreadyExistException("An annotation on slice ${slice} is already linked to this track ${track} !")
+//            }
         }
     }
 
