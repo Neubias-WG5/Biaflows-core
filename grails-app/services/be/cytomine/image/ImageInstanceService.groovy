@@ -22,6 +22,7 @@ import be.cytomine.api.UrlApi
 import be.cytomine.command.*
 import be.cytomine.image.multidim.ImageSequence
 import be.cytomine.ontology.*
+import be.cytomine.processing.metric.ImageInstanceMetricResult
 import be.cytomine.project.Project
 import be.cytomine.security.SecUser
 import be.cytomine.security.User
@@ -579,6 +580,13 @@ class ImageInstanceService extends ModelService {
     def deleteDependentTrack(ImageInstance image, Transaction transaction, Task task = null) {
         Track.findAllByImage(image).each {
             trackService.delete(it, transaction, task)
+        }
+    }
+
+    def imageInstanceMetricResultService
+    def deleteDependentImageInstanceMetricResult(ImageInstance image, Transaction transaction, Task task = null) {
+        ImageInstanceMetricResult.findAllByImageInstance(image).each {
+            imageInstanceMetricResultService.delete(it, transaction, task)
         }
     }
 
