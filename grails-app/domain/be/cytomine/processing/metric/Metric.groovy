@@ -80,7 +80,7 @@ class Metric extends CytomineDomain implements Serializable{
         domain.shortName = JSONUtils.getJSONAttrStr(json, 'shortName')
 
         if (json.disciplines) {
-            domain.disciplines.clear();
+            domain.disciplines?.clear();
             json.disciplines?.each { it ->
                 def discipline = Discipline.read(it)
                 if (discipline) domain.addToDisciplines(discipline)
