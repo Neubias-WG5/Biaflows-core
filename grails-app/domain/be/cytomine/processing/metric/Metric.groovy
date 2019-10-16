@@ -23,6 +23,8 @@ import be.cytomine.utils.JSONUtils
 import org.restapidoc.annotation.RestApiObject
 import org.restapidoc.annotation.RestApiObjectField
 import org.restapidoc.annotation.RestApiObjectFields
+import org.springframework.security.acls.domain.BasePermission
+import org.springframework.security.acls.model.Permission
 
 /**
  * A metric is a thematic for a project
@@ -113,6 +115,14 @@ class Metric extends CytomineDomain implements Serializable{
 
     CytomineDomain container() {
         return this;
+    }
+
+    @Override
+    boolean checkPermission(Permission permission, boolean isAdmin) {
+        if (permission == BasePermission.READ) {
+            return true
+        }
+        return super.checkPermission(permission, isAdmin)
     }
 
 }
