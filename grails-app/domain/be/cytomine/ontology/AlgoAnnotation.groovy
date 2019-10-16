@@ -156,7 +156,7 @@ class AlgoAnnotation extends AnnotationDomain implements Serializable {
         }
         else {
             try {
-                domain.location = new WKTReader().read(json.location)
+                domain.location = new WKTReader().read((String)json.location)
             }
             catch (com.vividsolutions.jts.io.ParseException ex) {
                 throw new WrongArgumentException(ex.toString())
