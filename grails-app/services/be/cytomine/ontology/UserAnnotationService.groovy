@@ -214,7 +214,7 @@ class UserAnnotationService extends ModelService {
         try {
             annotationShape = new WKTReader().read(json.location)
         }
-        catch (ParseException ignored) {
+        catch (Exception ignored) {
             throw new WrongArgumentException("Annotation location is not valid")
         }
 
@@ -229,6 +229,11 @@ class UserAnnotationService extends ModelService {
             json.geometryCompression = data.rate
         } catch (Exception e) {
             log.error("Cannot simplify annotation location:" + e)
+        }
+
+        if (!json.location) {
+            json.location = annotationShape
+            json.geometryCompression = 0.0d
         }
 
         //Start transaction

@@ -58,17 +58,17 @@ class RestController {
     public Object add(def service, def json) {
         try {
             if (json instanceof JSONArray) {
-                responseResult(addMultiple(service, json))
+                return responseResult(addMultiple(service, json))
             } else {
                 def result = addOne(service, json)
                 if(result) {
-                    responseResult(result)
+                    return responseResult(result)
                 }
             }
         } catch (CytomineException e) {
-            log.error("add error:" + e.msg)
+            log.info("add error:" + e.msg)
             log.error(e)
-            response([success: false, errors: e.msg], e.code)
+            return response([success: false, errors: e.msg], e.code)
         }
     }
 

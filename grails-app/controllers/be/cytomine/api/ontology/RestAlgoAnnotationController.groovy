@@ -116,12 +116,7 @@ class  RestAlgoAnnotationController extends RestController {
             @RestApiParam(name="POST JSON: maxPoint", type="int", paramType = RestApiParamType.QUERY, required = false, description = "Maximum number of point that constitute the annotation")
     ])
     def add(){
-        def json = request.JSON
-        if (json instanceof JSONArray) {
-            responseResult(addMultiple(algoAnnotationService, json))
-        } else {
-            responseResult(addOne(algoAnnotationService, json))
-        }
+        add(algoAnnotationService, request.JSON)
     }
 
 
