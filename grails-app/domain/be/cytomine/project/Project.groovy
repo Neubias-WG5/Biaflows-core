@@ -86,23 +86,23 @@ class Project extends CytomineDomain implements Serializable {
      * If true, don't suggest similar annotations
      */
     @RestApiObjectField(description = "If true, don't suggest similar annotations")
-    boolean retrievalDisable = false
+    boolean retrievalDisable = true
 
     /**
      * Flag for retrieval search on all ontologies
      * If true, search similar annotations on all project that share the same ontology
      */
     @RestApiObjectField(description = "If true, search similar annotations on all project that share the same ontology",defaultValue = "true")
-    boolean retrievalAllOntology = true
+    boolean retrievalAllOntology = false
 
     @RestApiObjectField(description = "If true, project is closed",mandatory = false)
     boolean isClosed = false
 
     @RestApiObjectField(description = "If true, an user (which is not an administrator of the project) cannot see others users layers",mandatory = false)
-    boolean hideUsersLayers = false
+    boolean hideUsersLayers = true
 
     @RestApiObjectField(description = "If true, an user (which is not an administrator of the project) cannot see admins layers", mandatory = false)
-    boolean hideAdminsLayers = false
+    boolean hideAdminsLayers = true
 
     @RestApiObjectField(description = "Editing mode of the current project (read_only, restricted or classic)", mandatory = true)
     EditingMode mode = EditingMode.CLASSIC;
@@ -183,20 +183,21 @@ class Project extends CytomineDomain implements Serializable {
         domain.ontology = JSONUtils.getJSONAttrDomain(json, "ontology", new Ontology(), false)
         domain.discipline = JSONUtils.getJSONAttrDomain(json, "discipline", new Discipline(), false)
 
-        domain.retrievalDisable = JSONUtils.getJSONAttrBoolean(json, 'retrievalDisable', false)
-        domain.retrievalAllOntology = JSONUtils.getJSONAttrBoolean(json, 'retrievalAllOntology', true)
+        domain.retrievalDisable = JSONUtils.getJSONAttrBoolean(json, 'retrievalDisable', true)
+        domain.retrievalAllOntology = JSONUtils.getJSONAttrBoolean(json, 'retrievalAllOntology', false)
 
         domain.blindMode = JSONUtils.getJSONAttrBoolean(json, 'blindMode', false)
         domain.created = JSONUtils.getJSONAttrDate(json, 'created')
         domain.updated = JSONUtils.getJSONAttrDate(json, 'updated')
         domain.deleted = JSONUtils.getJSONAttrDate(json, "deleted")
         domain.isClosed = JSONUtils.getJSONAttrBoolean(json, 'isClosed', false)
-        domain.mode = EditingMode.CLASSIC;
-        if(JSONUtils.getJSONAttrBoolean(json, 'isRestricted', false)) domain.mode = EditingMode.RESTRICTED;
-        if(JSONUtils.getJSONAttrBoolean(json, 'isReadOnly', false)) domain.mode = EditingMode.READ_ONLY;
+        domain.mode = EditingMode.RESTRICTED;
 
-        domain.hideUsersLayers = JSONUtils.getJSONAttrBoolean(json, 'hideUsersLayers', false)
-        domain.hideAdminsLayers = JSONUtils.getJSONAttrBoolean(json, 'hideAdminsLayers', false)
+        if(JSONUtils.getJSONAttrBoolean(json, 'isReadOnly', false)) domain.mode = EditingMode.READ_ONLY;
+        else if(!JSONUtils.getJSONAttrBoolean(json, 'isRestricted', false)) domain.mode = EditingMode.CLASSIC;
+
+        domain.hideUsersLayers = JSONUtils.getJSONAttrBoolean(json, 'hideUsersLayers', true)
+        domain.hideAdminsLayers = JSONUtils.getJSONAttrBoolean(json, 'hideAdminsLayers', true)
 
         if(!json.retrievalProjects.toString().equals("null")) {
             domain.retrievalProjects?.clear()
