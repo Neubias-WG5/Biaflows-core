@@ -139,8 +139,8 @@ class SoftwareService extends ModelService {
     def afterAdd(def domain, def response) {
         aclUtilService.addPermission(domain, cytomineService.currentUser.username, BasePermission.ADMINISTRATION)
 
-        // Add this software in all projects that have the previous version
         if (domain.softwareVersion) {
+            // Add this software in all projects that have the previous version
             List<Project> projects = Project.executeQuery("select distinct p from SoftwareProject as sp " +
                     "inner join sp.project as p " +
                     "inner join sp.software as s " +
@@ -149,6 +149,9 @@ class SoftwareService extends ModelService {
                 SoftwareProject sp = new SoftwareProject(software: domain, project: it)
                 sp.save(failOnError: true)
             }
+
+            // Deprecate previous versions
+            Software.executeUpdate("update Software set deprecated = true where name = ? and softwareVersion < ?", [domain.name, domain.softwareVersion])
         }
 
         updateWorkflowConfiguration(domain)
