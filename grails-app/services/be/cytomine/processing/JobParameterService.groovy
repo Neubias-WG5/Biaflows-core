@@ -101,7 +101,7 @@ class JobParameterService extends ModelService {
      * Add a job parameter for a job
      */
     def addJobParameter(def idJob, def idSoftwareParameter, def value,User currentUser,Transaction transaction) {
-        def json = JSON.parse("{softwareParameter: $idSoftwareParameter, value: $value, job: $idJob}")
+        def json = JSON.parse("""{softwareParameter: $idSoftwareParameter, value: "$value", job: $idJob}""")
         return executeCommand(new AddCommand(user: currentUser,transaction:transaction),null,json)
     }
 
