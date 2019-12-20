@@ -158,6 +158,7 @@ class BootstrapDataService {
         return [
                 [name: "Dice coefficient", shortName: "DC", disciplines: ["ObjSeg"]],
                 [name: "Average Hausdorff distance", shortName: "AHD", disciplines: ["ObjSeg"]],
+                [name: "Fraction Overlap Pred", shortName: "FOVL", disciplines: ["ObjSeg"]],
                 [name: "Relative error count", shortName: "REC", disciplines: ["SptCnt"]],
                 [name: "True positives", shortName: "TP", disciplines: ["ObjDet"]],
                 [name: "False positives", shortName: "FP", disciplines: ["ObjDet"]],
@@ -167,7 +168,8 @@ class BootstrapDataService {
                 [name: "Precision", shortName: "PR", disciplines: ["PixCla", "ObjDet"]],
                 [name: "Recall", shortName: "RE", disciplines: ["PixCla", "ObjDet"]],
                 [name: "Distance root mean square error", shortName: "RMSE", disciplines: ["ObjDet"]],
-                [name: "DIADEM metric", shortName: "DM", disciplines: ["TreTrc"]],
+                [name: "NetMets Geometric False Positive Rate (Trees)", shortName: "TFPR", disciplines: ["TreTrc"]],
+                [name: "NetMets Geometric False Negative Rate (Trees)", shortName: "TFNR", disciplines: ["TreTrc"]],
                 [name: "Unmatched voxel rate", shortName: "UVR", disciplines: ["LooTrc"]],
                 [name: "Geometric false negative rate", shortName: "FNR", disciplines: ["LooTrc"]],
                 [name: "Geometric false positive rate", shortName: "FPR", disciplines: ["LooTrc"]],
