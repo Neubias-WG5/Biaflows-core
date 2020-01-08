@@ -207,7 +207,8 @@ class ImageInstance extends CytomineDomain implements Serializable {
 
         returnArray['resolution'] = image?.resolution
         returnArray['magnification'] = image?.magnification
-        returnArray['bitDepth'] = image?.baseImage?.bitDepth
+        returnArray['bitPerSample'] = image?.baseImage?.bitPerSample
+        returnArray['samplePerPixel'] = image?.baseImage?.samplePerPixel
         returnArray['colorspace'] = image?.baseImage?.colorspace
 
         returnArray['reviewStart'] =  image?.reviewStart?.time?.toString()
