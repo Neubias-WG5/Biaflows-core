@@ -107,7 +107,13 @@ class ImageInstanceUrlMappings {
         "/api/imageinstance/$id/metadata.$format"(controller: "restImageInstance"){
             action = [GET: "metadata"]
         }
-        
+        "/api/imageinstance/$id/histogram/extract.$format"(controller: "restImageInstance"){
+            action = [POST:"extractHistogram"]
+        }
+        "/api/imageinstance/$id/histogram/stats.$format"(controller: "restImageInstance"){
+            action = [GET: "showHistogramStats"]
+        }
+
         // Deprecated
         "/api/imageinstance/$id/cropgeometry.$format"(controller :"restImageInstance") {
             action = [GET:"crop", POST:"crop"]

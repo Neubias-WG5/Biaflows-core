@@ -39,6 +39,7 @@ class RestAbstractImageController extends RestController {
     def projectService
     def imageServerService
     def uploadedFileService
+    def sampleHistogramService
 
     @RestApiMethod(description="Get all image available for the current user", listing = true)
     @RestApiParams(params=[
@@ -334,6 +335,27 @@ class RestAbstractImageController extends RestController {
         AbstractImage abstractImage = abstractImageService.read(params.long('id'))
         imagePropertiesService.extractUseful(abstractImage)
         responseSuccess([:])
+    }
+
+    @RestApiMethod(description = "Compute histogram for the whole image")
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The image id")
+    ])
+    @RestApiResponseObject(objectIdentifier = "empty")
+    def extractHistogram() {
+        AbstractImage abstractImage = abstractImageService.read(params.long('id'))
+        sampleHistogramService.extractHistogram(abstractImage)
+        responseSuccess([:])
+    }
+
+    @RestApiMethod(description = "Get histogram statistics for the whole image")
+    @RestApiParams(params=[
+            @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The image id")
+    ])
+    @RestApiResponseObject(objectIdentifier = "empty")
+    def showHistogramStats() {
+        AbstractImage abstractImage = abstractImageService.read(params.long('id'))
+        responseSuccess(sampleHistogramService.histogramStats(abstractImage))
     }
 
 }

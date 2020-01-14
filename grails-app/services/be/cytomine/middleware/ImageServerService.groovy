@@ -8,6 +8,7 @@ import be.cytomine.image.SliceInstance
 import be.cytomine.image.UploadedFile
 import be.cytomine.utils.GeometryUtils
 import be.cytomine.utils.ModelService
+import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.WKTReader
 import grails.converters.JSON
 import groovyx.net.http.ContentType
@@ -57,6 +58,13 @@ class ImageServerService extends ModelService {
     def properties(AbstractImage image) {
         def (server, parameters) = imsParametersFromAbstractImage(image)
         return JSON.parse(new URL(makeGetUrl("/image/properties.json", server, parameters)).text)
+    }
+
+    def sampleHistograms(AbstractSlice slice) {
+        def (server, parameters) = imsParametersFromAbstractSlice(slice)
+        parameters.samplePerPixel = slice?.image?.samplePerPixel
+        parameters.bitPerSample = slice?.image?.bitPerSample
+        return JSON.parse(new URL(makeGetUrl("/slice/histogram.json", server, parameters)).text)
     }
 
     def associated(ImageInstance image) {
@@ -253,6 +261,9 @@ class ImageServerService extends ModelService {
     private static def makeGetUrl(def uri, def server, def parameters) {
         parameters = filterParameters(parameters)
         String query = parameters.collect { key, value ->
+            if (value instanceof Geometry)
+                value = value.toText()
+
             if (value instanceof String)
                 value = URLEncoder.encode(value, "UTF-8")
             "$key=$value"
