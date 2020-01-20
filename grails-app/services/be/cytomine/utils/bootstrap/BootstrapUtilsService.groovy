@@ -381,6 +381,14 @@ class BootstrapUtilsService {
         return imagingServer
     }
 
+    def updateDefaultProcessingServer() {
+        def ps = ProcessingServer.findByName("local-server")
+        if (ps) {
+            ps.persistentDirectory = grailsApplication.config.cytomine.software.path.softwareImages
+            ps.save(flush: true)
+        }
+    }
+
     void convertMimeTypes(){
         SpringSecurityUtils.doWithAuth("admin", {
 

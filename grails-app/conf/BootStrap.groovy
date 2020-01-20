@@ -193,6 +193,7 @@ class BootStrap {
         log.info "create multiple IS and Retrieval..."
         bootstrapUtilsService.createMultipleIS()
         bootstrapUtilsService.createMultipleRetrieval()
+        bootstrapUtilsService.updateDefaultProcessingServer()
 
         bootstrapUtilsService.fillProjectConnections();
         bootstrapUtilsService.fillImageConsultations();
