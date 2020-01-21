@@ -38,7 +38,8 @@ class ImagePropertiesService implements Serializable {
                 physicalSizeY: [name: 'cytomine.physicalSizeY', parser: parseDouble],
                 physicalSizeZ: [name: 'cytomine.physicalSizeZ', parser: parseDouble],
                 fps          : [name: 'cytomine.fps', parser: parseDouble],
-                bitDepth     : [name: 'cytomine.bitdepth', parser: parseInt],
+                bitPerSample : [name: 'cytomine.bitPerSample', parser: parseInt],
+                samplePerPixel: [name: 'cytomine.samplePerPixel', parser: parseInt],
                 colorspace   : [name: 'cytomine.colorspace', parser: parseString],
                 magnification: [name: 'cytomine.magnification', parser: parseInt],
                 resolution   : [name: 'cytomine.resolution', parser: parseDouble]

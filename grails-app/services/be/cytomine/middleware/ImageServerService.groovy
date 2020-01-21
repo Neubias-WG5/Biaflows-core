@@ -100,7 +100,7 @@ class ImageServerService extends ModelService {
         parameters.inverse = params.inverse
         parameters.contrast = params.contrast
         parameters.gamma = params.gamma
-        parameters.bits = (params.bits == "max") ? (slice.image.bitDepth ?: 8) : params.bits
+        parameters.bits = (params.bits == "max") ? (slice.image.bitPerSample ?: 8) : params.bits
 
 //        AttachedFile attachedFile = AttachedFile.findByDomainIdentAndFilename(abstractImage.id, url)
 //        if (attachedFile) {
@@ -182,7 +182,7 @@ class ImageServerService extends ModelService {
         parameters.inverse = params.boolean('inverse')
         parameters.contrast = params.double('contrast')
         parameters.gamma = params.double('gamma')
-        parameters.bits = (params.bits == "max") ? (slice.image.bitDepth ?: 8) : params.int('bits')
+        parameters.bits = (params.bits == "max") ? (slice.image.bitPerSample ?: 8) : params.int('bits')
         parameters.alpha = params.int('alpha')
         parameters.thickness = params.int('thickness')
         parameters.color = params.color

@@ -79,8 +79,14 @@ class AbstractImage extends CytomineDomain implements Serializable {
     Double resolution
 
     @RestApiObjectField(description = "The image bit depth (bits per channel)")
-    // TODO: should be named bit per color (bpc) <> bit per pixel (bpp) = bit depth
+    // TODO: remove -> deprecated
     Integer bitDepth
+
+    @RestApiObjectField(description = "The number of bits per sample (color)")
+    Integer bitPerSample
+
+    @RestApiObjectField(description = "The number of samples (colors) per pixel")
+    Integer samplePerPixel
 
     @RestApiObjectField(description = "The image colorspace")
     String colorspace
@@ -120,6 +126,8 @@ class AbstractImage extends CytomineDomain implements Serializable {
         bitDepth(nullable: true)
         colorspace(nullable: true)
         user(nullable: true)
+        bitPerSample(nullable: true)
+        samplePerPixel(nullable: true)
     }
 
     /**
@@ -153,7 +161,8 @@ class AbstractImage extends CytomineDomain implements Serializable {
         domain.sample = JSONUtils.getJSONAttrDomain(json,"sample",new Sample(),false)
         domain.magnification = JSONUtils.getJSONAttrInteger(json,'magnification',null)
         domain.resolution = JSONUtils.getJSONAttrDouble(json,'resolution',null)
-        domain.bitDepth = JSONUtils.getJSONAttrInteger(json, 'bitDepth', null)
+        domain.bitPerSample = JSONUtils.getJSONAttrInteger(json, 'bitPerSample', null)
+        domain.samplePerPixel = JSONUtils.getJSONAttrInteger(json, 'samplePerPixel', null)
         domain.colorspace = JSONUtils.getJSONAttrStr(json, 'colorspace', false)
         return domain;
     }
@@ -187,7 +196,8 @@ class AbstractImage extends CytomineDomain implements Serializable {
 
         returnArray['resolution'] = image?.resolution
         returnArray['magnification'] = image?.magnification
-        returnArray['bitDepth'] = image?.bitDepth
+        returnArray['bitPerSample'] = image?.bitPerSample
+        returnArray['samplePerPixel'] = image?.samplePerPixel
         returnArray['colorspace'] = image?.colorspace
         returnArray['thumb'] = UrlApi.getAbstractImageThumbUrlWithMaxSize(image ? (long)image?.id : null, 512)
         returnArray['preview'] = UrlApi.getAbstractImageThumbUrlWithMaxSize(image ? (long)image?.id : null, 1024)
