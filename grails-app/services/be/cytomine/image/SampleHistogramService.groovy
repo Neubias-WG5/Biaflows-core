@@ -40,6 +40,12 @@ class SampleHistogramService extends ModelService {
         SampleHistogram.findAllBySlice(slice)
     }
 
+    def list(SliceInstance slice) {
+        securityACLService.check(slice, READ)
+        SampleHistogram.findAllBySlice(slice.baseSlice)
+    }
+
+
     def add(def json) {
         SecUser currentUser = cytomineService.getCurrentUser()
         securityACLService.checkUser(currentUser)

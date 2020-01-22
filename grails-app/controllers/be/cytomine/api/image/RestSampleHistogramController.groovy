@@ -25,7 +25,7 @@ class RestSampleHistogramController extends RestController {
             @RestApiParam(name = "id", type = "long", paramType = RestApiParamType.PATH, description = "The abstract slice id")
     ])
     def listByAbstractSlice() {
-        AbstractSlice abstractSlice = abstractSliceService.(params.long("id"))
+        AbstractSlice abstractSlice = abstractSliceService.read(params.long("id"))
         if (abstractSlice) {
             responseSuccess(sampleHistogramService.list(abstractSlice))
         }
@@ -41,7 +41,7 @@ class RestSampleHistogramController extends RestController {
     def listBySliceInstance() {
         SliceInstance sliceInstance = sliceInstanceService.read(params.long("id"))
         if (sliceInstance) {
-            responseSuccess(sampleHistogramService.list(sliceInstance.baseSlice))
+            responseSuccess(sampleHistogramService.list(sliceInstance))
         }
         else {
             responseNotFound("SampleHistogram", "SliceInstance", params.id)
