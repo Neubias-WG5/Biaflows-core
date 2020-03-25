@@ -316,6 +316,7 @@ class SecUserService extends ModelService {
     }
 
 
+
     /**
      * List all layers from a project
      * Each user has its own layer
@@ -348,6 +349,10 @@ class SecUserService extends ModelService {
             def currentUserFormatted = User.getDataFromDomain(currentUser)
             layersFormatted.add(currentUserFormatted)
         }
+
+        def defaultLayersUsersIDs = projectDefaultLayerService.listByProject(project).collect { it.user.id }
+        def layersFormattedIds = layersFormatted.collect { it.id }
+        layersFormatted.addAll(humanUsersFormatted.findAll { defaultLayersUsersIDs.contains(it.id) && !layersFormattedIds.contains(it.id) })
 
         def jobUsersFormatted = (image) ? getUserJobImage(image) : []
         layersFormatted.addAll(jobUsersFormatted)
