@@ -111,11 +111,14 @@ class BootstrapOldVersionService {
         Version.setCurrentVersion(Long.parseLong(grailsApplication.metadata.'app.versionDate'), grailsApplication.metadata.'app.version')
     }
 
-//    void initv1_3_2() {
-//        log.info "1.3.2"
+    void initv1_7_1() {
+        log.info "1.7.0"
+        def sql = new Sql(dataSource)
+        def admin = SecUser.findByUsername("admin")
+        sql.executeUpdate("update software_user_repository set user_id = ${admin.id} where user_id is null;")
+        sql.close()
+    }
 
-//    }
-//
 
     def initv1_6_0() {
         log.info "v1.6.0"

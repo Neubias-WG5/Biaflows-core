@@ -18,6 +18,8 @@ package be.cytomine.processing
 
 import be.cytomine.CytomineDomain
 import be.cytomine.Exception.AlreadyExistException
+import be.cytomine.security.SecUser
+import be.cytomine.security.User
 import be.cytomine.utils.JSONUtils
 import com.rabbitmq.tools.json.JSONUtil
 import org.restapidoc.annotation.RestApiObject
@@ -25,6 +27,8 @@ import org.restapidoc.annotation.RestApiObjectField
 
 @RestApiObject(name = "Software user repository", description = "Representation of a repository manager and its docker hub")
 class SoftwareUserRepository extends CytomineDomain {
+
+    SecUser user
 
     @RestApiObjectField(description = "The provider name the user repository")
     String provider
@@ -41,11 +45,14 @@ class SoftwareUserRepository extends CytomineDomain {
     @RestApiObjectField(description = "The prefix used to identify a software repository")
     String prefix
 
+    static belongsTo = [User]
+
     static constraints = {
         provider(nullable: false, blank: false)
         username(nullable: false, blank: false)
         dockerUsername(nullable: false, blank: false)
         token(nullable: true, blank: true)
+        user(nullable: true)
     }
 
     static mapping = {
@@ -78,6 +85,7 @@ class SoftwareUserRepository extends CytomineDomain {
         domain.dockerUsername = JSONUtils.getJSONAttrStr(json, 'dockerUsername')
         domain.prefix = JSONUtils.getJSONAttrStr(json, 'prefix')
         domain.token = JSONUtils.getJSONAttrStr(json, 'token')
+        domain.user = JSONUtils.getJSONAttrDomain(json, "user", new SecUser(), false)
         return domain
     }
 
@@ -92,8 +100,12 @@ class SoftwareUserRepository extends CytomineDomain {
         returnArray['username'] = domain?.username
         returnArray['dockerUsername'] = domain?.dockerUsername
         returnArray['prefix'] = domain?.prefix
-        returnArray['token'] = domain?.token //TODO: !!!! shouldn't be sent in response but necessary for SR for now
+        returnArray['token'] = domain?.token
+        returnArray['user'] = domain?.user?.id
         return returnArray
     }
 
+    public SecUser userDomainCreator() {
+        return user
+    }
 }

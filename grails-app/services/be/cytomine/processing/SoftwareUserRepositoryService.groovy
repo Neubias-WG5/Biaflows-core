@@ -63,7 +63,8 @@ class SoftwareUserRepositoryService extends ModelService {
      */
     def add(def json) throws CytomineException {
         SecUser currentUser = cytomineService.getCurrentUser()
-        securityACLService.checkAdmin(currentUser)
+        securityACLService.checkUser(currentUser)
+        json.user = currentUser.id
         return executeCommand(new AddCommand(user: currentUser), null, json)
     }
 
@@ -75,7 +76,7 @@ class SoftwareUserRepositoryService extends ModelService {
      */
     def update(SoftwareUserRepository domain, def jsonNewData) {
         SecUser currentUser = cytomineService.getCurrentUser()
-        securityACLService.checkAdmin(currentUser)
+        securityACLService.checkIsCreator(domain, currentUser)
         return executeCommand(new EditCommand(user: currentUser), domain, jsonNewData)
     }
 
@@ -89,7 +90,7 @@ class SoftwareUserRepositoryService extends ModelService {
      */
     def delete(SoftwareUserRepository domain, Transaction transaction = null, Task task = null, boolean printMessage = true) {
         SecUser currentUser = cytomineService.getCurrentUser()
-        securityACLService.checkAdmin(currentUser)
+        securityACLService.checkIsCreator(domain, currentUser)
         Command c = new DeleteCommand(user: currentUser, transaction: transaction)
         return executeCommand(c, domain, null)
     }
