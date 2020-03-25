@@ -38,6 +38,8 @@ class Metric extends CytomineDomain implements Serializable{
     @RestApiObjectField(description = "The short name of the metric")
     String shortName
 
+    Boolean main = false
+
     @RestApiObjectFields(params=[
             @RestApiObjectField(apiFieldName = "disciplines", description = "Disciplines related to this metric",allowedType = "list",useForCreation = true, mandatory = false),
     ])
@@ -46,6 +48,7 @@ class Metric extends CytomineDomain implements Serializable{
     static constraints = {
         name(blank: false, unique: true)
         shortName(nullable: true)
+        main(nullable: true)
     }
     
     static mapping = {
@@ -80,6 +83,7 @@ class Metric extends CytomineDomain implements Serializable{
         domain.id = JSONUtils.getJSONAttrLong(json,'id',null)
         domain.name = JSONUtils.getJSONAttrStr(json, 'name')
         domain.shortName = JSONUtils.getJSONAttrStr(json, 'shortName')
+        domain.main = JSONUtils.getJSONAttrBoolean(json, 'main', false)
 
         if (json.disciplines) {
             domain.disciplines?.clear();
@@ -100,6 +104,7 @@ class Metric extends CytomineDomain implements Serializable{
         def returnArray = CytomineDomain.getDataFromDomain(domain)
         returnArray['name'] = domain?.name
         returnArray['shortName'] = domain?.shortName
+        returnArray['main'] = domain?.main ?: false
         returnArray['disciplines'] = domain?.disciplines?.collect{ it.id }
         return returnArray
     }
