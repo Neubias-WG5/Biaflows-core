@@ -32,6 +32,9 @@ class SoftwareUserRepository extends CytomineDomain {
     @RestApiObjectField(description = "The username of the user repository")
     String username
 
+    @RestApiObjectField(description = "The token of the user repository")
+    String token
+
     @RestApiObjectField(description = "The docker username associated to the software repository")
     String dockerUsername
 
@@ -42,6 +45,7 @@ class SoftwareUserRepository extends CytomineDomain {
         provider(nullable: false, blank: false)
         username(nullable: false, blank: false)
         dockerUsername(nullable: false, blank: false)
+        token(nullable: true, blank: true)
     }
 
     static mapping = {
@@ -73,6 +77,7 @@ class SoftwareUserRepository extends CytomineDomain {
         domain.username = JSONUtils.getJSONAttrStr(json, 'username')
         domain.dockerUsername = JSONUtils.getJSONAttrStr(json, 'dockerUsername')
         domain.prefix = JSONUtils.getJSONAttrStr(json, 'prefix')
+        domain.token = JSONUtils.getJSONAttrStr(json, 'token')
         return domain
     }
 
@@ -87,6 +92,7 @@ class SoftwareUserRepository extends CytomineDomain {
         returnArray['username'] = domain?.username
         returnArray['dockerUsername'] = domain?.dockerUsername
         returnArray['prefix'] = domain?.prefix
+        returnArray['token'] = domain?.token //TODO: !!!! shouldn't be sent in response but necessary for SR for now
         return returnArray
     }
 

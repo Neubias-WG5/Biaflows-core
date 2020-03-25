@@ -117,7 +117,9 @@ class SoftwareUserRepositoryService extends ModelService {
                        provider: softwareUserRepository.provider,
                        username: softwareUserRepository.username,
                        dockerUsername: softwareUserRepository.dockerUsername,
-                       prefix: softwareUserRepository.prefix]
+                       prefix: softwareUserRepository.prefix,
+                       token: softwareUserRepository.token
+        ]
 
         JsonBuilder jsonBuilder = new JsonBuilder()
         jsonBuilder(message)
