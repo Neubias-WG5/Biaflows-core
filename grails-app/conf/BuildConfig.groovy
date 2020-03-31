@@ -65,7 +65,7 @@ grails.project.dependency.resolution = {
         mavenLocal()
         mavenCentral()
         // For Geb snapshot
-        mavenRepo "https://oss.sonatype.org/content/repositories/codehaus-snapshots/"
+//        mavenRepo "https://oss.sonatype.org/content/repositories/codehaus-snapshots/"
         //mavenRepo 'https://noams.artifactoryonline.com/noams/grails-jaxrs-plugin-snapshots'
         mavenRepo 'http://maven.restlet.org'
         mavenRepo "http://www.hibernatespatial.org/repository"
