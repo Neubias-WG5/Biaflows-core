@@ -7,8 +7,8 @@
 #./grailsw war
 #
 ## 3) Copy to Docker build context
-#cp restapidoc.json docker
-#cp core.war docker
+mv restapidoc.json docker
+mv core.war docker
 
 # 4) Retrieve version number
 VERSION=$(cat application.properties | grep app.version=)
