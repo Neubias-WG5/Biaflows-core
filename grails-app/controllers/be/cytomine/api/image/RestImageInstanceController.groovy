@@ -33,6 +33,7 @@ import com.vividsolutions.jts.io.WKTReader
 import com.vividsolutions.jts.io.WKTWriter
 import grails.converters.JSON
 import org.codehaus.groovy.grails.web.json.JSONObject
+import org.hibernate.FetchMode
 import org.restapidoc.annotation.*
 import org.restapidoc.pojo.RestApiParamType
 
@@ -127,29 +128,83 @@ class RestImageInstanceController extends RestController {
         }
     }
 
-    @RestApiMethod(description="Get the next project image (by instance filename)")
+    @RestApiMethod(description="Get the next project image (first image created before)")
     @RestApiParams(params=[
     @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The current image instance id"),
     ])
     def next() {
         def image = imageInstanceService.read(params.long('id'))
-        def next = ImageInstance.findByProjectAndInstanceFilenameGreaterThanAndDeletedIsNull(image.project,image.instanceFilename,[sort:'instanceFilename',order:'asc'])
-        if(next) {
-            responseSuccess(next)
+        def next
+        if (!image.blindInstanceFilename.contains("_lbl")) {
+            next = ImageInstance.createCriteria().list {
+                createAlias("baseImage", "ai")
+                eq("project", image.project)
+                lt("created", image.created)
+                isNull("parent")
+                isNull("deleted")
+                fetchMode 'baseImage', FetchMode.JOIN
+                not {
+                    ilike("ai.originalFilename", "%_lbl%")
+                }
+                order("created", "desc")
+                maxResults(1)
+            }
+        } else {
+            next = ImageInstance.createCriteria().list {
+                createAlias("baseImage", "ai")
+                eq("project", image.project)
+                lt("created", image.created)
+                isNull("parent")
+                isNull("deleted")
+                fetchMode 'baseImage', FetchMode.JOIN
+                ilike("ai.originalFilename", "%_lbl%")
+                order("created", "desc")
+                maxResults(1)
+            }
+        }
+        if(next && next.size() > 0) {
+            responseSuccess(next[0])
         } else {
             responseSuccess([:])
         }
     }
 
-    @RestApiMethod(description="Get the previous project image (by instance filename)")
+    @RestApiMethod(description="Get the previous project image (first image created after)")
     @RestApiParams(params=[
     @RestApiParam(name="id", type="long", paramType = RestApiParamType.PATH, description = "The current image instance id"),
     ])
     def previous() {
         def image = imageInstanceService.read(params.long('id'))
-        def previous = ImageInstance.findByProjectAndInstanceFilenameLessThanAndDeletedIsNull(image.project,image.instanceFilename,[sort:'instanceFilename',order:'desc'])
-        if(previous) {
-            responseSuccess(previous)
+        def previous
+        if (!image.blindInstanceFilename.contains("_lbl")) {
+            previous = ImageInstance.createCriteria().list {
+                createAlias("baseImage", "ai")
+                eq("project", image.project)
+                gt("created", image.created)
+                isNull("parent")
+                isNull("deleted")
+                fetchMode 'baseImage', FetchMode.JOIN
+                not {
+                    ilike("ai.originalFilename", "%_lbl%")
+                }
+                order("created", "asc")
+                maxResults(1)
+            }
+        } else {
+            previous = ImageInstance.createCriteria().list {
+                createAlias("baseImage", "ai")
+                eq("project", image.project)
+                gt("created", image.created)
+                isNull("parent")
+                isNull("deleted")
+                fetchMode 'baseImage', FetchMode.JOIN
+                ilike("ai.originalFilename", "%_lbl%")
+                order("created", "asc")
+                maxResults(1)
+            }
+        }
+        if(previous && previous.size() > 0) {
+            responseSuccess(previous[0])
         } else {
             responseSuccess([:])
         }
