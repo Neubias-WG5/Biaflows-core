@@ -109,23 +109,28 @@ class SoftwareUserRepositoryService extends ModelService {
         return [domain.username, domain.dockerUsername, domain.prefix]
     }
 
-    @Override
-    def afterAdd(Object domain, Object response) {
-        SoftwareUserRepository softwareUserRepository = domain as SoftwareUserRepository
-
-        def message = [requestType: "addSoftwareUserRepository",
-                       id: softwareUserRepository.id,
-                       provider: softwareUserRepository.provider,
-                       username: softwareUserRepository.username,
-                       dockerUsername: softwareUserRepository.dockerUsername,
-                       prefix: softwareUserRepository.prefix,
-                       token: softwareUserRepository.token
-        ]
+    def sendRefreshSoftwareUserRepositoryList() {
+        def message = [requestType: "refreshSoftwareUserRepositoryList"]
 
         JsonBuilder jsonBuilder = new JsonBuilder()
         jsonBuilder(message)
 
         amqpQueueService.publishMessage(AmqpQueue.findByName("queueCommunication"), jsonBuilder.toString())
+    }
+
+    @Override
+    def afterAdd(Object domain, Object response) {
+        sendRefreshSoftwareUserRepositoryList()
+    }
+
+    @Override
+    def afterDelete(Object domain, Object response) {
+        sendRefreshSoftwareUserRepositoryList()
+    }
+
+    @Override
+    def afterUpdate(Object domain, Object response) {
+        sendRefreshSoftwareUserRepositoryList()
     }
 
     def refresh(def repo) {
