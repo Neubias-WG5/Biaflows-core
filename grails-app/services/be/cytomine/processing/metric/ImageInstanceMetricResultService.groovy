@@ -53,6 +53,9 @@ class ImageInstanceMetricResultService extends ModelService {
 
     def list(def jobs, def images, def aggregate) {
         securityACLService.checkGuest(cytomineService.currentUser)
+        if (!jobs || jobs.size() == 0)
+            return []
+
         if (aggregate) {
             def jobIds = jobs.collect { it.id }
             def imageIds = images.collect { it.id }
