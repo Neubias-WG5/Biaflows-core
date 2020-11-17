@@ -79,7 +79,7 @@ class RestSoftwareUserRepositoryController extends RestController {
     def refresh() {
         def repo = softwareUserRepositoryService.read(params.long('id'))
         if (repo) {
-            securityACLService.checkIsCreator(cytomineService.currentUser)
+            securityACLService.checkIsCreator(repo, cytomineService.currentUser)
             softwareUserRepositoryService.refresh(repo)
             responseSuccess(["message": "Software repositories refreshing has been asked!"])
         }
