@@ -83,6 +83,15 @@ class JobRuntimeService {
         def values = retrieveParameters(job, parameters)
 
         String command = job.software.executeCommand
+
+        if (!job.project.computeMetricsInJobs) {
+            command += " -nmc"
+        }
+
+        if (!job.project.uploadJobAnnotations) {
+            command += " -nau"
+        }
+
         values.each {
             SoftwareParameter softwareParameter = it.key as SoftwareParameter
 

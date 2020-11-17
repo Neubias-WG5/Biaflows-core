@@ -20,6 +20,7 @@ import be.cytomine.CytomineDomain
 import be.cytomine.Exception.AlreadyExistException
 import be.cytomine.ontology.Ontology
 import be.cytomine.utils.JSONUtils
+import grails.util.Holders
 import org.restapidoc.annotation.RestApiObject
 import org.restapidoc.annotation.RestApiObjectField
 import org.restapidoc.annotation.RestApiObjectFields
@@ -104,6 +105,9 @@ class Project extends CytomineDomain implements Serializable {
     @RestApiObjectField(description = "If true, an user (which is not an administrator of the project) cannot see admins layers", mandatory = false)
     boolean hideAdminsLayers = true
 
+    Boolean computeMetricsInJobs = true
+    Boolean uploadJobAnnotations = true
+
     @RestApiObjectField(description = "Editing mode of the current project (read_only, restricted or classic)", mandatory = true)
     EditingMode mode = EditingMode.CLASSIC;
 
@@ -128,6 +132,8 @@ class Project extends CytomineDomain implements Serializable {
         name(maxSize: 150, unique: true, blank: false)
         discipline(nullable: true)
         ontology(nullable: true)
+        computeMetricsInJobs(nullable: true)
+        uploadJobAnnotations(nullable: true)
     }
 
     /**
@@ -199,6 +205,12 @@ class Project extends CytomineDomain implements Serializable {
         domain.hideUsersLayers = JSONUtils.getJSONAttrBoolean(json, 'hideUsersLayers', true)
         domain.hideAdminsLayers = JSONUtils.getJSONAttrBoolean(json, 'hideAdminsLayers', true)
 
+        boolean defaultComputeMetrics = Holders.config.biaflows.workflows.computeMetrics
+        domain.computeMetricsInJobs = JSONUtils.getJSONAttrBoolean(json, "computeMetricsInJobs", defaultComputeMetrics)
+
+        boolean defaultUploadAnnotations = Holders.config.biaflows.workflows.uploadAnnotations
+        domain.uploadJobAnnotations = JSONUtils.getJSONAttrBoolean(json, "uploadJobAnnotations", defaultUploadAnnotations)
+
         if(!json.retrievalProjects.toString().equals("null")) {
             domain.retrievalProjects?.clear()
             json.retrievalProjects.each { idProject ->
@@ -246,6 +258,9 @@ class Project extends CytomineDomain implements Serializable {
         }
         returnArray['hideUsersLayers'] = domain?.hideUsersLayers
         returnArray['hideAdminsLayers'] = domain?.hideAdminsLayers
+
+        returnArray['computeMetricsInJobs'] = domain?.computeMetricsInJobs
+        returnArray['uploadJobAnnotations'] = domain?.uploadJobAnnotations
 
         return returnArray
     }

@@ -697,12 +697,4 @@ class BootstrapUtilsService {
     }
 
     def softwareService
-    def updateWorkflowConfiguration() {
-        log.info("Update workflow configuration")
-
-        Software.findAllByExecuteCommandIsNotNullAndPullingCommandIsNotNull().each {
-            softwareService.updateWorkflowConfiguration(it)
-        }
-    }
-
 }

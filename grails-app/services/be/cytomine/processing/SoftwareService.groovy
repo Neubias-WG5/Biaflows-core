@@ -153,27 +153,6 @@ class SoftwareService extends ModelService {
             // Deprecate previous versions
             Software.executeUpdate("update Software set deprecated = true where name = ? and softwareVersion < ?", [domain.name, domain.softwareVersion])
         }
-
-        updateWorkflowConfiguration(domain)
-    }
-
-    def updateWorkflowConfiguration(def software) {
-        def nometrics = !grailsApplication.config.biaflows.workflows.metrics
-        def noexport = !grailsApplication.config.biaflows.workflows.export
-
-        if (software.executeCommand) {
-            if (nometrics && !software.executeCommand?.contains("--nometrics"))
-                software.executeCommand += " --nometrics"
-            else
-                software.executeCommand = software.executeCommand?.replaceAll(" --nometrics", "")
-
-            if (noexport && !software.executeCommand?.contains("--noexport"))
-                software.executeCommand += " --noexport"
-            else
-                software.executeCommand = software.executeCommand?.replaceAll(" --noexport", "")
-        }
-
-        software.save(flush: true)
     }
 
     def afterDelete(def domain, def response) {

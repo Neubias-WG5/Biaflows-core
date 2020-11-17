@@ -42,6 +42,7 @@ import be.cytomine.utils.Configuration
 import be.cytomine.utils.Version
 import grails.converters.JSON
 import grails.plugin.springsecurity.SpringSecurityUtils
+import grails.util.Holders
 import groovy.sql.Sql
 import org.apache.commons.io.FilenameUtils
 
@@ -109,6 +110,16 @@ class BootstrapOldVersionService {
 
         }
         Version.setCurrentVersion(Long.parseLong(grailsApplication.metadata.'app.versionDate'), grailsApplication.metadata.'app.version')
+    }
+
+    void initv1_8_0() {
+        log.info "1.8.0"
+        def sql = new Sql(dataSource)
+        boolean defaultComputeMetrics = Holders.config.biaflows.workflows.computeMetrics
+        sql.executeUpdate("update project set compute_metrics_in_jobs = ${defaultComputeMetrics} where compute_metrics_in_jobs is null;")
+
+        boolean defaultUploadAnnotations = Holders.config.biaflows.workflows.uploadAnnotations
+        sql.executeUpdate("update project set upload_job_annotations = ${defaultUploadAnnotations} where upload_job_annotations is null;")
     }
 
     void initv1_7_1() {

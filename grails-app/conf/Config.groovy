@@ -469,3 +469,6 @@ grails.notification.smtp.port = "587"
 grails.instanceHostWebsite = "https://www.cytomine.org"
 grails.instanceHostSupportMail = "support@cytomine.coop"
 grails.instanceHostPhoneNumber = null
+
+biaflows.workflows.computeMetrics=true
+biaflows.workflows.uploadAnnotations=true

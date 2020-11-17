@@ -203,8 +203,6 @@ class BootStrap {
         bootstrapUtilsService.createDisciplines(bootstrapDataService.defaultDisciplines())
         bootstrapUtilsService.createMetrics(bootstrapDataService.defaultMetrics())
 
-        bootstrapUtilsService.updateWorkflowConfiguration()
-
         fixPlugins()
     }
 
